@@ -3,7 +3,7 @@
 
 ## Installation
 1. Install the [Tampermonkey extension for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) or [Tampermonkey extension for Firefox](https://addons.mozilla.org/de/firefox/addon/tampermonkey/)
-2. Add "Simple-YouTube-Age-Restriction-Bypass" by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js).
+2. Add "Simple-YouTube-Age-Restriction-Bypass.user.js" by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js).
 3. Done.
 
 ## Usage
