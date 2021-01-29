@@ -10,4 +10,4 @@
 No further actions are necessary. All age restricted videos are automatically unlocked.
 
 ## Known issues
-- If the "Allow embedding" option is disabled by the uploader, the ``/get_video_info`` endpoint will respond with an error and the playback fails.
+- ~~If the "Allow embedding" option is disabled by the uploader, the ``/get_video_info`` endpoint will respond with an error and the playback fails.~~ This should be fixed, but a login is required.
