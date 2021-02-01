@@ -18,8 +18,8 @@
     var responseCache = {};
 
     // Compatibility: getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    var chainedSetter = function(d) { return d };
-    var chainedGetter = function(d) { return d };
+    var chainedSetter = null;
+    var chainedGetter = null;
 
     // Compatibility: Intercept property (re-)definitions to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function(obj, prop, descriptor) {
@@ -37,13 +37,17 @@
     nativeDefineProperty(window, "ytInitialPlayerResponse", {
         set: function(playerResponse) {
             if(playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
-                wrappedPlayerResponse = chainedSetter(unlockPlayerResponse(playerResponse));
+                wrappedPlayerResponse = unlockPlayerResponse(playerResponse);
             } else {
-                wrappedPlayerResponse = chainedSetter(playerResponse);
+                wrappedPlayerResponse = playerResponse;
             }
+
+            if(typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
         },
         get: function() {
-            return chainedGetter(wrappedPlayerResponse);
+            if(typeof chainedGetter === "function") return chainedGetter();
+
+            return wrappedPlayerResponse;
         }
     });
 
