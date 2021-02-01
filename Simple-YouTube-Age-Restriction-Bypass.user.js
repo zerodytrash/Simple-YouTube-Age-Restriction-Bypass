@@ -1,31 +1,55 @@
 // ==UserScript==
 // @name         Simple YouTube Age Restriction Bypass
 // @namespace    https://zerody.one
-// @version      0.3
+// @version      0.4
 // @description  View age restricted videos on YouTube without verification and login :)
 // @author       ZerodyOne
 // @match        https://www.youtube.com/*
 // @grant        none
-// @run-at       document-body
+// @run-at       document-start
 // ==/UserScript==
 
 (function() {
 
-    var nativeParse = window.JSON.parse; // Backup the original parse function to prevent a call loop
-    var useBypassEverywhere = false; // This option can be enabled to block video ads (Adblock), but it can cause negative side effects~
+    var nativeParse = window.JSON.parse; // Backup the original parse function
+    var nativeDefineProperty = window.Object.defineProperty; // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
+    var wrappedPlayerResponse = null;
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED"];
     var responseCache = {};
 
-    // Unlock #1: Overwrite PlayerResponse in YT's inital page source
-    if(window.ytInitialPlayerResponse && isUnlockable(window.ytInitialPlayerResponse.playabilityStatus)) {
-        window.ytInitialPlayerResponse = unlockPlayerResponse(window.ytInitialPlayerResponse);
+    // Compatibility: getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
+    var chainedSetter = function(d) { return d };
+    var chainedGetter = function(d) { return d };
+
+    // Compatibility: Intercept property (re-)definitions to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    window.Object.defineProperty = function(obj, prop, descriptor) {
+        if(obj === window && prop === "ytInitialPlayerResponse") {
+            console.info("Another extension tries to re-define 'ytInitialPlayerResponse' (probably an AdBlock extension). Chain it...");
+
+            if(descriptor && descriptor.set) chainedSetter = descriptor.set;
+            if(descriptor && descriptor.get) chainedGetter = descriptor.get;
+        } else {
+            nativeDefineProperty(obj, prop, descriptor);
+        }
     }
 
-    // Thats Smart! <3
-    window.JSON.parse = function(json) {
-        var parsedData = nativeParse(json);
-        parsedData = inspectJsonData(parsedData);
-        return parsedData;
+    // Unlock #1: Replace the inital player response when the variable is set on page load
+    nativeDefineProperty(window, "ytInitialPlayerResponse", {
+        set: function(playerResponse) {
+            if(playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
+                wrappedPlayerResponse = chainedSetter(unlockPlayerResponse(playerResponse));
+            } else {
+                wrappedPlayerResponse = chainedSetter(playerResponse);
+            }
+        },
+        get: function() {
+            return chainedGetter(wrappedPlayerResponse);
+        }
+    });
+
+    // Intercept JSON-based communication to unlock player responsed by hijacking the JSON.parse function
+    window.JSON.parse = function(text, reviver) {
+        return inspectJsonData(nativeParse(text, reviver));
     }
 
     function inspectJsonData(parsedData) {
@@ -59,7 +83,6 @@
 
     function isUnlockable(playabilityStatus) {
         if(!playabilityStatus || !playabilityStatus.status) return false;
-        if(useBypassEverywhere) return true;
         return unlockablePlayerStates.includes(playabilityStatus.status);
     }
 
@@ -99,4 +122,5 @@
 
         return playerResponse;
     }
+
 })();
