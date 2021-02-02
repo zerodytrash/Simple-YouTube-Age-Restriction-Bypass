@@ -17,11 +17,11 @@
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED"];
     var responseCache = {};
 
-    // Compatibility: getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
+    // Just for compatibility: getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
     var chainedSetter = null;
     var chainedGetter = null;
 
-    // Compatibility: Intercept property (re-)definitions to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    // Just for compatibility: Intercept property (re-)definitions to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function(obj, prop, descriptor) {
         if(obj === window && prop === "ytInitialPlayerResponse") {
             console.info("Another extension tries to re-define 'ytInitialPlayerResponse' (probably an AdBlock extension). Chain it...");
@@ -33,32 +33,27 @@
         }
     }
 
-    // Unlock #1: Replace the inital player response when the variable is set on page load
+    // Inspect and modify the initial player response as soon as the variable is set on page load
     nativeDefineProperty(window, "ytInitialPlayerResponse", {
         set: function(playerResponse) {
-            if(playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
-                wrappedPlayerResponse = unlockPlayerResponse(playerResponse);
-            } else {
-                wrappedPlayerResponse = playerResponse;
-            }
-
+            wrappedPlayerResponse = inspectJsonData(playerResponse);
             if(typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
         },
         get: function() {
             if(typeof chainedGetter === "function") return chainedGetter();
-
             return wrappedPlayerResponse;
-        }
+        },
+        configurable: true
     });
 
-    // Intercept JSON-based communication to unlock player responsed by hijacking the JSON.parse function
+    // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
     window.JSON.parse = function(text, reviver) {
         return inspectJsonData(nativeParse(text, reviver));
     }
 
     function inspectJsonData(parsedData) {
         try {
-            // Unlock #2: Array based in "&pbj=1" AJAX response on any navigation
+            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation
             if(Array.isArray(parsedData)) {
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem ? playerResponseArrayItem.playerResponse : null;
@@ -68,12 +63,12 @@
                 }
             }
 
-            // Unlock #3: Another JSON-Object
+            // Unlock #2: Another JSON-Object containing the 'playerResponse'
             if(parsedData.playerResponse && parsedData.playerResponse.playabilityStatus && parsedData.playerResponse.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
 
-            // Unlock #4: ...and another JSON-Object
+            // Unlock #3: Initial page data structure and raw player response
             if(parsedData.playabilityStatus && parsedData.videoDetails && isUnlockable(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
