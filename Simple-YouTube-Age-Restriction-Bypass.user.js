@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Simple YouTube Age Restriction Bypass
 // @namespace    https://zerody.one
-// @version      0.4
+// @version      0.5
 // @description  View age restricted videos on YouTube without verification and login :)
 // @author       ZerodyOne
 // @match        https://www.youtube.com/*
@@ -40,7 +40,7 @@
             if(typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
         },
         get: function() {
-            if(typeof chainedGetter === "function") return chainedGetter();
+            if(typeof chainedGetter === "function") try { return chainedGetter() } catch(err) { };
             return wrappedPlayerResponse;
         },
         configurable: true
