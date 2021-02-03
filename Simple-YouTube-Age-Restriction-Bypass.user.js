@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Simple YouTube Age Restriction Bypass
 // @namespace    https://zerody.one
-// @version      0.5
+// @version      0.6
 // @description  View age restricted videos on YouTube without verification and login :)
 // @author       ZerodyOne
 // @match        https://www.youtube.com/*
@@ -12,16 +12,17 @@
 (function() {
 
     var nativeParse = window.JSON.parse; // Backup the original parse function
-    var nativeDefineProperty = window.Object.defineProperty; // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
+    var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var wrappedPlayerResponse = null;
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED"];
     var responseCache = {};
 
-    // Just for compatibility: getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    var chainedSetter = null;
-    var chainedGetter = null;
+    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
+    var initialPlayerResponseDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse");
+    var chainedSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
+    var chainedGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
 
-    // Just for compatibility: Intercept property (re-)definitions to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    // Just for compatibility: Intercept property (re-)definitions on 'ytInitialPlayerResponse' to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function(obj, prop, descriptor) {
         if(obj === window && prop === "ytInitialPlayerResponse") {
             console.info("Another extension tries to re-define 'ytInitialPlayerResponse' (probably an AdBlock extension). Chain it...");
@@ -33,7 +34,7 @@
         }
     }
 
-    // Inspect and modify the initial player response as soon as the variable is set on page load
+    // Re-define 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
     nativeDefineProperty(window, "ytInitialPlayerResponse", {
         set: function(playerResponse) {
             wrappedPlayerResponse = inspectJsonData(playerResponse);
@@ -91,7 +92,7 @@
 
         // check if the unlocked response isn't playable
         if(unlockedPayerResponse.playabilityStatus.status !== "OK")
-            throw ("Unlock Failed, playabilityStatus: " + unlockedPayerResponse.playabilityStatus.status);
+            throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, playabilityStatus: " + unlockedPayerResponse.playabilityStatus.status);
 
         return unlockedPayerResponse;
     }
@@ -120,6 +121,36 @@
         setTimeout(function() { responseCache = {} }, 10000);
 
         return playerResponse;
+    }
+
+    // Some extensions like AdBlock override the Object.defineProperty function to prevent a re-definition of the 'ytInitialPlayerResponse' variable by YouTube.
+    // But we need to define a custom descriptor to that variable to intercept his value. This behavior causes a race condition depending on the execution order with this script :(
+    // This function tries to restore the native Object.defineProperty function...
+    function getNativeDefineProperty() {
+
+        // Check if the Object.defineProperty function is native (original)
+        if(window.Object.defineProperty && window.Object.defineProperty.toString().indexOf("[native code]") > -1) {
+            return window.Object.defineProperty;
+        }
+
+        // if the Object.defineProperty function is already overidden, try to restore the native function from another window...
+        try {
+            if(!document.body) document.body = document.createElement("body");
+
+            var tempFrame = document.createElement("iframe");
+            tempFrame.style.display = "none";
+
+            document.body.insertAdjacentElement("beforeend", tempFrame);
+            var nativeDefineProperty = tempFrame.contentWindow.Object.defineProperty;
+            tempFrame.remove();
+
+            console.info("Simple-YouTube-Age-Restriction-Bypass: Overidden Object.defineProperty function successfully restored!");
+
+            return nativeDefineProperty;
+        } catch(err) {
+            console.warn("Simple-YouTube-Age-Restriction-Bypass: Unable to restore the original Object.defineProperty function", err);
+            return window.Object.defineProperty;
+        }
     }
 
 })();
