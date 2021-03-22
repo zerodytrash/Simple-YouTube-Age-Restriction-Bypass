@@ -42,7 +42,7 @@
         },
         get: function() {
             if(typeof chainedGetter === "function") try { return chainedGetter() } catch(err) { };
-            return wrappedPlayerResponse;
+            return wrappedPlayerResponse || {};
         },
         configurable: true
     });
