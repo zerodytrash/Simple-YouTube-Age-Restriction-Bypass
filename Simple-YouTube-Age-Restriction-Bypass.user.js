@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name         Simple YouTube Age Restriction Bypass
-// @namespace    https://zerody.one
-// @version      0.7
-// @description  View age restricted videos on YouTube without verification and login :)
-// @author       ZerodyOne
-// @match        https://www.youtube.com/*
-// @grant        none
-// @run-at       document-start
+// @name            Simple YouTube Age Restriction Bypass
+// @name:de         Umgehe YouTube's Altersbeschränkung und Verifikation
+// @namespace       https://zerody.one
+// @version         0.7
+// @description     View age restricted videos on YouTube without verification and login :)
+// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne deine Alter zu bestätigen :)
+// @author          ZerodyOne (https://github.com/zerodytrash)
+// @match           https://www.youtube.com/*
+// @grant           none
+// @run-at          document-start
 // ==/UserScript==
 
 (function() {
