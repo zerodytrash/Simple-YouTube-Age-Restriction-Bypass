@@ -4,7 +4,7 @@
 // @namespace       https://zerody.one
 // @version         0.7
 // @description     View age restricted videos on YouTube without verification and login :)
-// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne deine Alter zu bestätigen :)
+// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          ZerodyOne (https://github.com/zerodytrash)
 // @match           https://www.youtube.com/*
 // @grant           none
