@@ -13,5 +13,5 @@ No further actions are necessary. All age restricted videos are automatically un
 - ~~If the "Allow embedding" option is disabled by the uploader, the ``/get_video_info`` endpoint will respond with an error and the playback fails.~~ This should be fixed, but a login is required.
 
 ## Alternative mirrors
-Greasyfork: https://greasyfork.org/en/scripts/423851-simple-youtube-age-restriction-bypass
+Greasyfork: https://greasyfork.org/en/scripts/423851-simple-youtube-age-restriction-bypass <br>
 OpenUserJS: https://openuserjs.org/scripts/zerodytrash/Simple_YouTube_Age_Restriction_Bypass
