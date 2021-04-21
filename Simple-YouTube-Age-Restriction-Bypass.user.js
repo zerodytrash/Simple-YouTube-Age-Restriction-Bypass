@@ -20,7 +20,7 @@
     var nativeParse = window.JSON.parse; // Backup the original parse function
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var wrappedPlayerResponse = null;
-    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "UNPLAYABLE"];
+    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "UNPLAYABLE", "CONTENT_CHECK_REQUIRED"];
     var responseCache = {};
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
