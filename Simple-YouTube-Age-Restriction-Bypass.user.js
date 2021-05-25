@@ -84,6 +84,9 @@
             console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err);
         }
 
+        // Filter out video ads missed by uBlock Origin when Age Restriction Bypass script is enabled
+        if(parsedData.adPlacements) delete(parsedData.adPlacements);
+
         return parsedData;
     }
 
