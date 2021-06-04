@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         0.9.1
+// @version         0.9.2
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          ZerodyOne (https://github.com/zerodytrash)
@@ -21,6 +21,7 @@
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var wrappedPlayerResponse = null;
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "UNPLAYABLE"];
+    var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
     var responseCache = {};
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
@@ -28,10 +29,10 @@
     var chainedSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
     var chainedGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
 
-    // Just for compatibility: Intercept property (re-)definitions on 'ytInitialPlayerResponse' to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    // Just for compatibility: Intercept (re-)definitions on Youtube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function(obj, prop, descriptor) {
-        if(obj === window && prop === "ytInitialPlayerResponse") {
-            console.info("Another extension tries to re-define 'ytInitialPlayerResponse' (probably an AdBlock extension). Chain it...");
+        if(obj === window && playerResponsePropertyAliases.includes(prop)) {
+            console.info("Another extension tries to re-define '" + prop + "' (probably an AdBlock extension). Chain it...");
 
             if(descriptor && descriptor.set) chainedSetter = descriptor.set;
             if(descriptor && descriptor.get) chainedGetter = descriptor.get;
