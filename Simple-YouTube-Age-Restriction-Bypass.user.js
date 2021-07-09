@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         0.9.3
+// @version         0.9.4
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          ZerodyOne (https://github.com/zerodytrash)
@@ -44,6 +44,10 @@
     // Re-define 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
     nativeDefineProperty(window, "ytInitialPlayerResponse", {
         set: function(playerResponse) {
+
+            // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by brave browser shield)
+            if(playerResponse === wrappedPlayerResponse) return;
+
             wrappedPlayerResponse = inspectJsonData(playerResponse);
             if(typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
         },
