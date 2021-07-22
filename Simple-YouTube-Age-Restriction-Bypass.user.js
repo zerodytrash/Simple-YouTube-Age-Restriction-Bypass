@@ -31,11 +31,11 @@
 
     // Just for compatibility: Intercept (re-)definitions on Youtube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function(obj, prop, descriptor) {
-        if(obj === window && playerResponsePropertyAliases.includes(prop)) {
+        if (obj === window && playerResponsePropertyAliases.includes(prop)) {
             console.info("Another extension tries to re-define '" + prop + "' (probably an AdBlock extension). Chain it...");
 
-            if(descriptor && descriptor.set) chainedSetter = descriptor.set;
-            if(descriptor && descriptor.get) chainedGetter = descriptor.get;
+            if (descriptor && descriptor.set) chainedSetter = descriptor.set;
+            if (descriptor && descriptor.get) chainedGetter = descriptor.get;
         } else {
             nativeDefineProperty(obj, prop, descriptor);
         }
@@ -46,13 +46,13 @@
         set: function(playerResponse) {
 
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by brave browser shield)
-            if(playerResponse === wrappedPlayerResponse) return;
+            if (playerResponse === wrappedPlayerResponse) return;
 
             wrappedPlayerResponse = inspectJsonData(playerResponse);
-            if(typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
+            if (typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
         },
         get: function() {
-            if(typeof chainedGetter === "function") try { return chainedGetter() } catch(err) { };
+            if (typeof chainedGetter === "function") try { return chainedGetter() } catch(err) { };
             return wrappedPlayerResponse || {};
         },
         configurable: true
@@ -66,22 +66,22 @@
     function inspectJsonData(parsedData) {
         try {
             // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation
-            if(Array.isArray(parsedData)) {
+            if (Array.isArray(parsedData)) {
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem ? playerResponseArrayItem.playerResponse : null;
 
-                if(playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
+                if (playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
                     playerResponseArrayItem.playerResponse = unlockPlayerResponse(playerResponse);
                 }
             }
 
             // Unlock #2: Another JSON-Object containing the 'playerResponse'
-            if(parsedData.playerResponse && parsedData.playerResponse.playabilityStatus && parsedData.playerResponse.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
+            if (parsedData.playerResponse && parsedData.playerResponse.playabilityStatus && parsedData.playerResponse.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
 
             // Unlock #3: Initial page data structure and raw player response
-            if(parsedData.playabilityStatus && parsedData.videoDetails && isUnlockable(parsedData.playabilityStatus)) {
+            if (parsedData.playabilityStatus && parsedData.videoDetails && isUnlockable(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
 
@@ -93,7 +93,7 @@
     }
 
     function isUnlockable(playabilityStatus) {
-        if(!playabilityStatus || !playabilityStatus.status) return false;
+        if (!playabilityStatus || !playabilityStatus.status) return false;
         return unlockablePlayerStates.includes(playabilityStatus.status);
     }
 
@@ -101,8 +101,8 @@
         var videoId = playerResponse.videoDetails.videoId;
         var unlockedPayerResponse = getUnlockedPlayerResponse(videoId);
 
-        // check if the unlocked response isn't playable
-        if(unlockedPayerResponse.playabilityStatus.status !== "OK")
+        // Check if the unlocked response isn't playable
+        if (unlockedPayerResponse.playabilityStatus.status !== "OK")
             throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, playabilityStatus: " + unlockedPayerResponse.playabilityStatus.status);
 
         return unlockedPayerResponse;
@@ -111,7 +111,7 @@
     function getUnlockedPlayerResponse(videoId) {
 
         // Check if is cached
-        if(responseCache.videoId === videoId) return responseCache.content;
+        if (responseCache.videoId === videoId) return responseCache.content;
 
         // Query YT's unrestricted api endpoint
         var xmlhttp = new XMLHttpRequest();
@@ -132,13 +132,13 @@
     function getNativeDefineProperty() {
 
         // Check if the Object.defineProperty function is native (original)
-        if(window.Object.defineProperty && window.Object.defineProperty.toString().indexOf("[native code]") > -1) {
+        if (window.Object.defineProperty && window.Object.defineProperty.toString().indexOf("[native code]") > -1) {
             return window.Object.defineProperty;
         }
 
         // if the Object.defineProperty function is already overidden, try to restore the native function from another window...
         try {
-            if(!document.body) document.body = document.createElement("body");
+            if (!document.body) document.body = document.createElement("body");
 
             var tempFrame = document.createElement("iframe");
             tempFrame.style.display = "none";
