@@ -39,7 +39,9 @@ const generatePlayerRequestData = function (videoId) {
                 "tvAppInfo": {
                     "livingRoomAppMode": "LIVING_ROOM_APP_MODE_UNSPECIFIED"
                 },
-                "clientScreen": "WATCH_FULL_SCREEN"
+                "clientScreen": "WATCH_FULL_SCREEN",
+                "racyCheckOk": true,
+                "contentCheckOk": true,
             },
             "user": {
                 "lockedSafetyMode": false
