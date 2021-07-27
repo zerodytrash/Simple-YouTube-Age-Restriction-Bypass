@@ -1,5 +1,5 @@
 # Simple YouTube Age Restriction Bypass
- A very simple userscript to bypass YouTube's age verification by retrieving the video info from an open source <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy">Account Proxy Server</a>. This allows you to watch age-restricted videos without login and without age verification. All videos will be unlocked automatically.
+ A very simple userscript to bypass YouTube's age verification by retrieving the video info from YouTube's incompletely restricted ``/youtubei/v1/player`` endpoint. As fallback (for some non-embeddable videos) an open source <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy">Account Proxy Server</a> is used. This allows you to watch age-restricted videos without login and without age verification. All videos will be unlocked automatically.
 
 ## Installation
 1. Install the [Tampermonkey extension for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) or [Tampermonkey extension for Firefox](https://addons.mozilla.org/de/firefox/addon/tampermonkey/)
