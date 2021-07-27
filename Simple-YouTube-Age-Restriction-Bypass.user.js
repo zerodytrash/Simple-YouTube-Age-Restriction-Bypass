@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         2.0.1
+// @version         2.0.2
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
-// @author          ZerodyOne (https://github.com/zerodytrash)
+// @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
 // @downloadURL     https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
@@ -23,10 +23,12 @@
     var wrappedPlayerResponse = null;
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "UNPLAYABLE"];
     var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
-    var lastUnlockedGoogleVideoUrlParams = null;
+    var innertubeApiKey = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
+    var lastProxiedGoogleVideoUrlParams = null;
     var responseCache = {};
 
-    // Proxy configuration.
+    // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
+    // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     var accountProxyServerHost = "https://youtube-proxy.zerody.one";
     var videoProxyServerHost = "https://phx.4everproxy.com";
 
@@ -67,11 +69,12 @@
     // Intercept XMLHttpRequest.open to rewrite video url's
     XMLHttpRequest.prototype.open = function () {
 
-        if (arguments.length > 1 && arguments[1] && arguments[1].indexOf("https://") === 0) {
+        if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
             var method = arguments[0];
             var url = new URL(arguments[1]);
             var urlParams = new URLSearchParams(url.search);
 
+            // if the account proxy was used to retieve the video info, the following applies:
             // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
             // to get around this, the googlevideo url will be replaced with a web-proxy url in the same country (US).
             // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
@@ -85,7 +88,7 @@
             }
 
             function isUnlockedByAccountProxy() {
-                return urlParams.get("id") !== null && lastUnlockedGoogleVideoUrlParams && urlParams.get("id") === lastUnlockedGoogleVideoUrlParams.get("id");
+                return urlParams.get("id") !== null && lastProxiedGoogleVideoUrlParams && urlParams.get("id") === lastProxiedGoogleVideoUrlParams.get("id");
             }
 
             if (videoProxyServerHost && isGoogleVideo() && hasGcrFlag() && isUnlockedByAccountProxy()) {
@@ -152,6 +155,7 @@
 
         var unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
+        // account proxy error?
         if (unlockedPayerResponse.errorMessage)
             throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, errorMessage: " + unlockedPayerResponse.errorMessage);
 
@@ -159,16 +163,15 @@
         if (unlockedPayerResponse.playabilityStatus.status !== "OK")
             throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, playabilityStatus: " + unlockedPayerResponse.playabilityStatus.status);
 
-        // store the url params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock. => see isUnlockedByAccountProxy()
-        if (unlockedPayerResponse.streamingData?.adaptiveFormats) {
+        // if the video info was retrieved via proxy, store the url params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
+        // => see isUnlockedByAccountProxy()
+        if (unlockedPayerResponse.proxied && unlockedPayerResponse.streamingData?.adaptiveFormats) {
             var videoUrl = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
             var cipherText = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
 
-            if (cipherText) {
-                videoUrl = new URLSearchParams(cipherText).get("url");
-            }
+            if (cipherText) videoUrl = new URLSearchParams(cipherText).get("url");
 
-            lastUnlockedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
+            lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
         }
 
         return unlockedPayerResponse;
@@ -176,20 +179,52 @@
 
     function getUnlockedPlayerResponse(videoId, reason) {
 
-        // Check if is cached
+        // Check if response is cached
         if (responseCache.videoId === videoId) return responseCache.content;
 
-        // Query YT's unrestricted api endpoint
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason), false); // Synchronous!!!
-        xmlhttp.send(null);
-        var playerResponse = nativeParse(xmlhttp.responseText);
+        var playerResponse = null;
+
+        // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube api
+        // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
+        function useInnertubeEmbed() {
+            var payload = getInnertubeEmbedPlayerPayload(videoId);
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("POST", "/youtubei/v1/player?key=" + innertubeApiKey, false); // Synchronous!!!
+            xmlhttp.send(JSON.stringify(payload));
+            playerResponse = nativeParse(xmlhttp.responseText);
+        }
+
+        // Strategy 2: Retrieve the video info from an account proxy server.
+        // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+        function useProxy() {
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason), false); // Synchronous!!!
+            xmlhttp.send(null);
+            playerResponse = nativeParse(xmlhttp.responseText);
+            playerResponse.proxied = true;
+        }
+
+        if (playerResponse?.playabilityStatus?.status !== "OK") useInnertubeEmbed();
+        if (playerResponse?.playabilityStatus?.status !== "OK") useProxy();
 
         // Cache response for 10 seconds
         responseCache = { videoId: videoId, content: playerResponse };
         setTimeout(function () { responseCache = {} }, 10000);
 
         return playerResponse;
+    }
+
+    function getInnertubeEmbedPlayerPayload(videoId) {
+        return {
+            "context": {
+                "client": {
+                    "clientName": "WEB",
+                    "clientVersion": "2.20210721.00.00",
+                    "clientScreen": "EMBED"
+                }
+            },
+            "videoId": videoId
+        }
     }
 
     // Some extensions like AdBlock override the Object.defineProperty function to prevent a re-definition of the 'ytInitialPlayerResponse' variable by YouTube.
