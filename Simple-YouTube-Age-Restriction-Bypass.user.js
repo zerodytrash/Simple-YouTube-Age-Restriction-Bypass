@@ -221,6 +221,9 @@
                     "clientName": "WEB",
                     "clientVersion": "2.20210721.00.00",
                     "clientScreen": "EMBED"
+                },
+                "thirdParty": {
+                    "embedUrl": "https://www.youtube.com/"
                 }
             },
             "videoId": videoId
