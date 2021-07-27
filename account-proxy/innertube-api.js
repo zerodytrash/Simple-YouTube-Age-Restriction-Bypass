@@ -39,9 +39,7 @@ const generatePlayerRequestData = function (videoId) {
                 "tvAppInfo": {
                     "livingRoomAppMode": "LIVING_ROOM_APP_MODE_UNSPECIFIED"
                 },
-                "clientScreen": "WATCH_FULL_SCREEN",
-                "racyCheckOk": true,
-                "contentCheckOk": true,
+                "clientScreen": "WATCH_FULL_SCREEN"
             },
             "user": {
                 "lockedSafetyMode": false
@@ -65,7 +63,9 @@ const generatePlayerRequestData = function (videoId) {
                 "playerHeightPixels": 433
             }
         },
-        "captionParams": {}
+        "captionParams": {},
+        "racyCheckOk": true,
+        "contentCheckOk": true
     }
 }
 
