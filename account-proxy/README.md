@@ -1,4 +1,7 @@
-This is the account proxy server. You can run your own account proxy and put the cookies of a verified youtube account there.
+<b>Note: This is not a part of the browser script!</b>
+<br>If you only want to watch age-restricted videos, follow <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#installation">these instructions</a>.
+
+This is the account proxy server. You can run your own account proxy server instance and include the cookies of a verified YouTube account in the configuration.
 
 ``.env`` configuration:
 
