@@ -2,8 +2,10 @@ const crypto = require("crypto")
 const axios = require("axios");
 const httpsProxyAgent = require("https-proxy-agent");
 
-const generatePlayerRequestData = function (videoId, clientVersion) {
-    if(!clientVersion) clientVersion = "2.20210721.00.00";
+const generatePlayerRequestData = function (videoId, clientVersion, signatureTimestamp) {
+    if (!clientVersion) clientVersion = "2.20210721.00.00";
+    if (!signatureTimestamp) signatureTimestamp = 18834;
+
     return {
         "videoId": videoId,
         "context": {
@@ -56,7 +58,7 @@ const generatePlayerRequestData = function (videoId, clientVersion) {
                 "html5Preference": "HTML5_PREF_WANTS",
                 "lactMilliseconds": "2132",
                 "referer": "https://www.youtube.com/watch?v=" + videoId,
-                "signatureTimestamp": 18830,
+                "signatureTimestamp": signatureTimestamp,
                 "autoCaptionsDefaultOn": false,
                 "autoplay": true,
                 "mdxContext": {},
@@ -94,11 +96,11 @@ const generatePlayerRequestHeaders = function (sapisid, psid) {
     }
 }
 
-const getPlayer = function (videoId, clientVersion, apiKey, sapisid, psid, proxy) {
+const getPlayer = function (videoId, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
 
     var url = `https://www.youtube.com/youtubei/v1/player?key=${apiKey}`;
     var headers = generatePlayerRequestHeaders(sapisid, psid);
-    var data = generatePlayerRequestData(videoId, clientVersion);
+    var data = generatePlayerRequestData(videoId, clientVersion, signatureTimestamp);
 
     var axiosOptions = {
         method: "POST",

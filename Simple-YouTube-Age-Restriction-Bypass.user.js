@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         2.0.3
+// @version         2.0.4
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          Zerody (https://github.com/zerodytrash)
@@ -29,6 +29,7 @@
     // Youtube API config (Innertube). The actual values will be determined later from the source code....
     var innertubeApiKey = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
     var innertubeClientVersion = "2.20210721.00.00";
+    var signatureTimestamp = 18834;
 
     // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
     // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
@@ -206,7 +207,7 @@
         function useProxy() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #2 (Account Proxy)");
             var xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason) + "&clientVersion=" + innertubeClientVersion, false); // Synchronous!!!
+            xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason) + "&clientVersion=" + innertubeClientVersion + "&signatureTimestamp=" + signatureTimestamp, false); // Synchronous!!!
             xmlhttp.send(null);
             playerResponse = nativeParse(xmlhttp.responseText);
             playerResponse.proxied = true;
@@ -236,7 +237,7 @@
             },
             "playbackContext": {
                 "contentPlaybackContext": {
-                    "signatureTimestamp": 18830
+                    "signatureTimestamp": signatureTimestamp
                 }
             },
             "videoId": videoId
@@ -244,8 +245,13 @@
     }
 
     function setInnertubeConfigFromYtcfg() {
-        if (ytcfg?.data_?.INNERTUBE_API_KEY) innertubeApiKey = ytcfg.data_.INNERTUBE_API_KEY;
-        if (ytcfg?.data_?.INNERTUBE_CLIENT_VERSION) innertubeClientVersion = ytcfg.data_.INNERTUBE_CLIENT_VERSION;
+        var pageConfig = window.ytcfg?.data_;
+
+        if (pageConfig?.INNERTUBE_API_KEY) innertubeApiKey = pageConfig.INNERTUBE_API_KEY;
+        if (pageConfig?.INNERTUBE_CLIENT_VERSION) innertubeClientVersion = pageConfig.INNERTUBE_CLIENT_VERSION;
+        if (pageConfig?.STS) signatureTimestamp = pageConfig.STS;
+
+        if (!pageConfig) console.warn("Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration (window.ytcfg). Using old values...");
     }
 
     // Some extensions like AdBlock override the Object.defineProperty function to prevent a re-definition of the 'ytInitialPlayerResponse' variable by YouTube.
