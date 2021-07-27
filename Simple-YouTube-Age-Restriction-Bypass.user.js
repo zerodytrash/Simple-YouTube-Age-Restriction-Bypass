@@ -226,6 +226,11 @@
                     "embedUrl": "https://www.youtube.com/"
                 }
             },
+            "playbackContext": {
+                "contentPlaybackContext": {
+                    "signatureTimestamp": 18830
+                }
+            },
             "videoId": videoId
         }
     }
