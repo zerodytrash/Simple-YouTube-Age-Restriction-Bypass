@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         2.0.0
+// @version         2.0.1
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          ZerodyOne (https://github.com/zerodytrash)
@@ -148,7 +148,9 @@
 
     function unlockPlayerResponse(playerResponse) {
         var videoId = playerResponse.videoDetails.videoId;
-        var unlockedPayerResponse = getUnlockedPlayerResponse(videoId);
+        var reason = playerResponse.playabilityStatus?.status;
+
+        var unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
         if (unlockedPayerResponse.errorMessage)
             throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, errorMessage: " + unlockedPayerResponse.errorMessage);
@@ -172,14 +174,14 @@
         return unlockedPayerResponse;
     }
 
-    function getUnlockedPlayerResponse(videoId) {
+    function getUnlockedPlayerResponse(videoId, reason) {
 
         // Check if is cached
         if (responseCache.videoId === videoId) return responseCache.content;
 
         // Query YT's unrestricted api endpoint
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId), false); // Synchronous!!!
+        xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason), false); // Synchronous!!!
         xmlhttp.send(null);
         var playerResponse = nativeParse(xmlhttp.responseText);
 
