@@ -22,7 +22,7 @@
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
     var wrappedPlayerResponse = null;
-    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED"];
+    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
     var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
     var lastProxiedGoogleVideoUrlParams = null;
     var responseCache = {};
