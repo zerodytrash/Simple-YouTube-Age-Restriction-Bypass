@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         2.0.4
+// @version         2.0.5
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          Zerody (https://github.com/zerodytrash)
@@ -11,6 +11,7 @@
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
 // @license         MIT
 // @match           https://www.youtube.com/*
+// @match           https://m.youtube.com/*
 // @grant           none
 // @run-at          document-start
 // ==/UserScript==
@@ -21,20 +22,29 @@
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
     var wrappedPlayerResponse = null;
-    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "UNPLAYABLE"];
+    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED"];
     var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
     var lastProxiedGoogleVideoUrlParams = null;
     var responseCache = {};
 
-    // Youtube API config (Innertube). The actual values will be determined later from the source code....
-    var innertubeApiKey = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
-    var innertubeClientVersion = "2.20210721.00.00";
-    var signatureTimestamp = 18834;
+    // Youtube API config (Innertube). 
+    // The actual values will be determined later from the global ytcfg variable => setInnertubeConfigFromYtcfg()
+    var innertubeConfig = {
+        INNERTUBE_API_KEY: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
+        INNERTUBE_CLIENT_VERSION: "2.20210721.00.00",
+        STS: 18834 // signatureTimestamp (relevant for the cipher functions)
+    };
 
     // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
     // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     var accountProxyServerHost = "https://youtube-proxy.zerody.one";
     var videoProxyServerHost = "https://phx.4everproxy.com";
+
+    // UI related stuff (notifications, ...)
+    var enableUnlockNotification = true;
+    var playerCreationObserver = null;
+    var notificationElement = null;
+    var notificationTimeout = null;
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
     var initialPlayerResponseDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse");
@@ -70,7 +80,7 @@
         configurable: true
     });
 
-    // Intercept XMLHttpRequest.open to rewrite video url's
+    // Intercept XMLHttpRequest.open to rewrite video url's (sometimes required)
     XMLHttpRequest.prototype.open = function () {
 
         if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
@@ -120,29 +130,37 @@
     }
 
     function inspectJsonData(parsedData) {
+
+        // If youtube does JSON.parse(null) or similar weird things
+        if (typeof parsedData !== "object" || parsedData === null) return parsedData;
+
         try {
-            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation
+            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
             if (Array.isArray(parsedData)) {
+
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
-                var playerResponse = playerResponseArrayItem ? playerResponseArrayItem.playerResponse : null;
+                var playerResponse = playerResponseArrayItem?.playerResponse;
 
                 if (playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
                     playerResponseArrayItem.playerResponse = unlockPlayerResponse(playerResponse);
                 }
             }
 
+            // Hide unlock notification on navigation (if still visible from the last unlock)
+            if (parsedData.playerResponse || parsedData.playabilityStatus) hidePlayerNotification();
+
             // Unlock #2: Another JSON-Object containing the 'playerResponse'
-            if (parsedData.playerResponse && parsedData.playerResponse.playabilityStatus && parsedData.playerResponse.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
+            if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
 
-            // Unlock #3: Initial page data structure and raw player response
+            // Unlock #3: Initial page data structure and response from '/youtubei/v1/player' endpoint
             if (parsedData.playabilityStatus && parsedData.videoDetails && isUnlockable(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
 
         } catch (err) {
-            console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err);
+            console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err, "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues");
         }
 
         return parsedData;
@@ -160,12 +178,17 @@
         var unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
         // account proxy error?
-        if (unlockedPayerResponse.errorMessage)
-            throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, errorMessage:" + unlockedPayerResponse.errorMessage + "; innertubeApiKey:" + innertubeApiKey + "; innertubeClientVersion:" + innertubeClientVersion);
+        if (unlockedPayerResponse.errorMessage) {
+            showPlayerNotification("#7b1e1e", "Unable to unlock this video :( Please look into the developer console for more details. (ProxyError)", 10);
+            throw (`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
+        }
+
 
         // check if the unlocked response isn't playable
-        if (unlockedPayerResponse.playabilityStatus?.status !== "OK")
-            throw ("Simple-YouTube-Age-Restriction-Bypass: Unlock Failed, playabilityStatus:" + unlockedPayerResponse.playabilityStatus?.status + "; innertubeApiKey:" + innertubeApiKey + "; innertubeClientVersion:" + innertubeClientVersion);
+        if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
+            showPlayerNotification("#7b1e1e", `Unable to unlock this video :( Please look into the developer console for more details. (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
+            throw (`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
+        }
 
         // if the video info was retrieved via proxy, store the url params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
         // => see isUnlockedByAccountProxy()
@@ -178,6 +201,8 @@
             lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
         }
 
+        showPlayerNotification("#005c04", "Age-restricted video successfully unlocked!", 4);
+
         return unlockedPayerResponse;
     }
 
@@ -186,7 +211,7 @@
         // Check if response is cached
         if (responseCache.videoId === videoId) return responseCache.content;
 
-        // to avoid version conflicts between client and server response, the current client version will be determined
+        // to avoid version conflicts between client and server response, the current YouTube version config will be determined
         setInnertubeConfigFromYtcfg();
 
         var playerResponse = null;
@@ -197,7 +222,7 @@
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #1 (Innertube Embed)");
             var payload = getInnertubeEmbedPlayerPayload(videoId);
             var xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("POST", "/youtubei/v1/player?key=" + innertubeApiKey, false); // Synchronous!!!
+            xmlhttp.open("POST", `/youtubei/v1/player?key=${innertubeConfig.INNERTUBE_API_KEY}`, false); // Synchronous!!!
             xmlhttp.send(JSON.stringify(payload));
             playerResponse = nativeParse(xmlhttp.responseText);
         }
@@ -207,7 +232,7 @@
         function useProxy() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #2 (Account Proxy)");
             var xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", accountProxyServerHost + "/getPlayer?videoId=" + encodeURIComponent(videoId) + "&reason=" + encodeURIComponent(reason) + "&clientVersion=" + innertubeClientVersion + "&signatureTimestamp=" + signatureTimestamp, false); // Synchronous!!!
+            xmlhttp.open("GET", accountProxyServerHost + `/getPlayer?videoId=${encodeURIComponent(videoId)}&reason=${encodeURIComponent(reason)}&clientVersion=${innertubeConfig.INNERTUBE_CLIENT_VERSION}&signatureTimestamp=${innertubeConfig.STS}`, false); // Synchronous!!!
             xmlhttp.send(null);
             playerResponse = nativeParse(xmlhttp.responseText);
             playerResponse.proxied = true;
@@ -228,7 +253,7 @@
             "context": {
                 "client": {
                     "clientName": "WEB",
-                    "clientVersion": innertubeClientVersion,
+                    "clientVersion": innertubeConfig.INNERTUBE_CLIENT_VERSION,
                     "clientScreen": "EMBED"
                 },
                 "thirdParty": {
@@ -237,7 +262,7 @@
             },
             "playbackContext": {
                 "contentPlaybackContext": {
-                    "signatureTimestamp": signatureTimestamp
+                    "signatureTimestamp": innertubeConfig.STS
                 }
             },
             "videoId": videoId
@@ -245,13 +270,94 @@
     }
 
     function setInnertubeConfigFromYtcfg() {
-        var pageConfig = window.ytcfg?.data_;
+        if (!window.ytcfg) {
+            console.warn("Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration (window.ytcfg). Using old values...");
+            return;
+        }
 
-        if (pageConfig?.INNERTUBE_API_KEY) innertubeApiKey = pageConfig.INNERTUBE_API_KEY;
-        if (pageConfig?.INNERTUBE_CLIENT_VERSION) innertubeClientVersion = pageConfig.INNERTUBE_CLIENT_VERSION;
-        if (pageConfig?.STS) signatureTimestamp = pageConfig.STS;
+        for (const key in innertubeConfig) {
+            var value = window.ytcfg.data_?.[key] ?? window.ytcfg.get?.(key);
+            if (value) {
+                innertubeConfig[key] = value;
+            } else {
+                console.warn(`Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration variable '${key}'. Using old value...`);
+            }
+        }
+    }
 
-        if (!pageConfig) console.warn("Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration (window.ytcfg). Using old values...");
+    function showPlayerNotification(color, message, displayDuration) {
+        if (!enableUnlockNotification) return;
+        if (typeof MutationObserver !== "function") return;
+
+        try {
+            // clear existing notifications
+            disconnectPlayerCreationObserver();
+            hidePlayerNotification();
+
+            function getPlayerElement() {
+                return document.querySelector("#primary > #primary-inner > #player") || document.querySelector("#player-container-id > #player");
+            }
+
+            function createNotifiction() {
+                var playerElement = getPlayerElement();
+                if (!playerElement) return;
+
+                // first, remove existing notification
+                hidePlayerNotification();
+
+                // create new notification
+                notificationElement = document.createElement("div");
+                notificationElement.innerHTML = message;
+                notificationElement.style = `width: 100%; text-align: center; background-color: ${color}; color: #ffffff; padding: 2px 0px 2px; font-size: 1.1em;`;
+                notificationElement.id = "bypass-notification";
+
+                // append below the player 
+                playerElement.parentNode.insertBefore(notificationElement, playerElement.nextSibling);
+
+                if (notificationTimeout) {
+                    clearTimeout(notificationTimeout);
+                    notificationTimeout = null;
+                }
+
+                notificationTimeout = setTimeout(hidePlayerNotification, displayDuration * 1000);
+            }
+
+            function disconnectPlayerCreationObserver() {
+                if (playerCreationObserver) {
+                    playerCreationObserver.disconnect();
+                    playerCreationObserver = null;
+                }
+            }
+
+            // Player already exists in DOM?
+            if (getPlayerElement() !== null) {
+                createNotifiction();
+                return;
+            }
+
+            // waiting for creation of the player element...
+            playerCreationObserver = new MutationObserver(function (mutations) {
+                if (getPlayerElement() !== null) {
+                    disconnectPlayerCreationObserver();
+                    createNotifiction();
+                }
+            });
+
+            playerCreationObserver.observe(document.body, { childList: true });
+
+        } catch (err) { }
+    }
+
+    function hidePlayerNotification() {
+        if (playerCreationObserver) {
+            playerCreationObserver.disconnect();
+            playerCreationObserver = null;
+        }
+        
+        if (notificationElement) {
+            notificationElement.remove();
+            notificationElement = null;
+        }
     }
 
     // Some extensions like AdBlock override the Object.defineProperty function to prevent a re-definition of the 'ytInitialPlayerResponse' variable by YouTube.

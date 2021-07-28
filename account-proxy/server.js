@@ -6,7 +6,7 @@ const rateLimit = require("express-rate-limit")
 const innertube = require("./innertube-api")
 
 app.use(rateLimit({ windowMs: 30000, max: 5 })); // limit requests to 5 per 30s for a single IP
-app.enable('trust proxy'); // use X-Forwarded-* headers, remove them if you don't use a reverse proxy!
+app.enable('trust proxy'); // use X-Forwarded-* headers, remove this if you don't use a reverse proxy!
 
 app.get("/", (req, res) => {
     res.redirect("https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass");
@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 
 app.get("/getPlayer", (req, res) => {
 
-    res.header("Access-Control-Allow-Origin", "https://www.youtube.com");
+    res.header("Access-Control-Allow-Origin", "*");
 
     if (!req.query.videoId || req.query.videoId.length !== 11) {
         res.status(400).send({ errorMessage: "invalid videoId" });
