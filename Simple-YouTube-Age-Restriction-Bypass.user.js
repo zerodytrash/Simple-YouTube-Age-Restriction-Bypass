@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
 // @name:de         Simple YouTube Age Restriction Bypass
-// @version         2.0.5
+// @version         2.0.6
 // @description     View age restricted videos on YouTube without verification and login :)
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @author          Zerody (https://github.com/zerodytrash)
@@ -141,7 +141,7 @@
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem?.playerResponse;
 
-                if (playerResponse && isUnlockable(playerResponse.playabilityStatus)) {
+                if (playerResponse && isAgeRestricted(playerResponse.playabilityStatus)) {
                     playerResponseArrayItem.playerResponse = unlockPlayerResponse(playerResponse);
                 }
             }
@@ -150,12 +150,12 @@
             if (parsedData.playerResponse || parsedData.playabilityStatus) hidePlayerNotification();
 
             // Unlock #2: Another JSON-Object containing the 'playerResponse'
-            if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isUnlockable(parsedData.playerResponse.playabilityStatus)) {
+            if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isAgeRestricted(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
 
             // Unlock #3: Initial page data structure and response from '/youtubei/v1/player' endpoint
-            if (parsedData.playabilityStatus && parsedData.videoDetails && isUnlockable(parsedData.playabilityStatus)) {
+            if (parsedData.playabilityStatus && parsedData.videoDetails && isAgeRestricted(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
 
@@ -166,9 +166,9 @@
         return parsedData;
     }
 
-    function isUnlockable(playabilityStatus) {
+    function isAgeRestricted(playabilityStatus) {
         if (!playabilityStatus || !playabilityStatus.status) return false;
-        return unlockablePlayerStates.includes(playabilityStatus.status);
+        return typeof playabilityStatus.desktopLegacyAgeGateReason !== "undefined" || unlockablePlayerStates.includes(playabilityStatus.status);
     }
 
     function unlockPlayerResponse(playerResponse) {
@@ -353,7 +353,7 @@
             playerCreationObserver.disconnect();
             playerCreationObserver = null;
         }
-        
+
         if (notificationElement) {
             notificationElement.remove();
             notificationElement = null;
