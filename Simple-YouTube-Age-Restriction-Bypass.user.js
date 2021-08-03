@@ -186,14 +186,14 @@
         // account proxy error?
         if (unlockedPayerResponse.errorMessage) {
             showPlayerNotification("#7b1e1e", "Unable to unlock this video :( Please look into the developer console for more details. (ProxyError)", 10);
-            throw (`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
+            throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
 
         // check if the unlocked response isn't playable
         if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
             showPlayerNotification("#7b1e1e", `Unable to unlock this video :( Please look into the developer console for more details. (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
-            throw (`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
+            throw new Error(`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
         // if the video info was retrieved via proxy, store the url params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
