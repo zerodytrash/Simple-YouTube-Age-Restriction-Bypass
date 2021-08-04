@@ -33,7 +33,7 @@
     var lastProxiedGoogleVideoUrlParams = null;
     var responseCache = {};
 
-    // Youtube API config (Innertube). 
+    // YouTube API config (Innertube). 
     // The actual values will be determined later from the global ytcfg variable => setInnertubeConfigFromYtcfg()
     var innertubeConfig = {
         INNERTUBE_API_KEY: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
@@ -46,7 +46,7 @@
     var accountProxyServerHost = "https://youtube-proxy.zerody.one";
     var videoProxyServerHost = "https://phx.4everproxy.com";
 
-    // UI related stuff (notifications, ...)
+    // UI-related stuff (notifications, ...)
     var enableUnlockNotification = true;
     var playerCreationObserver = null;
     var notificationElement = null;
@@ -57,10 +57,10 @@
     var chainedSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
     var chainedGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
 
-    // Just for compatibility: Intercept (re-)definitions on Youtube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function (obj, prop, descriptor) {
         if (obj === window && playerResponsePropertyAliases.includes(prop)) {
-            console.info("Another extension tries to re-define '" + prop + "' (probably an AdBlock extension). Chain it...");
+            console.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
 
             if (descriptor && descriptor.set) chainedSetter = descriptor.set;
             if (descriptor && descriptor.get) chainedGetter = descriptor.get;
@@ -69,11 +69,10 @@
         }
     }
 
-    // Re-define 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
+    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
     nativeDefineProperty(window, "ytInitialPlayerResponse", {
         set: function (playerResponse) {
-
-            // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by brave browser shield)
+            // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
             if (playerResponse === wrappedPlayerResponse) return;
 
             wrappedPlayerResponse = inspectJsonData(playerResponse);
@@ -86,17 +85,16 @@
         configurable: true
     });
 
-    // Intercept XMLHttpRequest.open to rewrite video url's (sometimes required)
+    // Intercept XMLHttpRequest.open to rewrite video URL's (sometimes required)
     XMLHttpRequest.prototype.open = function () {
-
         if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
             var method = arguments[0];
             var url = new URL(arguments[1]);
             var urlParams = new URLSearchParams(url.search);
 
-            // if the account proxy was used to retieve the video info, the following applies:
+            // If the account proxy was used to retieve the video info, the following applies:
             // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
-            // to get around this, the googlevideo url will be replaced with a web-proxy url in the same country (US).
+            // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
             // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
 
             function isGoogleVideo() {
@@ -112,16 +110,13 @@
             }
 
             if (videoProxyServerHost && isGoogleVideo() && hasGcrFlag() && isUnlockedByAccountProxy()) {
-
-                // rewrite request url
+                // rewrite request URL
                 arguments[1] = videoProxyServerHost + "/direct/" + btoa(arguments[1]);
 
-                // solve CORS errors by preventing youtube from enabling the "withCredentials" option (not required for the proxy)
+                // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (not required for the proxy)
                 nativeDefineProperty(this, "withCredentials", {
                     set: function () { },
-                    get: function () {
-                        return false;
-                    }
+                    get: function () { return false; }
                 });
             }
 
@@ -137,13 +132,12 @@
 
     function inspectJsonData(parsedData) {
 
-        // If youtube does JSON.parse(null) or similar weird things
+        // If YouTube does JSON.parse(null) or similar weird things
         if (typeof parsedData !== "object" || parsedData === null) return parsedData;
 
         try {
             // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
             if (Array.isArray(parsedData)) {
-
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem?.playerResponse;
 
@@ -160,11 +154,10 @@
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
 
-            // Unlock #3: Initial page data structure and response from '/youtubei/v1/player' endpoint
+            // Unlock #3: Initial page data structure and response from the '/youtubei/v1/player' endpoint
             if (parsedData.playabilityStatus && parsedData.videoDetails && isAgeRestricted(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
-
         } catch (err) {
             console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err, "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues");
         }
@@ -174,13 +167,13 @@
 
     function isAgeRestricted(playabilityStatus) {
         if (!playabilityStatus || !playabilityStatus.status) return false;
+
         return typeof playabilityStatus.desktopLegacyAgeGateReason !== "undefined" || unlockablePlayerStates.includes(playabilityStatus.status);
     }
 
     function unlockPlayerResponse(playerResponse) {
         var videoId = playerResponse.videoDetails.videoId;
         var reason = playerResponse.playabilityStatus?.status;
-
         var unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
         // account proxy error?
@@ -189,14 +182,13 @@
             throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
-
         // check if the unlocked response isn't playable
         if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
             showPlayerNotification("#7b1e1e", `Unable to unlock this video :( Please look into the developer console for more details. (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
             throw new Error(`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
-        // if the video info was retrieved via proxy, store the url params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
+        // if the video info was retrieved via proxy, store the URL params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
         // => see isUnlockedByAccountProxy()
         if (unlockedPayerResponse.proxied && unlockedPayerResponse.streamingData?.adaptiveFormats) {
             var videoUrl = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
@@ -213,7 +205,6 @@
     }
 
     function getUnlockedPlayerResponse(videoId, reason) {
-
         // Check if response is cached
         if (responseCache.videoId === videoId) return responseCache.content;
 
@@ -222,7 +213,7 @@
 
         var playerResponse = null;
 
-        // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube api
+        // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
         // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
         function useInnertubeEmbed() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #1 (Innertube Embed)");
@@ -304,7 +295,7 @@
                 return document.querySelector("#primary > #primary-inner > #player") || document.querySelector("#player-container-id > #player");
             }
 
-            function createNotifiction() {
+            function createNotification() {
                 var playerElement = getPlayerElement();
                 if (!playerElement) return;
 
@@ -335,9 +326,9 @@
                 }
             }
 
-            // Player already exists in DOM?
+            // Does the player already exist in the DOM?
             if (getPlayerElement() !== null) {
-                createNotifiction();
+                createNotification();
                 return;
             }
 
@@ -345,12 +336,11 @@
             playerCreationObserver = new MutationObserver(function (mutations) {
                 if (getPlayerElement() !== null) {
                     disconnectPlayerCreationObserver();
-                    createNotifiction();
+                    createNotification();
                 }
             });
 
             playerCreationObserver.observe(document.body, { childList: true });
-
         } catch (err) { }
     }
 
@@ -366,11 +356,10 @@
         }
     }
 
-    // Some extensions like AdBlock override the Object.defineProperty function to prevent a re-definition of the 'ytInitialPlayerResponse' variable by YouTube.
+    // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
     // But we need to define a custom descriptor to that variable to intercept his value. This behavior causes a race condition depending on the execution order with this script :(
     // This function tries to restore the native Object.defineProperty function...
     function getNativeDefineProperty() {
-
         // Check if the Object.defineProperty function is native (original)
         if (window.Object.defineProperty && window.Object.defineProperty.toString().indexOf("[native code]") > -1) {
             return window.Object.defineProperty;
