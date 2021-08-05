@@ -215,16 +215,17 @@
 
     function isNextSidebarEmpty(contents) {
         var secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults
-        if (secondaryResults && !secondaryResults.results) {
-            return true;
+        if (secondaryResults && secondaryResults.results) {
+            return false;
         }
         // MWEB response layout
         var singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
-        if (singleColumnWatchNextContents) {
-            var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => typeof e.itemSectionRenderer === "object");
-            var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
-            return (!itemSectionRenderer || !itemSectionRenderer.contents.find(e => typeof e.videoWithContextRenderer === "object"));
+        if (!singleColumnWatchNextContents) {
+            return true;
         }
+        var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => e.itemSectionRenderer?.targetId === "watch-next-feed");
+        var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
+        return typeof itemSectionRenderer === "undefined";
     }
 
     function unlockPlayerResponse(playerResponse) {
