@@ -28,6 +28,7 @@
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
     var nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
     var wrappedPlayerResponse = null;
+    var wrappedNextResponse = null;
     var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
     var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
     var lastProxiedGoogleVideoUrlParams = null;
@@ -87,16 +88,16 @@
 
     // Redefine 'ytInitialData' to inspect and modify the initial sidebar response as soon as the variable is set on page load
     nativeDefineProperty(window, "ytInitialData", {
-        set: function (playerResponse) {
+        set: function (nextResponse) {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
-            if (playerResponse === wrappedPlayerResponse) return;
+            if (nextResponse === wrappedNextResponse) return;
 
-            wrappedPlayerResponse = inspectJsonData(playerResponse);
-            if (typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
+            wrappedNextResponse = inspectJsonData(nextResponse);
+            if (typeof chainedSetter === "function") chainedSetter(wrappedNextResponse);
         },
         get: function () {
             if (typeof chainedGetter === "function") try { return chainedGetter() } catch (err) { };
-            return wrappedPlayerResponse || {};
+            return wrappedNextResponse || {};
         },
         configurable: true
     });
