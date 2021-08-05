@@ -85,6 +85,22 @@
         configurable: true
     });
 
+    // Redefine 'ytInitialData' to inspect and modify the initial sidebar response as soon as the variable is set on page load
+    nativeDefineProperty(window, "ytInitialData", {
+        set: function (playerResponse) {
+            // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
+            if (playerResponse === wrappedPlayerResponse) return;
+
+            wrappedPlayerResponse = inspectJsonData(playerResponse);
+            if (typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
+        },
+        get: function () {
+            if (typeof chainedGetter === "function") try { return chainedGetter() } catch (err) { };
+            return wrappedPlayerResponse || {};
+        },
+        configurable: true
+    });
+
     // Intercept XMLHttpRequest.open to rewrite video URL's (sometimes required)
     XMLHttpRequest.prototype.open = function () {
         if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
@@ -136,13 +152,19 @@
         if (typeof parsedData !== "object" || parsedData === null) return parsedData;
 
         try {
-            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
+            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (seems to only be used on m.youtube.com)
             if (Array.isArray(parsedData)) {
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem?.playerResponse;
 
                 if (playerResponse && isAgeRestricted(playerResponse.playabilityStatus)) {
                     playerResponseArrayItem.playerResponse = unlockPlayerResponse(playerResponse);
+
+                    var nextResponseArrayItem = parsedData.find(e => typeof e.response === "object");
+                    var nextResponse = nextResponseArrayItem?.response;
+                    if (nextResponse) {
+                        // TODO: Unlock sidebar/next response for m.youtube.com/MWEB client (which has a different response layout than WEB client)
+                    }
                 }
             }
 
@@ -157,6 +179,12 @@
             // Unlock #3: Initial page data structure and response from the '/youtubei/v1/player' endpoint
             if (parsedData.playabilityStatus && parsedData.videoDetails && isAgeRestricted(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
+            }
+            if (parsedData.currentVideoEndpoint?.watchEndpoint) {
+                var secondaryResults = parsedData.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults
+                if (secondaryResults && !secondaryResults.results) {
+                    parsedData = unlockNextResponse(parsedData)
+                }
             }
         } catch (err) {
             console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err, "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues");
@@ -204,6 +232,21 @@
         return unlockedPayerResponse;
     }
 
+    function unlockNextResponse(nextResponse) {
+        var watchEndpoint = nextResponse.currentVideoEndpoint.watchEndpoint;
+        var videoId = watchEndpoint.videoId;
+        var playlistId = watchEndpoint.playlistId;
+        var playlistIndex = watchEndpoint.index;
+        var unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
+
+        // check if the unlocked response isn't playable
+        if (!unlockedNextResponse.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results) {
+            throw new Error(`Next Unlock Failed, innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
+        }
+
+        return unlockedNextResponse;
+    }
+
     function getUnlockedPlayerResponse(videoId, reason) {
         // Check if response is cached
         if (responseCache.videoId === videoId) return responseCache.content;
@@ -245,7 +288,28 @@
         return playerResponse;
     }
 
-    function getInnertubeEmbedPlayerPayload(videoId) {
+    function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {
+        // to avoid version conflicts between client and server response, the current YouTube version config will be determined
+        setInnertubeConfigFromYtcfg();
+
+        var nextResponse = null;
+
+        // Retrieve the video info by using a age-gate bypass for the innertube API
+        // Source: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/16#issuecomment-889232425
+        function useInnertubeEmbed() {
+            console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Sidebar Unlock Method #1 (Innertube Embed)");
+            var payload = getInnertubeEmbedPlayerPayload(videoId, playlistId, playlistIndex);
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("POST", `/youtubei/v1/next?key=${innertubeConfig.INNERTUBE_API_KEY}`, false); // Synchronous!!!
+            xmlhttp.send(JSON.stringify(payload));
+            nextResponse = nativeParse(xmlhttp.responseText);
+        }
+        useInnertubeEmbed();
+
+        return nextResponse;
+    }
+
+    function getInnertubeEmbedPlayerPayload(videoId, playlistId, playlistIndex) {
         return {
             "context": {
                 "client": {
@@ -262,7 +326,9 @@
                     "signatureTimestamp": innertubeConfig.STS
                 }
             },
-            "videoId": videoId
+            "videoId": videoId,
+            "playlistId": playlistId,
+            "playlistIndex": playlistIndex
         }
     }
 
