@@ -341,7 +341,7 @@
         return {
             "context": {
                 "client": {
-                    "clientName": innertubeConfig.INNERTUBE_CLIENT_NAME,
+                    "clientName": innertubeConfig.INNERTUBE_CLIENT_NAME.replace('_EMBEDDED_PLAYER', ''),
                     "clientVersion": innertubeConfig.INNERTUBE_CLIENT_VERSION,
                     "clientScreen": "EMBED"
                 },
