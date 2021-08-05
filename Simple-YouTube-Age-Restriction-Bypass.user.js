@@ -97,7 +97,7 @@
         configurable: true
     });
 
-    // Redefine 'ytInitialData' to inspect and modify the initial sidebar response as soon as the variable is set on page load
+    // Also redefine 'ytInitialData' for the initial next/sidebar response
     nativeDefineProperty(window, "ytInitialData", {
         set: function (nextResponse) {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
@@ -187,6 +187,7 @@
             if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isAgeRestricted(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
             }
+            // Equivelant of unlock #2 for sidebar/next response
             if (parsedData.response?.currentVideoEndpoint?.watchEndpoint && isNextSidebarEmpty(parsedData.response.contents)) {
                 parsedData.response = unlockNextResponse(parsedData.response);
             }
@@ -195,6 +196,7 @@
             if (parsedData.playabilityStatus && parsedData.videoDetails && isAgeRestricted(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
+            // Equivelant of unlock #3 for sidebar/next response
             if (parsedData.currentVideoEndpoint?.watchEndpoint && isNextSidebarEmpty(parsedData.contents)) {
                 parsedData = unlockNextResponse(parsedData)
             }
@@ -265,8 +267,8 @@
         var playlistIndex = watchEndpoint.index;
         var unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
 
-        // check if the unlocked response isn't playable
-        if (!isNextSidebarEmpty(unlockedNextResponse.contents)) {
+        // check if the unlocked response's sidebar is still empty
+        if (isNextSidebarEmpty(unlockedNextResponse.contents)) {
             throw new Error(`Next Unlock Failed, innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
@@ -323,7 +325,7 @@
         // Retrieve the video info by using a age-gate bypass for the innertube API
         // Source: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/16#issuecomment-889232425
         function useInnertubeEmbed() {
-            console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Sidebar Unlock Method #1 (Innertube Embed)");
+            console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Sidebar Unlock Method (Innertube Embed)");
             var payload = getInnertubeEmbedPlayerPayload(videoId, playlistId, playlistIndex);
             var xmlhttp = new XMLHttpRequest();
             xmlhttp.open("POST", `/youtubei/v1/next?key=${innertubeConfig.INNERTUBE_API_KEY}`, false); // Synchronous!!!
