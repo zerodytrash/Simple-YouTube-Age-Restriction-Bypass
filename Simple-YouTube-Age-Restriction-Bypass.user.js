@@ -60,8 +60,8 @@
     var chainedPlayerGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
     // Also back up original getter/setter for 'ytInitialData'
     var initialDataDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialData");
-    var chainedDataSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
-    var chainedDataGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
+    var chainedDataSetter = initialDataDescriptor ? initialDataDescriptor.set : null;
+    var chainedDataGetter = initialDataDescriptor ? initialDataDescriptor.get : null;
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function (obj, prop, descriptor) {
