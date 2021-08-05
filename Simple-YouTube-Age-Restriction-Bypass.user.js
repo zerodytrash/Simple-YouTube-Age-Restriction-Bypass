@@ -88,10 +88,10 @@
             if (playerResponse === wrappedPlayerResponse) return;
 
             wrappedPlayerResponse = inspectJsonData(playerResponse);
-            if (typeof chainedPlayerSetter === "function") chainedDataSetter(wrappedPlayerResponse);
+            if (typeof chainedPlayerSetter === "function") chainedPlayerSetter(wrappedPlayerResponse);
         },
         get: function () {
-            if (typeof chainedPlayerGetter === "function") try { return chainedGetter() } catch (err) { };
+            if (typeof chainedPlayerGetter === "function") try { return chainedPlayerGetter() } catch (err) { };
             return wrappedPlayerResponse || {};
         },
         configurable: true
@@ -107,7 +107,7 @@
             if (typeof chainedDataSetter === "function") chainedDataSetter(wrappedNextResponse);
         },
         get: function () {
-            if (typeof chainedDataGetter === "function") try { return chainedGetter() } catch (err) { };
+            if (typeof chainedDataGetter === "function") try { return chainedDataGetter() } catch (err) { };
             return wrappedNextResponse || {};
         },
         configurable: true
