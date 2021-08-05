@@ -38,6 +38,7 @@
     // The actual values will be determined later from the global ytcfg variable => setInnertubeConfigFromYtcfg()
     var innertubeConfig = {
         INNERTUBE_API_KEY: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
+        INNERTUBE_CLIENT_NAME: "WEB",
         INNERTUBE_CLIENT_VERSION: "2.20210721.00.00",
         STS: 18834 // signatureTimestamp (relevant for the cipher functions)
     };
@@ -151,9 +152,9 @@
 
         // If YouTube does JSON.parse(null) or similar weird things
         if (typeof parsedData !== "object" || parsedData === null) return parsedData;
-
+        console.info(parsedData)
         try {
-            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (seems to only be used on m.youtube.com)
+            // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
             if (Array.isArray(parsedData)) {
                 var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
                 var playerResponse = playerResponseArrayItem?.playerResponse;
@@ -164,7 +165,7 @@
                     var nextResponseArrayItem = parsedData.find(e => typeof e.response === "object");
                     var nextResponse = nextResponseArrayItem?.response;
                     if (nextResponse) {
-                        // TODO: Unlock sidebar/next response for m.youtube.com/MWEB client (which has a different response layout than WEB client)
+                        nextResponseArrayItem.response = unlockNextResponse(nextResponse);
                     }
                 }
             }
@@ -172,20 +173,20 @@
             // Hide unlock notification on navigation (if still visible from the last unlock)
             if (parsedData.playerResponse || parsedData.playabilityStatus) hidePlayerNotification();
 
-            // Unlock #2: Another JSON-Object containing the 'playerResponse'
+            // Unlock #2: Another JSON-Object containing the 'playerResponse' (seems to be used by m.youtube.com with &pbj=1)
             if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isAgeRestricted(parsedData.playerResponse.playabilityStatus)) {
                 parsedData.playerResponse = unlockPlayerResponse(parsedData.playerResponse);
+            }
+            if (parsedData.response?.currentVideoEndpoint?.watchEndpoint && isNextSidebarEmpty(parsedData.response.contents)) {
+                parsedData.response = unlockNextResponse(parsedData.response);
             }
 
             // Unlock #3: Initial page data structure and response from the '/youtubei/v1/player' endpoint
             if (parsedData.playabilityStatus && parsedData.videoDetails && isAgeRestricted(parsedData.playabilityStatus)) {
                 parsedData = unlockPlayerResponse(parsedData);
             }
-            if (parsedData.currentVideoEndpoint?.watchEndpoint) {
-                var secondaryResults = parsedData.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults
-                if (secondaryResults && !secondaryResults.results) {
-                    parsedData = unlockNextResponse(parsedData)
-                }
+            if (parsedData.currentVideoEndpoint?.watchEndpoint && isNextSidebarEmpty(parsedData.contents)) {
+                parsedData = unlockNextResponse(parsedData)
             }
         } catch (err) {
             console.error("Simple-YouTube-Age-Restriction-Bypass-Error:", err, "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues");
@@ -198,6 +199,18 @@
         if (!playabilityStatus || !playabilityStatus.status) return false;
 
         return typeof playabilityStatus.desktopLegacyAgeGateReason !== "undefined" || unlockablePlayerStates.includes(playabilityStatus.status);
+    }
+
+    function isNextSidebarEmpty(contents) {
+        var secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults
+        if (secondaryResults && !secondaryResults.results) {
+            return true;
+        }
+        // MWEB response layout
+        var singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
+        var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => typeof e.itemSectionRenderer === "object");
+        var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
+        return (!itemSectionRenderer || !itemSectionRenderer.contents.find(e => typeof e.videoWithContextRenderer === "object"));
     }
 
     function unlockPlayerResponse(playerResponse) {
@@ -241,7 +254,7 @@
         var unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
 
         // check if the unlocked response isn't playable
-        if (!unlockedNextResponse.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results) {
+        if (!isNextSidebarEmpty(unlockNextResponse.contents)) {
             throw new Error(`Next Unlock Failed, innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
@@ -314,7 +327,7 @@
         return {
             "context": {
                 "client": {
-                    "clientName": "WEB",
+                    "clientName": innertubeConfig.INNERTUBE_CLIENT_NAME,
                     "clientVersion": innertubeConfig.INNERTUBE_CLIENT_VERSION,
                     "clientScreen": "EMBED"
                 },
