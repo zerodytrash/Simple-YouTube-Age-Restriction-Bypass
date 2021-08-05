@@ -254,7 +254,7 @@
         var unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
 
         // check if the unlocked response isn't playable
-        if (!isNextSidebarEmpty(unlockNextResponse.contents)) {
+        if (!isNextSidebarEmpty(unlockedNextResponse.contents)) {
             throw new Error(`Next Unlock Failed, innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
