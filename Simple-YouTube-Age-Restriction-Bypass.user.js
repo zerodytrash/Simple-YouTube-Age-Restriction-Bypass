@@ -152,7 +152,7 @@
 
         // If YouTube does JSON.parse(null) or similar weird things
         if (typeof parsedData !== "object" || parsedData === null) return parsedData;
-        console.info(parsedData)
+
         try {
             // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
             if (Array.isArray(parsedData)) {
