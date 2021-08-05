@@ -56,16 +56,26 @@
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
     var initialPlayerResponseDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse");
-    var chainedSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
-    var chainedGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
+    var chainedPlayerSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
+    var chainedPlayerGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
+    // Also back up original getter/setter for 'ytInitialData'
+    var initialDataDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialData");
+    var chainedDataSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
+    var chainedDataGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function (obj, prop, descriptor) {
         if (obj === window && playerResponsePropertyAliases.includes(prop)) {
             console.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
 
-            if (descriptor && descriptor.set) chainedSetter = descriptor.set;
-            if (descriptor && descriptor.get) chainedGetter = descriptor.get;
+            if (descriptor && descriptor.set) chainedPlayerSetter = descriptor.set;
+            if (descriptor && descriptor.get) chainedPlayerGetter = descriptor.get;
+        } else if (obj === window && prop === 'ytInitialData') {
+            // TODO: DRY
+            console.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
+
+            if (descriptor && descriptor.set) chainedDataSetter = descriptor.set;
+            if (descriptor && descriptor.get) chainedDataGetter = descriptor.get;
         } else {
             nativeDefineProperty(obj, prop, descriptor);
         }
@@ -78,10 +88,10 @@
             if (playerResponse === wrappedPlayerResponse) return;
 
             wrappedPlayerResponse = inspectJsonData(playerResponse);
-            if (typeof chainedSetter === "function") chainedSetter(wrappedPlayerResponse);
+            if (typeof chainedPlayerSetter === "function") chainedDataSetter(wrappedPlayerResponse);
         },
         get: function () {
-            if (typeof chainedGetter === "function") try { return chainedGetter() } catch (err) { };
+            if (typeof chainedPlayerGetter === "function") try { return chainedGetter() } catch (err) { };
             return wrappedPlayerResponse || {};
         },
         configurable: true
@@ -94,10 +104,10 @@
             if (nextResponse === wrappedNextResponse) return;
 
             wrappedNextResponse = inspectJsonData(nextResponse);
-            if (typeof chainedSetter === "function") chainedSetter(wrappedNextResponse);
+            if (typeof chainedDataSetter === "function") chainedDataSetter(wrappedNextResponse);
         },
         get: function () {
-            if (typeof chainedGetter === "function") try { return chainedGetter() } catch (err) { };
+            if (typeof chainedDataGetter === "function") try { return chainedGetter() } catch (err) { };
             return wrappedNextResponse || {};
         },
         configurable: true
@@ -208,9 +218,11 @@
         }
         // MWEB response layout
         var singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
-        var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => typeof e.itemSectionRenderer === "object");
-        var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
-        return (!itemSectionRenderer || !itemSectionRenderer.contents.find(e => typeof e.videoWithContextRenderer === "object"));
+        if (singleColumnWatchNextContents) {
+            var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => typeof e.itemSectionRenderer === "object");
+            var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
+            return (!itemSectionRenderer || !itemSectionRenderer.contents.find(e => typeof e.videoWithContextRenderer === "object"));
+        }
     }
 
     function unlockPlayerResponse(playerResponse) {
