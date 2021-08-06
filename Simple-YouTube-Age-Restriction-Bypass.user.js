@@ -274,7 +274,16 @@
             throw new Error(`Sidebar Unlock Failed, innertubeApiKey:${innertubeConfig.INNERTUBE_API_KEY}; innertubeClientName:${innertubeConfig.INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${innertubeConfig.INNERTUBE_CLIENT_VERSION}`);
         }
 
-        return unlockedNextResponse;
+        // Transfer WatchNextResults to original response
+        if (nextResponse.contents?.twoColumnWatchNextResults?.secondaryResults) {
+            nextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse?.contents?.twoColumnWatchNextResults?.secondaryResults;
+        }
+
+        if (nextResponse.contents?.singleColumnWatchNextResults) {
+            nextResponse.contents.singleColumnWatchNextResults = unlockedNextResponse?.contents?.singleColumnWatchNextResults;
+        }
+
+        return nextResponse;
     }
 
     function getUnlockedPlayerResponse(videoId, reason) {
