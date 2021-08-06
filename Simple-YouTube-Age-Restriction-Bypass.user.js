@@ -279,8 +279,10 @@
             nextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse?.contents?.twoColumnWatchNextResults?.secondaryResults;
         }
 
-        if (nextResponse.contents?.singleColumnWatchNextResults) {
-            nextResponse.contents.singleColumnWatchNextResults = unlockedNextResponse?.contents?.singleColumnWatchNextResults;
+        // Mobile
+        if (nextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents) {
+            var unlockedWatchNextFeed = unlockedNextResponse?.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
+            if (unlockedWatchNextFeed) nextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
         }
 
         return nextResponse;
