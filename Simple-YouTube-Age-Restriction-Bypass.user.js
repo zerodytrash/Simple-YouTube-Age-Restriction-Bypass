@@ -210,11 +210,6 @@
         return parsedData.contents.twoColumnWatchNextResults || parsedData.contents.singleColumnWatchNextResults;
     }
 
-    function isLoggedIn() {
-        setInnertubeConfigFromYtcfg();
-        return innertubeConfig.LOGGED_IN;
-    }
-
     function isWatchNextSidebarEmpty(contents) {
         var secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults;
         if (secondaryResults && secondaryResults.results) return false;
@@ -227,6 +222,11 @@
         var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
 
         return typeof itemSectionRenderer === "undefined";
+    }
+
+    function isLoggedIn() {
+        setInnertubeConfigFromYtcfg();
+        return innertubeConfig.LOGGED_IN;
     }
 
     function unlockPlayerResponse(playerResponse) {
@@ -279,7 +279,7 @@
             nextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse?.contents?.twoColumnWatchNextResults?.secondaryResults;
         }
 
-        // Mobile
+        // Transfer mobile (MWEB) WatchNextResults to original response
         if (nextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents) {
             var unlockedWatchNextFeed = unlockedNextResponse?.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
             if (unlockedWatchNextFeed) nextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
@@ -365,8 +365,9 @@
         }
 
         // Append client info from INNERTUBE_CONTEXT
-        if (typeof innertubeConfig.INNERTUBE_CONTEXT?.client === "object")
+        if (typeof innertubeConfig.INNERTUBE_CONTEXT?.client === "object") {
             data.context.client = Object.assign(innertubeConfig.INNERTUBE_CONTEXT.client, data.context.client);
+        }
 
         return data;
     }
@@ -380,7 +381,7 @@
 
         for (const key in innertubeConfig) {
             var value = window.ytcfg.data_?.[key] ?? window.ytcfg.get?.(key);
-            if (value) {
+            if (typeof value !== "undefined" && value !== null) {
                 innertubeConfig[key] = value;
             } else {
                 console.warn(`Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration variable '${key}'. Using old value...`);
