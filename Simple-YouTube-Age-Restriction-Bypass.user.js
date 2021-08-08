@@ -4,7 +4,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.1.1
+// @version         2.1.2
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
@@ -16,13 +16,13 @@
 // @grant           none
 // @run-at          document-start
 // @compatible      chrome Chrome + Tampermonkey or Violentmonkey
-// @compatible      firefox Firefox + Tampermonkey or Violentmonkey
+// @compatible      firefox Firefox + Greasemonkey or Tampermonkey or Violentmonkey
 // @compatible      opera Opera + Tampermonkey or Violentmonkey
 // @compatible      edge Edge + Tampermonkey or Violentmonkey
 // @compatible      safari Safari + Tampermonkey or Violentmonkey
 // ==/UserScript==
 
-(function () {
+const initUnlocker = function () {
 
     var nativeParse = window.JSON.parse; // Backup the original parse function
     var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
@@ -492,4 +492,13 @@
         }
     }
 
-})();
+};
+
+// Just a trick to get around the sandbox restrictions in Firefox / Greasemonkey
+// Greasemonkey => Inject code into the main window
+// Tampermonkey & Violentmonkey => Execute code directly
+if(GM_info?.scriptHandler === "Greasemonkey") {
+    window.eval("("+ initUnlocker.toString() +")();");
+} else {
+    initUnlocker();
+}
