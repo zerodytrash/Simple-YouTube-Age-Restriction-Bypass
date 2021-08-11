@@ -498,7 +498,7 @@ const initUnlocker = function () {
 // Greasemonkey => Inject code into the main window
 // Tampermonkey & Violentmonkey => Execute code directly
 if(GM_info?.scriptHandler === "Greasemonkey") {
-    window.eval("("+ initUnlocker.toString() +")();");
+    window.val("("+ initUnlocker.toString() +")();");
 } else {
     initUnlocker();
 }
