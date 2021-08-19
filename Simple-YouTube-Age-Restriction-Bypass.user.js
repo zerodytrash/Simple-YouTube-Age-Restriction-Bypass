@@ -312,7 +312,7 @@ const initUnlocker = function () {
         function useProxy() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #2 (Account Proxy)");
             var xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", accountProxyServerHost + `/getPlayer?videoId=${encodeURIComponent(videoId)}&reason=${encodeURIComponent(reason)}&clientVersion=${innertubeConfig.INNERTUBE_CLIENT_VERSION}&signatureTimestamp=${innertubeConfig.STS}`, false); // Synchronous!!!
+            xmlhttp.open("GET", accountProxyServerHost + `/getPlayer?videoId=${encodeURIComponent(videoId)}&reason=${encodeURIComponent(reason)}&clientName=${innertubeConfig.INNERTUBE_CLIENT_NAME}&clientVersion=${innertubeConfig.INNERTUBE_CLIENT_VERSION}&signatureTimestamp=${innertubeConfig.STS}`, false); // Synchronous!!!
             xmlhttp.send(null);
             playerResponse = nativeParse(xmlhttp.responseText);
             playerResponse.proxied = true;
