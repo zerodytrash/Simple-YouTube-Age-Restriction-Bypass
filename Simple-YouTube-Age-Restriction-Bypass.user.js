@@ -4,7 +4,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.1.2
+// @version         2.1.3
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
@@ -287,6 +287,18 @@ const initUnlocker = function () {
             if (unlockedWatchNextFeed) nextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
         }
 
+        // Transfer video description to original response
+        let originalVideoSecondaryInfoRenderer = nextResponse.contents?.twoColumnWatchNextResults?.results?.results?.contents?.find(x => x.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
+        let unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents?.twoColumnWatchNextResults?.results?.results?.contents?.find(x => x.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
+
+        if (originalVideoSecondaryInfoRenderer && unlockedVideoSecondaryInfoRenderer?.description) originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+
+        // Transfer mobile (MWEB) video description to original response
+        let originalStructuredDescriptionContentRenderer = nextResponse.engagementPanels?.find(x => x.engagementPanelSectionListRenderer)?.engagementPanelSectionListRenderer?.content?.structuredDescriptionContentRenderer?.items?.find(x => x.expandableVideoDescriptionBodyRenderer);
+        let unlockedStructuredDescriptionContentRenderer = unlockedNextResponse.engagementPanels?.find(x => x.engagementPanelSectionListRenderer)?.engagementPanelSectionListRenderer?.content?.structuredDescriptionContentRenderer?.items?.find(x => x.expandableVideoDescriptionBodyRenderer);
+
+        if (originalStructuredDescriptionContentRenderer && unlockedStructuredDescriptionContentRenderer?.expandableVideoDescriptionBodyRenderer) originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
+
         return nextResponse;
     }
 
@@ -499,8 +511,8 @@ const initUnlocker = function () {
 // Just a trick to get around the sandbox restrictions in Firefox / Greasemonkey
 // Greasemonkey => Inject code into the main window
 // Tampermonkey & Violentmonkey => Execute code directly
-if(typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey") {
-    window.eval("("+ initUnlocker.toString() +")();");
+if (typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey") {
+    window.eval("(" + initUnlocker.toString() + ")();");
 } else {
     initUnlocker();
 }
