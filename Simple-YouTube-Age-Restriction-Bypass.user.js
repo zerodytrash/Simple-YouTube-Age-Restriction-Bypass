@@ -24,19 +24,21 @@
 
 const initUnlocker = function () {
 
-    var nativeParse = window.JSON.parse; // Backup the original parse function
-    var nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
-    var nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
-    var wrappedPlayerResponse = null;
-    var wrappedNextResponse = null;
-    var unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
-    var playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
-    var lastProxiedGoogleVideoUrlParams = null;
-    var responseCache = {};
+    const nativeParse = window.JSON.parse; // Backup the original parse function
+    const nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
+    const nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
+
+    const unlockablePlayerStates = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
+    const playerResponsePropertyAliases = ["ytInitialPlayerResponse", "playerResponse"];
+
+    let wrappedPlayerResponse = null;
+    let wrappedNextResponse = null;
+    let lastProxiedGoogleVideoUrlParams = null;
+    let responseCache = {};
 
     // YouTube API config (Innertube). 
     // The actual values will be determined later from the global ytcfg variable => setInnertubeConfigFromYtcfg()
-    var innertubeConfig = {
+    let innertubeConfig = {
         INNERTUBE_API_KEY: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
         INNERTUBE_CLIENT_NAME: "WEB",
         INNERTUBE_CLIENT_VERSION: "2.20210721.00.00",
@@ -47,19 +49,19 @@ const initUnlocker = function () {
 
     // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
     // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
-    var accountProxyServerHost = "https://youtube-proxy.zerody.one";
-    var videoProxyServerHost = "https://phx.4everproxy.com";
+    const accountProxyServerHost = "https://youtube-proxy.zerody.one";
+    const videoProxyServerHost = "https://phx.4everproxy.com";
 
     // UI-related stuff (notifications, ...)
-    var enableUnlockNotification = true;
-    var playerCreationObserver = null;
-    var notificationElement = null;
-    var notificationTimeout = null;
+    const enableUnlockNotification = true;
+    let playerCreationObserver = null;
+    let notificationElement = null;
+    let notificationTimeout = null;
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    var initialPlayerResponseDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse");
-    var chainedPlayerSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
-    var chainedPlayerGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
+    let initialPlayerResponseDescriptor = window.Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse");
+    let chainedPlayerSetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.set : null;
+    let chainedPlayerGetter = initialPlayerResponseDescriptor ? initialPlayerResponseDescriptor.get : null;
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     window.Object.defineProperty = function (obj, prop, descriptor) {
@@ -103,9 +105,9 @@ const initUnlocker = function () {
     // Intercept XMLHttpRequest.open to rewrite video URL's (sometimes required)
     XMLHttpRequest.prototype.open = function () {
         if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
-            var method = arguments[0];
-            var url = new URL(arguments[1]);
-            var urlParams = new URLSearchParams(url.search);
+            let method = arguments[0];
+            let url = new URL(arguments[1]);
+            let urlParams = new URLSearchParams(url.search);
 
             // If the account proxy was used to retieve the video info, the following applies:
             // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
@@ -153,14 +155,14 @@ const initUnlocker = function () {
         try {
             // Unlock #1: Array based in "&pbj=1" AJAX response on any navigation (does not seem to be used anymore)
             if (Array.isArray(parsedData)) {
-                var playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
-                var playerResponse = playerResponseArrayItem?.playerResponse;
+                let playerResponseArrayItem = parsedData.find(e => typeof e.playerResponse === "object");
+                let playerResponse = playerResponseArrayItem?.playerResponse;
 
                 if (playerResponse && isAgeRestricted(playerResponse.playabilityStatus)) {
                     playerResponseArrayItem.playerResponse = unlockPlayerResponse(playerResponse);
 
-                    var nextResponseArrayItem = parsedData.find(e => typeof e.response === "object");
-                    var nextResponse = nextResponseArrayItem?.response;
+                    let nextResponseArrayItem = parsedData.find(e => typeof e.response === "object");
+                    let nextResponse = nextResponseArrayItem?.response;
 
                     if (isWatchNextObject(nextResponse) && !isLoggedIn() && isWatchNextSidebarEmpty(nextResponse.contents)) {
                         nextResponseArrayItem.response = unlockNextResponse(nextResponse);
@@ -211,15 +213,15 @@ const initUnlocker = function () {
     }
 
     function isWatchNextSidebarEmpty(contents) {
-        var secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults;
+        let secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults;
         if (secondaryResults && secondaryResults.results) return false;
 
         // MWEB response layout
-        var singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
+        let singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
         if (!singleColumnWatchNextContents) return true;
 
-        var itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => e.itemSectionRenderer?.targetId === "watch-next-feed");
-        var itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
+        let itemSectionRendererArrayItem = singleColumnWatchNextContents.find(e => e.itemSectionRenderer?.targetId === "watch-next-feed");
+        let itemSectionRenderer = itemSectionRendererArrayItem?.itemSectionRenderer;
 
         return typeof itemSectionRenderer === "undefined";
     }
@@ -230,9 +232,9 @@ const initUnlocker = function () {
     }
 
     function unlockPlayerResponse(playerResponse) {
-        var videoId = playerResponse.videoDetails.videoId;
-        var reason = playerResponse.playabilityStatus?.status;
-        var unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
+        let videoId = playerResponse.videoDetails.videoId;
+        let reason = playerResponse.playabilityStatus?.status;
+        let unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
         // account proxy error?
         if (unlockedPayerResponse.errorMessage) {
@@ -249,8 +251,8 @@ const initUnlocker = function () {
         // if the video info was retrieved via proxy, store the URL params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
         // => see isUnlockedByAccountProxy()
         if (unlockedPayerResponse.proxied && unlockedPayerResponse.streamingData?.adaptiveFormats) {
-            var videoUrl = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
-            var cipherText = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
+            let videoUrl = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
+            let cipherText = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
 
             if (cipherText) videoUrl = new URLSearchParams(cipherText).get("url");
 
@@ -263,11 +265,11 @@ const initUnlocker = function () {
     }
 
     function unlockNextResponse(nextResponse) {
-        var watchEndpoint = nextResponse.currentVideoEndpoint.watchEndpoint;
-        var videoId = watchEndpoint.videoId;
-        var playlistId = watchEndpoint.playlistId;
-        var playlistIndex = watchEndpoint.index;
-        var unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
+        let watchEndpoint = nextResponse.currentVideoEndpoint.watchEndpoint;
+        let videoId = watchEndpoint.videoId;
+        let playlistId = watchEndpoint.playlistId;
+        let playlistIndex = watchEndpoint.index;
+        let unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
 
         // check if the unlocked response's sidebar is still empty
         if (isWatchNextSidebarEmpty(unlockedNextResponse.contents)) {
@@ -281,7 +283,7 @@ const initUnlocker = function () {
 
         // Transfer mobile (MWEB) WatchNextResults to original response
         if (nextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents) {
-            var unlockedWatchNextFeed = unlockedNextResponse?.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
+            let unlockedWatchNextFeed = unlockedNextResponse?.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
             if (unlockedWatchNextFeed) nextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
         }
 
@@ -294,14 +296,14 @@ const initUnlocker = function () {
 
         setInnertubeConfigFromYtcfg();
 
-        var playerResponse = null;
+        let playerResponse = null;
 
         // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
         // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
         function useInnertubeEmbed() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #1 (Innertube Embed)");
-            var payload = getInnertubeEmbedPayload(videoId);
-            var xmlhttp = new XMLHttpRequest();
+            const payload = getInnertubeEmbedPayload(videoId);
+            const xmlhttp = new XMLHttpRequest();
             xmlhttp.open("POST", `/youtubei/v1/player?key=${innertubeConfig.INNERTUBE_API_KEY}`, false); // Synchronous!!!
             xmlhttp.send(JSON.stringify(payload));
             playerResponse = nativeParse(xmlhttp.responseText);
@@ -311,7 +313,7 @@ const initUnlocker = function () {
         // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
         function useProxy() {
             console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Unlock Method #2 (Account Proxy)");
-            var xmlhttp = new XMLHttpRequest();
+            const xmlhttp = new XMLHttpRequest();
             xmlhttp.open("GET", accountProxyServerHost + `/getPlayer?videoId=${encodeURIComponent(videoId)}&reason=${encodeURIComponent(reason)}&clientName=${innertubeConfig.INNERTUBE_CLIENT_NAME}&clientVersion=${innertubeConfig.INNERTUBE_CLIENT_VERSION}&signatureTimestamp=${innertubeConfig.STS}`, false); // Synchronous!!!
             xmlhttp.send(null);
             playerResponse = nativeParse(xmlhttp.responseText);
@@ -335,15 +337,15 @@ const initUnlocker = function () {
         // Retrieve the video info by using a age-gate bypass for the innertube API
         // Source: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/16#issuecomment-889232425
         console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Sidebar Unlock Method (Innertube Embed)");
-        var payload = getInnertubeEmbedPayload(videoId, playlistId, playlistIndex);
-        var xmlhttp = new XMLHttpRequest();
+        const payload = getInnertubeEmbedPayload(videoId, playlistId, playlistIndex);
+        const xmlhttp = new XMLHttpRequest();
         xmlhttp.open("POST", `/youtubei/v1/next?key=${innertubeConfig.INNERTUBE_API_KEY}`, false); // Synchronous!!!
         xmlhttp.send(JSON.stringify(payload));
         return nativeParse(xmlhttp.responseText);
     }
 
     function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
-        var data = {
+        let data = {
             context: {
                 client: {
                     clientName: innertubeConfig.INNERTUBE_CLIENT_NAME.replace('_EMBEDDED_PLAYER', ''),
@@ -380,7 +382,7 @@ const initUnlocker = function () {
         }
 
         for (const key in innertubeConfig) {
-            var value = window.ytcfg.data_?.[key] ?? window.ytcfg.get?.(key);
+            const value = window.ytcfg.data_?.[key] ?? window.ytcfg.get?.(key);
             if (typeof value !== "undefined" && value !== null) {
                 innertubeConfig[key] = value;
             } else {
@@ -403,7 +405,7 @@ const initUnlocker = function () {
             }
 
             function createNotification() {
-                var playerElement = getPlayerElement();
+                let playerElement = getPlayerElement();
                 if (!playerElement) return;
 
                 // first, remove existing notification
@@ -476,11 +478,11 @@ const initUnlocker = function () {
         try {
             if (!document.body) document.body = document.createElement("body");
 
-            var tempFrame = document.createElement("iframe");
+            let tempFrame = document.createElement("iframe");
             tempFrame.style.display = "none";
 
             document.body.insertAdjacentElement("beforeend", tempFrame);
-            var nativeDefineProperty = tempFrame.contentWindow.Object.defineProperty;
+            let nativeDefineProperty = tempFrame.contentWindow.Object.defineProperty;
             tempFrame.remove();
 
             console.info("Simple-YouTube-Age-Restriction-Bypass: Overidden Object.defineProperty function successfully restored!");
