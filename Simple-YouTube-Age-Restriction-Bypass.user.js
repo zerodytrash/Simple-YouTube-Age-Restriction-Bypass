@@ -499,7 +499,7 @@ const initUnlocker = function () {
 // Just a trick to get around the sandbox restrictions in Firefox / Greasemonkey
 // Greasemonkey => Inject code into the main window
 // Tampermonkey & Violentmonkey => Execute code directly
-if(GM_info?.scriptHandler === "Greasemonkey") {
+if(typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey") {
     window.eval("("+ initUnlocker.toString() +")();");
 } else {
     initUnlocker();
