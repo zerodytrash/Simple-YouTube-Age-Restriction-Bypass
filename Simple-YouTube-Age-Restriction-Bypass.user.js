@@ -4,7 +4,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.1.3
+// @version         2.1.4
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
@@ -56,10 +56,53 @@ const initUnlocker = () => {
     let lastProxiedGoogleVideoUrlParams;
     let responseCache = {};
 
-    // UI-related stuff (notifications, ...)
-    let playerCreationObserver;
-    let notificationElement;
-    let notificationTimeout;
+    const Deferred = function () {
+        return Object.assign(new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        }), this);
+    };
+
+    const Notification = (() => {
+        const isPolymer = !!window.Polymer;
+
+        const pageLoad = new Deferred();
+        const pageLoadEventName = isPolymer ? 'yt-navigate-finish' : 'state-navigateend';
+
+        const node = isPolymer
+            ? createElement('tp-yt-paper-toast')
+            : createElement('c3-toast', { innerHTML: '<ytm-notification-action-renderer><div class="notification-action-response-text"></div></ytm-notification-action-renderer>' });
+
+        const nMobileText = !isPolymer && node.querySelector('.notification-action-response-text');
+
+        window.addEventListener(pageLoadEventName, init, { once: true });
+
+        function init() {
+            document.body.append(node);
+            pageLoad.resolve();
+        }
+
+        function show(message, duration = 5) {
+            if (!ENABLE_UNLOCK_NOTIFICATION) return;
+
+            pageLoad.then(_show);
+
+            function _show() {
+                if (isPolymer) {
+                    node.duration = duration * 1000;
+                    node.show(message);
+                } else {
+                    nMobileText.innerHTML = message;
+                    node.setAttribute('dir', 'in');
+                    setTimeout(() => {
+                        node.setAttribute('dir', 'out');
+                    }, duration * 1000 + 225);
+                }
+            }
+        }
+
+        return { show };
+    })();
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     Object.defineProperty = (obj, prop, descriptor) => {
@@ -86,14 +129,14 @@ const initUnlocker = () => {
             if (typeof chainedPlayerGetter === "function") try { return chainedPlayerGetter() } catch (err) { };
             return wrappedPlayerResponse || {};
         },
-        configurable: true
+        configurable: true,
     });
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
     nativeDefineProperty(window, "ytInitialData", {
         set: (nextResponse) => { wrappedNextResponse = inspectJsonData(nextResponse); },
         get: () => wrappedNextResponse,
-        configurable: true
+        configurable: true,
     });
 
     // Intercept XMLHttpRequest.open to rewrite video URL's (sometimes required)
@@ -130,7 +173,6 @@ const initUnlocker = () => {
                     get: () => false,
                 });
             }
-
         }
 
         return nativeXmlHttpOpen.apply(this, arguments);
@@ -158,9 +200,6 @@ const initUnlocker = () => {
                     }
                 }
             }
-
-            // Hide unlock notification on navigation (if still visible from the last unlock)
-            if (parsedData.playerResponse || parsedData.playabilityStatus) hidePlayerNotification();
 
             // Unlock #2: Another JSON-Object containing the 'playerResponse' (seems to be used by m.youtube.com with &pbj=1)
             if (parsedData.playerResponse?.playabilityStatus && parsedData.playerResponse?.videoDetails && isAgeRestricted(parsedData.playerResponse.playabilityStatus)) {
@@ -223,13 +262,13 @@ const initUnlocker = () => {
 
         // account proxy error?
         if (unlockedPayerResponse.errorMessage) {
-            showPlayerNotification("#7b1e1e", "Unable to unlock this video :( Please look into the developer console for more details. (ProxyError)", 10);
+            Notification.show("Unable to unlock this video 🙁 - More information in the developer console (ProxyError)", 10);
             throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${INNERTUBE_CONFIG.INNERTUBE_API_KEY}; innertubeClientName:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_VERSION}`);
         }
 
         // check if the unlocked response isn't playable
         if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
-            showPlayerNotification("#7b1e1e", `Unable to unlock this video :( Please look into the developer console for more details. (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
+            Notification.show(`Unable to unlock this video 🙁 - More information in the developer console (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
             throw new Error(`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${INNERTUBE_CONFIG.INNERTUBE_API_KEY}; innertubeClientName:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_VERSION}`);
         }
 
@@ -242,7 +281,7 @@ const initUnlocker = () => {
             lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
         }
 
-        showPlayerNotification("#005c04", "Age-restricted video successfully unlocked!", 4);
+        Notification.show("Video successfully unlocked!");
 
         return unlockedPayerResponse;
     }
@@ -389,65 +428,6 @@ const initUnlocker = () => {
                 console.warn(`Simple-YouTube-Age-Restriction-Bypass: Unable to retrieve global YouTube configuration variable '${key}'. Using old value...`);
             }
         }
-    }
-
-    function showPlayerNotification(color, message, displayDuration) {
-        if (!ENABLE_UNLOCK_NOTIFICATION) return;
-
-        // clear existing notifications
-        disconnectPlayerCreationObserver();
-        hidePlayerNotification();
-
-        // Does the player already exist in the DOM?
-        if (getPlayerElement()) {
-            createNotification();
-            return;
-        }
-
-        // waiting for creation of the player element...
-        playerCreationObserver = new MutationObserver(() => {
-            if (getPlayerElement()) {
-                disconnectPlayerCreationObserver();
-                createNotification();
-            }
-        });
-
-        playerCreationObserver.observe(document.body, { childList: true });
-
-        function getPlayerElement() {
-            return document.querySelector("#primary > #primary-inner > #player") || document.querySelector("#player-container-id > #player");
-        }
-
-        function createNotification() {
-            const playerElement = getPlayerElement();
-            if (!playerElement) return;
-
-            // first, remove existing notification
-            hidePlayerNotification();
-
-            // create new notification
-            notificationElement = createElement("div", {
-                innerHTML: message,
-                style: `width: 100%; text-align: center; background-color: ${color}; color: #ffffff; padding: 2px 0px 2px; font-size: 1.1em;`,
-                id: "bypass-notification",
-            });
-
-            // append below the player
-            playerElement.nextSibling?.before(notificationElement);
-
-            if (notificationTimeout) clearTimeout(notificationTimeout);
-
-            notificationTimeout = setTimeout(hidePlayerNotification, displayDuration * 1000);
-        }
-
-        function disconnectPlayerCreationObserver() {
-            playerCreationObserver?.disconnect();
-        }
-    }
-
-    function hidePlayerNotification() {
-        playerCreationObserver?.disconnect();
-        notificationElement?.remove();
     }
 
     // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
