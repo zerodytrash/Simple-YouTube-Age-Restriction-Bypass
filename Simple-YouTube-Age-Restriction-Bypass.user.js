@@ -44,7 +44,19 @@ const initUnlocker = () => {
 
     const ENABLE_UNLOCK_NOTIFICATION = true;
 
-    const Deferred = function() {
+    const nativeParse = window.JSON.parse; // Backup the original parse function
+    const nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
+    const nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
+
+    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
+    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse") || {};
+
+    let wrappedPlayerResponse;
+    let wrappedNextResponse;
+    let lastProxiedGoogleVideoUrlParams;
+    let responseCache = {};
+
+    const Deferred = function () {
         return Object.assign(new Promise((resolve, reject) => {
             this.resolve = resolve;
             this.reject = reject;
@@ -91,18 +103,6 @@ const initUnlocker = () => {
 
         return { show };
     })();
-
-    const nativeParse = window.JSON.parse; // Backup the original parse function
-    const nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
-    const nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
-
-    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse") || {};
-
-    let wrappedPlayerResponse;
-    let wrappedNextResponse;
-    let lastProxiedGoogleVideoUrlParams;
-    let responseCache = {};
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     Object.defineProperty = (obj, prop, descriptor) => {
