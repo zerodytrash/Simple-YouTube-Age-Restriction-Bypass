@@ -52,16 +52,16 @@ const initUnlocker = () => {
     };
 
     const Notification = (() => {
-        const isDesktop = true;
+        const isPolymer = !!window.Polymer;
 
         const pageLoad = new Deferred();
-        const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
+        const pageLoadEventName = isPolymer ? 'yt-navigate-finish' : 'state-navigateend';
 
-        const node = isDesktop
+        const node = isPolymer
             ? createElement('tp-yt-paper-toast')
             : createElement('c3-toast', { innerHTML: '<ytm-notification-action-renderer><div class="notification-action-response-text"></div></ytm-notification-action-renderer>' });
 
-        const nMobileText = !isDesktop && node.querySelector('.notification-action-response-text');
+        const nMobileText = !isPolymer && node.querySelector('.notification-action-response-text');
 
         window.addEventListener(pageLoadEventName, init, { once: true });
 
@@ -76,7 +76,7 @@ const initUnlocker = () => {
             pageLoad.then(_show);
 
             function _show() {
-                if (isDesktop) {
+                if (isPolymer) {
                     node.duration = duration * 1000;
                     node.show(message);
                 } else {
