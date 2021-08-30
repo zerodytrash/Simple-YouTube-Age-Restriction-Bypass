@@ -262,13 +262,13 @@ const initUnlocker = () => {
 
         // account proxy error?
         if (unlockedPayerResponse.errorMessage) {
-            Notification.show("Was unable to unlock this video 🙁 - More information in the developer console (ProxyError)", 10);
+            Notification.show("Unable to unlock this video 🙁 - More information in the developer console (ProxyError)", 10);
             throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${INNERTUBE_CONFIG.INNERTUBE_API_KEY}; innertubeClientName:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_VERSION}`);
         }
 
         // check if the unlocked response isn't playable
         if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
-            Notification.show(`Was unable to unlock this video 🙁 - More information in the developer console (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
+            Notification.show(`Unable to unlock this video 🙁 - More information in the developer console (playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status})`, 10);
             throw new Error(`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${INNERTUBE_CONFIG.INNERTUBE_API_KEY}; innertubeClientName:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${INNERTUBE_CONFIG.INNERTUBE_CLIENT_VERSION}`);
         }
 
@@ -281,7 +281,7 @@ const initUnlocker = () => {
             lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
         }
 
-        Notification.show("Video was successfully unlocked!");
+        Notification.show("Video successfully unlocked!");
 
         return unlockedPayerResponse;
     }
