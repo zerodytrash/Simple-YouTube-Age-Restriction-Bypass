@@ -52,28 +52,44 @@ const initUnlocker = () => {
     };
 
     const Notification = (() => {
-        const node = createElement('tp-yt-paper-toast');
-        const pageLoad = new Deferred();
+        const isDesktop = true;
 
-        window.addEventListener('yt-navigate-finish', init, { once: true });
+        const pageLoad = new Deferred();
+        const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
+
+        const node = isDesktop
+            ? createElement('tp-yt-paper-toast')
+            : createElement('c3-toast', { innerHTML: '<ytm-notification-action-renderer><div class="notification-action-response-text"></div></ytm-notification-action-renderer>' });
+
+        const nMobileText = !isDesktop && node.querySelector('.notification-action-response-text');
+
+        window.addEventListener(pageLoadEventName, init, { once: true });
 
         function init() {
             document.body.append(node);
             pageLoad.resolve();
         }
 
-        return {
-            show: (message, duration = 5) => {
-                if (!ENABLE_UNLOCK_NOTIFICATION) return;
+        function show(message, duration = 5) {
+            if (!ENABLE_UNLOCK_NOTIFICATION) return;
 
-                pageLoad.then(show);
+            pageLoad.then(_show);
 
-                function show() {
+            function _show() {
+                if (isDesktop) {
                     node.duration = duration * 1000;
                     node.show(message);
+                } else {
+                    nMobileText.innerHTML = message;
+                    node.setAttribute('dir', 'in');
+                    setTimeout(() => {
+                        node.setAttribute('dir', 'out');
+                    }, duration * 1000 + 225);
                 }
-            },
-        };
+            }
+        }
+
+        return { show };
     })();
 
     const nativeParse = window.JSON.parse; // Backup the original parse function
