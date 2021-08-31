@@ -1,5 +1,4 @@
 import { babel } from '@rollup/plugin-babel';
-// import { terser } from "rollup-plugin-terser";
 import userscript from 'rollup-plugin-userscript';
 
 export default {
@@ -11,10 +10,5 @@ export default {
     plugins: [
         babel({ babelHelpers: 'bundled' }),
         userscript('userscript.config.js'),
-        // terser({
-        //     output: {
-        //         comments: false,
-        //     },
-        // }),
     ],
 };
