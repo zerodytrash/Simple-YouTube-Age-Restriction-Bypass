@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npx rollup -c"
+    "build": "rollup -c"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
