@@ -6,6 +6,7 @@ export default {
     output: {
         file: 'dist/Simple-YouTube-Age-Restriction-Bypass.user.js',
         format: 'iife',
+        strict: false,
     },
     plugins: [
         babel({ babelHelpers: 'bundled' }),
