@@ -1,27 +1,3 @@
-// ==UserScript==
-// @name            Simple YouTube Age Restriction Bypass
-// @description     Watch age restricted videos on YouTube without login and without age verification :)
-// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
-// @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
-// @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.1.4
-// @author          Zerody (https://github.com/zerodytrash)
-// @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
-// @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
-// @downloadURL     https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/Simple-YouTube-Age-Restriction-Bypass.user.js
-// @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
-// @license         MIT
-// @match           https://www.youtube.com/*
-// @match           https://m.youtube.com/*
-// @grant           none
-// @run-at          document-start
-// @compatible      chrome Chrome + Tampermonkey or Violentmonkey
-// @compatible      firefox Firefox + Greasemonkey or Tampermonkey or Violentmonkey
-// @compatible      opera Opera + Tampermonkey or Violentmonkey
-// @compatible      edge Edge + Tampermonkey or Violentmonkey
-// @compatible      safari Safari + Tampermonkey or Violentmonkey
-// ==/UserScript==
-
 const initUnlocker = () => {
     const UNLOCKABLE_PLAYER_STATES = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
     const PLAYER_RESPONSE_ALIASES = ["ytInitialPlayerResponse", "playerResponse"];
@@ -466,8 +442,8 @@ const initUnlocker = () => {
 // Just a trick to get around the sandbox restrictions in Firefox / Greasemonkey
 // Greasemonkey => Inject code into the main window
 // Tampermonkey & Violentmonkey => Execute code directly
-if (typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey") {
-    window.eval("(" + initUnlocker.toString() + ")();");
+if (typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey" && !arguments[0]) {
+    window.eval("(" + arguments.callee.toString() + ")(true);");
 } else {
     initUnlocker();
 }
