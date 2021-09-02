@@ -1,6 +1,6 @@
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { babel } from '@rollup/plugin-babel';
 import userscript from 'rollup-plugin-userscript';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 function wrap_in_iife() {
     const [banner, footer] = (() => {
@@ -17,7 +17,7 @@ function wrap_in_iife() {
     }).toString().slice(7, -1).split('/* == INJECTION == */');
 
     return {
-        name: 'wrap',
+        name: 'wrap_in_iife',
         banner,
         footer,
     };
@@ -30,10 +30,10 @@ export default {
         format: 'esm',
     },
     plugins: [
+        nodeResolve(),
         babel({ babelHelpers: 'bundled' }),
         userscript('userscript.config.js'),
         // Manually wrap code in our custom iife
         wrap_in_iife(),
-        nodeResolve(),
     ],
 };
