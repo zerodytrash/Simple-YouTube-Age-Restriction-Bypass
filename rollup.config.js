@@ -1,5 +1,6 @@
 import { babel } from '@rollup/plugin-babel';
 import userscript from 'rollup-plugin-userscript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 function wrap_in_iife() {
     const [banner, footer] = (() => {
@@ -33,5 +34,6 @@ export default {
         userscript('userscript.config.js'),
         // Manually wrap code in our custom iife
         wrap_in_iife(),
+        nodeResolve(),
     ],
 };

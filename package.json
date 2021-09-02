@@ -8,5 +8,8 @@
     "rollup": "^2.56.3",
     "rollup-plugin-userscript": "^0.1.1"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.4"
+  }
 }
