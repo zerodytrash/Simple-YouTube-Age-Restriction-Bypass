@@ -3,14 +3,17 @@ import * as interceptor from "./components/interceptor";
 import * as inspector from "./components/inspector";
 import * as unlocker from "./components/unlocker";
 import * as proxy from "./components/proxy";
-import Notification from "./components/notification";
+
+interceptor.attachInititalDataInterceptor(checkAndUnlock);
+interceptor.attachJsonInterceptor(checkAndUnlock);
+interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
 
 function checkAndUnlock(ytData) {
-    return inspector.inspectYtData(ytData, playerObject => {
-        return unlocker.unlockPlayerResponse(playerObject, onUnlockSuccess, onUnlockFailed);
-    }, nextObject => {
-        return unlocker.unlockNextResponse(nextObject);
-    })
+    return inspector.inspectYtData(
+            ytData,
+            (playerObject) => unlocker.unlockPlayerResponse(playerObject),
+            (nextObject) => unlocker.unlockNextResponse(nextObject)
+        );
 }
 
 // Intercept XMLHttpRequest.open to rewrite video URL's (sometimes required)
@@ -30,15 +33,3 @@ function onXhrOpenCalled(xhr, method, url, urlParams) {
 
     return proxy.getProxiedGooglevideoUrl(url.toString(), Config.VIDEO_PROXY_SERVER_HOST);
 }
-
-function onUnlockSuccess() {
-    Notification.show("Video successfully unlocked!");
-}
-
-function onUnlockFailed(extraInfo) {
-    Notification.show(`Unable to unlock this video 🙁 - More information in the developer console (${extraInfo})`, 10)
-}
-
-interceptor.attachInititalDataInterceptor(checkAndUnlock);
-interceptor.attachJsonInterceptor(checkAndUnlock);
-interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
