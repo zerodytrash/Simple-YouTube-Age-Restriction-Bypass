@@ -22,7 +22,7 @@ function init() {
     pageLoad.resolve();
 }
 
-export function show(message, duration = 5) {
+function show(message, duration = 5) {
     if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
 
     pageLoad.then(_show);
@@ -41,3 +41,5 @@ export function show(message, duration = 5) {
         }
     }
 }
+
+export default { show };
