@@ -1,0 +1,45 @@
+import { Deferred, createElement } from "../../utils";
+import * as Config from "../../config";
+
+import tDesktop from './templates/desktop.html';
+import tMobile from './templates/mobile.html';
+
+const isPolymer = !!window.Polymer;
+
+const pageLoad = new Deferred();
+const pageLoadEventName = isPolymer ? 'yt-navigate-finish' : 'state-navigateend';
+
+const template = isPolymer ? tDesktop : tMobile;
+
+const nNotificationWrapper = createElement('div', { id: 'notification-wrapper', innerHTML: template });
+const nNotification = document.querySelector(':scope > *');
+const nMobileText = !isPolymer && nNotification.querySelector('.notification-action-response-text');
+
+window.addEventListener(pageLoadEventName, init, { once: true });
+
+function init() {
+    document.body.append(nNotificationWrapper);
+    pageLoad.resolve();
+}
+
+function show(message, duration = 5) {
+    if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
+
+    pageLoad.then(_show);
+
+    function _show() {
+        const _duration = duration * 1000;
+        if (isPolymer) {
+            nNotification.duration = _duration;
+            nNotification.show(message);
+        } else {
+            nMobileText.innerHTML = message;
+            nNotification.setAttribute('dir', 'in');
+            setTimeout(() => {
+                nNotification.setAttribute('dir', 'out');
+            }, _duration + 225);
+        }
+    }
+}
+
+export default { show };

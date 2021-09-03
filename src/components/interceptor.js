@@ -1,9 +1,5 @@
-import { getNativeDefineProperty } from "../utils";
+import { nativeJSONParse, nativeObjectDefineProperty, nativeXMLHttpRequestOpen } from "../utils/natives";
 import * as Config from "../config"
-
-export const nativeParse = window.JSON.parse; // Backup the original parse function
-const nativeDefineProperty = getNativeDefineProperty(); // Backup the original defineProperty function to intercept setter & getter on the ytInitialPlayerResponse
-const nativeXmlHttpOpen = XMLHttpRequest.prototype.open;
 
 let wrappedPlayerResponse;
 let wrappedNextResponse;
@@ -21,12 +17,12 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
             if (descriptor?.set) chainedPlayerSetter = descriptor.set;
             if (descriptor?.get) chainedPlayerGetter = descriptor.get;
         } else {
-            nativeDefineProperty(obj, prop, descriptor);
+            nativeObjectDefineProperty(obj, prop, descriptor);
         }
     };
 
     // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeDefineProperty(window, "ytInitialPlayerResponse", {
+    nativeObjectDefineProperty(window, "ytInitialPlayerResponse", {
         set: (playerResponse) => {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
             if (playerResponse === wrappedPlayerResponse) return;
@@ -42,7 +38,7 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
     });
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeDefineProperty(window, "ytInitialData", {
+    nativeObjectDefineProperty(window, "ytInitialData", {
         set: (nextResponse) => { wrappedNextResponse = onInititalDataSet(nextResponse); },
         get: () => wrappedNextResponse,
         configurable: true,
@@ -51,7 +47,7 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
 export function attachJsonInterceptor(onJsonDataReceived) {
-    window.JSON.parse = (text, reviver) => onJsonDataReceived(nativeParse(text, reviver));
+    window.JSON.parse = (text, reviver) => onJsonDataReceived(nativeJSONParse(text, reviver));
 }
 
 export function attachXhrOpenInterceptor(onXhrOpenCalled) {
@@ -61,13 +57,13 @@ export function attachXhrOpenInterceptor(onXhrOpenCalled) {
             const url = new URL(arguments[1]);
             const urlParams = new URLSearchParams(url.search);
 
-            var modifiedUrl = onXhrOpenCalled(this, method, url, urlParams);
-            
+            const modifiedUrl = onXhrOpenCalled(this, method, url, urlParams);
+
             if (typeof modifiedUrl === "string") {
                 arguments[1] = modifiedUrl;
             }
         }
 
-        nativeXmlHttpOpen.apply(this, arguments);
+        nativeXMLHttpRequestOpen.apply(this, arguments);
     }
 }

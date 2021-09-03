@@ -3,7 +3,7 @@ import * as interceptor from "./components/interceptor";
 import * as inspector from "./components/inspector";
 import * as unlocker from "./components/unlocker";
 import * as proxy from "./components/proxy";
-import { Notification } from "./components/notification";
+import Notification from "./components/notification";
 
 function checkAndUnlock(ytData) {
     return inspector.inspectYtData(ytData, playerObject => {

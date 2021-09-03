@@ -1,4 +1,4 @@
-import { nativeParse } from "./interceptor";
+import { nativeJSONParse } from "../utils/natives";
 
 // YouTube API config (Innertube).
 // The actual values will be determined later from the global ytcfg variable => setInnertubeConfigFromYtcfg()
@@ -73,7 +73,7 @@ export function getPlayer(videoId) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", `/youtubei/v1/player?key=${getConfig().INNERTUBE_API_KEY}`, false); // Synchronous!!!
     xmlhttp.send(JSON.stringify(payload));
-    return nativeParse(xmlhttp.responseText);
+    return nativeJSONParse(xmlhttp.responseText);
 }
 
 export function getNext(videoId, playlistId, playlistIndex) {
@@ -81,5 +81,5 @@ export function getNext(videoId, playlistId, playlistIndex) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", `/youtubei/v1/next?key=${getConfig().INNERTUBE_API_KEY}`, false); // Synchronous!!!
     xmlhttp.send(JSON.stringify(payload));
-    return nativeParse(xmlhttp.responseText);
+    return nativeJSONParse(xmlhttp.responseText);
 }
