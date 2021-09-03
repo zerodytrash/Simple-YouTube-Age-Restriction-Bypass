@@ -7,6 +7,7 @@
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-node-resolve": "^13.0.4",
     "rollup": "^2.56.3",
+    "rollup-plugin-html": "^0.2.1",
     "rollup-plugin-userscript": "^0.1.1"
   },
   "type": "module"

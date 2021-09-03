@@ -1,5 +1,6 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { babel } from '@rollup/plugin-babel';
+import html from 'rollup-plugin-html';
 import userscript from 'rollup-plugin-userscript';
 
 function wrap_in_iife() {
@@ -30,6 +31,7 @@ export default {
         format: 'esm',
     },
     plugins: [
+        html(),
         nodeResolve(),
         babel({ babelHelpers: 'bundled' }),
         userscript('userscript.config.js'),
