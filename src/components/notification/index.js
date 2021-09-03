@@ -12,7 +12,7 @@ const pageLoadEventName = isPolymer ? 'yt-navigate-finish' : 'state-navigateend'
 const template = isPolymer ? tDesktop : tMobile;
 
 const nNotificationWrapper = createElement('div', { id: 'notification-wrapper', innerHTML: template });
-const nNotification = document.querySelector(':scope > *');
+const nNotification = nNotificationWrapper.querySelector(':scope > *');
 const nMobileText = !isPolymer && nNotification.querySelector('.notification-action-response-text');
 
 window.addEventListener(pageLoadEventName, init, { once: true });
