@@ -1,25 +1,35 @@
 import * as innertubeClient from "./innertubeClient";
 import * as proxy from "./proxy";
+import Notification from "./notification";
+
+const messagesMap = {
+    success: "Video successfully unlocked!",
+    fail: "Unable to unlock this video 🙁 - More information in the developer console",
+};
 
 let lastProxiedGoogleVideoUrlParams;
 let responseCache = {};
 
-
-export function unlockPlayerResponse(playerResponse, onUnlockSuccess, onUnlockError) {
+export function unlockPlayerResponse(playerResponse) {
     const videoId = playerResponse.videoDetails.videoId;
     const reason = playerResponse.playabilityStatus?.status;
     const unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
+    const cfg = innertubeClient.getConfig();
+    const innerTubeDebug = `innertubeApiKey: ${cfg.INNERTUBE_API_KEY}`
+        + `innertubeClientName: ${cfg.INNERTUBE_CLIENT_NAME}`
+        + `innertubeClientVersion: ${cfg.INNERTUBE_CLIENT_VERSION}`;
+
     // account proxy error?
     if (unlockedPayerResponse.errorMessage) {
-        onUnlockError("ProxyError");
-        throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; innertubeApiKey:${innertubeClient.getConfig().INNERTUBE_API_KEY}; innertubeClientName:${innertubeClient.getConfig().INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${innertubeClient.getConfig().INNERTUBE_CLIENT_VERSION}`);
+        Notification.show(`${messagesMap.fail} (ProxyError)`, 10)
+        throw new Error(`Unlock Failed, errorMessage:${unlockedPayerResponse.errorMessage}; ${innerTubeDebug}`);
     }
 
     // check if the unlocked response isn't playable
     if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
-        onUnlockError(`playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status}`);
-        throw new Error(`Unlock Failed, playabilityStatus:${unlockedPayerResponse.playabilityStatus?.status}; innertubeApiKey:${innertubeClient.getConfig().INNERTUBE_API_KEY}; innertubeClientName:${innertubeClient.getConfig().INNERTUBE_CLIENT_NAME}; innertubeClientVersion:${innertubeClient.getConfig().INNERTUBE_CLIENT_VERSION}`);
+        Notification.show(`${messagesMap.fail} (PlayabilityError)`, 10);
+        throw new Error(`Unlock Failed, playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status} ${innerTubeDebug}`);
     }
 
     // if the video info was retrieved via proxy, store the URL params from the url- or signatureCipher-attribute to detect later if the requested video files are from this unlock.
@@ -31,7 +41,7 @@ export function unlockPlayerResponse(playerResponse, onUnlockSuccess, onUnlockEr
         lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
     }
 
-    onUnlockSuccess();
+    Notification.show(messagesMap.success);
 
     return unlockedPayerResponse;
 }
@@ -112,7 +122,6 @@ function getUnlockedPlayerResponse(videoId, reason) {
 function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {
     // Retrieve the sidebar by using a age-gate bypass for the innertube API
     console.info("Simple-YouTube-Age-Restriction-Bypass: Trying Sidebar Unlock Method (Innertube Embed)");
-
     return innertubeClient.getNext(videoId, playlistId, playlistIndex)
 }
 
