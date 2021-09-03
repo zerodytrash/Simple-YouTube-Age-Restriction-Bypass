@@ -1,9 +1,11 @@
-export const Deferred = function () {
-    return Object.assign(new Promise((resolve, reject) => {
-        this.resolve = resolve;
-        this.reject = reject;
-    }), this);
-};
+export class Deferred {
+    constructor() {
+        return Object.assign(new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        }), this);
+    }
+}
 
 export function createElement(tagName, options) {
     const node = document.createElement(tagName);
