@@ -18,7 +18,7 @@ A very simple userscript to bypass YouTube's age verification by retrieving the 
 
 
 ## Usage
-No further actions are necessary. All age restricted videos are automatically unlocked.
+No further actions are necessary. All age restricted videos are automatically unlocked. You can test the userscript on this video https://www.youtube.com/watch?v=7t0SqerlBA0 .
 
 ## Mobile Device Compatibility
 This script also works with the mobile YouTube website (m.youtube.com). But currently only [Kiwi Browser for Android](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) and [Firefox Nightly for Android](https://play.google.com/store/apps/details?id=org.mozilla.fenix) supports extensions. In Kiwi Browser you can simply visit the Chrome Web Store to install [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo). After that add the script.
