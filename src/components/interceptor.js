@@ -47,7 +47,11 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
 export function attachJsonInterceptor(onJsonDataReceived) {
-    window.JSON.parse = (text, reviver) => onJsonDataReceived(nativeJSONParse(text, reviver));
+    window.JSON.parse = (text, reviver) => {
+        let parsedJson = nativeJSONParse(text, reviver);
+        if (typeof parsedJson != "object") return parsedJson;
+        return onJsonDataReceived(parsedJson);
+    };
 }
 
 export function attachXhrOpenInterceptor(onXhrOpenCalled) {
@@ -55,9 +59,8 @@ export function attachXhrOpenInterceptor(onXhrOpenCalled) {
         if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
             const method = arguments[0];
             const url = new URL(arguments[1]);
-            const urlParams = new URLSearchParams(url.search);
 
-            const modifiedUrl = onXhrOpenCalled(this, method, url, urlParams);
+            const modifiedUrl = onXhrOpenCalled(this, method, url);
 
             if (typeof modifiedUrl === "string") {
                 arguments[1] = modifiedUrl;

@@ -33,7 +33,7 @@ function show(message, duration = 5) {
             nNotification.duration = _duration;
             nNotification.show(message);
         } else {
-            nMobileText.innerHTML = message;
+            nMobileText.innerText = message;
             nNotification.setAttribute('dir', 'in');
             setTimeout(() => {
                 nNotification.setAttribute('dir', 'out');
