@@ -7,9 +7,9 @@ import * as proxy from "./components/proxy";
 import * as logger from "./utils/logger";
 
 try {
-    interceptor.attachInititalDataInterceptor(checkAndUnlock);
+    interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
-    interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);    
+    interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
 } catch(err) {
     logger.error(err);
 }

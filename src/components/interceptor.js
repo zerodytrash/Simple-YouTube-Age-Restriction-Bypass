@@ -4,7 +4,7 @@ import * as Config from "../config"
 let wrappedPlayerResponse;
 let wrappedNextResponse;
 
-export function attachInititalDataInterceptor(onInititalDataSet) {
+export function attachInitialDataInterceptor(onInititalDataSet) {
 
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
     let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse") || {};
@@ -48,27 +48,23 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
 export function attachJsonInterceptor(onJsonDataReceived) {
     window.JSON.parse = (text, reviver) => {
-        let parsedJson = nativeJSONParse(text, reviver);
-        if (!isProcessable(parsedJson)) return parsedJson;
-        return onJsonDataReceived(parsedJson);
+        const data = nativeJSONParse(text, reviver);
+        return !isProcessable(data) ? data : onJsonDataReceived(data);
     };
 }
 
 export function attachXhrOpenInterceptor(onXhrOpenCalled) {
-    XMLHttpRequest.prototype.open = function () {
-        if (arguments.length > 1 && typeof arguments[1] === "string" && arguments[1].indexOf("https://") === 0) {
-            const method = arguments[0];
-            const url = new URL(arguments[1]);
-
-            const modifiedUrl = onXhrOpenCalled(this, method, url);
+    XMLHttpRequest.prototype.open = function (method, url) {
+        if (arguments.length > 1 && typeof url === "string" && url.indexOf("https://") === 0) {
+            const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
 
             if (typeof modifiedUrl === "string") {
-                arguments[1] = modifiedUrl;
+                url = modifiedUrl;
             }
         }
 
         nativeXMLHttpRequestOpen.apply(this, arguments);
-    }
+    };
 }
 
 function isProcessable(obj) {
