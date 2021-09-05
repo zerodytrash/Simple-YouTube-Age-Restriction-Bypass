@@ -1,7 +1,7 @@
 import { nativeJSONParse } from "../utils/natives";
 
-export function getYtcfgValue(key) {
-    return window.ytcfg?.data_?.[key] ?? window.ytcfg?.get?.(key);
+export function getYtcfgValue(value) {
+    return window.ytcfg.get(value);
 }
 
 export function isUserLoggedIn() {

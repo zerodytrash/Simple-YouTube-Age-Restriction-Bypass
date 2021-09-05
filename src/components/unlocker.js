@@ -19,35 +19,34 @@ export function getLastProxiedGoogleVideoId() {
 export function unlockPlayerResponse(playerResponse) {
     const videoId = playerResponse.videoDetails.videoId;
     const reason = playerResponse.playabilityStatus?.status;
-    const unlockedPayerResponse = getUnlockedPlayerResponse(videoId, reason);
+    const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
     // account proxy error?
-    if (unlockedPayerResponse.errorMessage) {
+    if (unlockedPlayerResponse.errorMessage) {
         Notification.show(`${messagesMap.fail} (ProxyError)`, 10)
-        throw new Error(`Player Unlock Failed, Proxy Error Message: ${unlockedPayerResponse.errorMessage}`);
+        throw new Error(`Player Unlock Failed, Proxy Error Message: ${unlockedPlayerResponse.errorMessage}`);
     }
 
     // check if the unlocked response isn't playable
-    if (unlockedPayerResponse.playabilityStatus?.status !== "OK") {
+    if (unlockedPlayerResponse.playabilityStatus?.status !== "OK") {
         Notification.show(`${messagesMap.fail} (PlayabilityError)`, 10);
-        throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPayerResponse.playabilityStatus?.status}`);
+        throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPlayerResponse.playabilityStatus?.status}`);
     }
 
     // if the video info was retrieved via proxy, store the URL params from the url- or signatureCipher-attribute to detect later if the requested video files (googlevideo.com) are from this unlock.
-    if (unlockedPayerResponse.proxied && unlockedPayerResponse.streamingData?.adaptiveFormats) {
-        const cipherText = unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
-        const videoUrl = cipherText ? new URLSearchParams(cipherText).get("url") : unlockedPayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
+    if (unlockedPlayerResponse.proxied && unlockedPlayerResponse.streamingData?.adaptiveFormats) {
+        const cipherText = unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
+        const videoUrl = cipherText ? new URLSearchParams(cipherText).get("url") : unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
 
         lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
     }
 
     Notification.show(messagesMap.success);
 
-    return unlockedPayerResponse;
+    return unlockedPlayerResponse;
 }
 
 function getUnlockedPlayerResponse(videoId, reason) {
-
     // Check if response is cached
     if (responseCache.videoId === videoId) return responseCache.playerResponse;
 
@@ -98,7 +97,6 @@ function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {
 }
 
 function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
-
     // Transfer WatchNextResults to original response
     if (originalNextResponse.contents?.twoColumnWatchNextResults?.secondaryResults) {
         originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse?.contents?.twoColumnWatchNextResults?.secondaryResults;

@@ -13,7 +13,7 @@ export function getPlayerFromAccountProxy(videoId, reason) {
         clientName: getYtcfgValue('INNERTUBE_CLIENT_NAME'),
         clientVersion: getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
         signatureTimestamp: getYtcfgValue('STS')
-    }).toString()
+    }).toString();
 
     const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
 

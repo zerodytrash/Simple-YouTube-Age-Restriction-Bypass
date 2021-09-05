@@ -1,4 +1,3 @@
-
 import * as Config from "../config"
 
 export function isAgeRestricted(playabilityStatus) {
@@ -29,8 +28,7 @@ export function isGoogleVideo(method, url) {
 }
 
 export function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {
-
-    let urlParams = new URLSearchParams(googleVideoUrl.search);
+    const urlParams = new URLSearchParams(googleVideoUrl.search);
 
     function hasGcrFlag() {
         return urlParams.get("gcr") !== null;
