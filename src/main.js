@@ -1,14 +1,18 @@
 import * as Config from "./config"
-import * as innertubeConfig from "./components/innertubeConfig";
+import * as innertubeClient from "./components/innertubeClient";
 import * as interceptor from "./components/interceptor";
 import * as inspector from "./components/inspector";
 import * as unlocker from "./components/unlocker";
 import * as proxy from "./components/proxy";
 import * as logger from "./utils/logger";
 
-interceptor.attachInititalDataInterceptor(checkAndUnlock);
-interceptor.attachJsonInterceptor(checkAndUnlock);
-interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
+try {
+    interceptor.attachInititalDataInterceptor(checkAndUnlock);
+    interceptor.attachJsonInterceptor(checkAndUnlock);
+    interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);    
+} catch(err) {
+    logger.error(err);
+}
 
 function checkAndUnlock(ytData) {
     try {
@@ -23,12 +27,12 @@ function checkAndUnlock(ytData) {
         }
 
         // Equivelant of unlock #1 for sidebar/next response
-        if (inspector.isWatchNextObject(ytData.response) && !innertubeConfig.isLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
+        if (inspector.isWatchNextObject(ytData.response) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
             ytData.response = unlocker.unlockNextResponse(ytData.response);
         }
 
         // Equivelant of unlock #2 for sidebar/next response
-        if (inspector.isWatchNextObject(ytData) && !innertubeConfig.isLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
+        if (inspector.isWatchNextObject(ytData) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
             ytData = unlocker.unlockNextResponse(ytData)
         }
     } catch (err) {

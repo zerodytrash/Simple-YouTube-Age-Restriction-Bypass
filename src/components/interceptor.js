@@ -27,7 +27,7 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
             if (playerResponse === wrappedPlayerResponse) return;
 
-            wrappedPlayerResponse = onInititalDataSet(playerResponse);
+            wrappedPlayerResponse = isProcessable(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
             if (typeof chainedPlayerSetter === "function") chainedPlayerSetter(wrappedPlayerResponse);
         },
         get: () => {
@@ -39,7 +39,7 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
     nativeObjectDefineProperty(window, "ytInitialData", {
-        set: (nextResponse) => { wrappedNextResponse = onInititalDataSet(nextResponse); },
+        set: (nextResponse) => { wrappedNextResponse = isProcessable(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse; },
         get: () => wrappedNextResponse,
         configurable: true,
     });
@@ -49,7 +49,7 @@ export function attachInititalDataInterceptor(onInititalDataSet) {
 export function attachJsonInterceptor(onJsonDataReceived) {
     window.JSON.parse = (text, reviver) => {
         let parsedJson = nativeJSONParse(text, reviver);
-        if (typeof parsedJson != "object") return parsedJson;
+        if (!isProcessable(parsedJson)) return parsedJson;
         return onJsonDataReceived(parsedJson);
     };
 }
@@ -69,4 +69,8 @@ export function attachXhrOpenInterceptor(onXhrOpenCalled) {
 
         nativeXMLHttpRequestOpen.apply(this, arguments);
     }
+}
+
+function isProcessable(obj) {
+    return obj !== null && typeof obj === "object";
 }
