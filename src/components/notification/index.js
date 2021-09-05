@@ -4,16 +4,16 @@ import * as Config from "../../config";
 import tDesktop from './templates/desktop.html';
 import tMobile from './templates/mobile.html';
 
-const isPolymer = !!window.Polymer;
+const isDesktop = window.location.href.indexOf("m.youtube") === -1;
 
 const pageLoad = new Deferred();
-const pageLoadEventName = isPolymer ? 'yt-navigate-finish' : 'state-navigateend';
+const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
 
-const template = isPolymer ? tDesktop : tMobile;
+const template = isDesktop ? tDesktop : tMobile;
 
 const nNotificationWrapper = createElement('div', { id: 'notification-wrapper', innerHTML: template });
 const nNotification = nNotificationWrapper.querySelector(':scope > *');
-const nMobileText = !isPolymer && nNotification.querySelector('.notification-action-response-text');
+const nMobileText = !isDesktop && nNotification.querySelector('.notification-action-response-text');
 
 window.addEventListener(pageLoadEventName, init, { once: true });
 
@@ -29,7 +29,7 @@ function show(message, duration = 5) {
 
     function _show() {
         const _duration = duration * 1000;
-        if (isPolymer) {
+        if (isDesktop) {
             nNotification.duration = _duration;
             nNotification.show(message);
         } else {
