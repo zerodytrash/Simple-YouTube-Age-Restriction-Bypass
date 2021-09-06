@@ -1,5 +1,6 @@
+import { resolve } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import { babel } from '@rollup/plugin-babel';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
 import userscript from 'rollup-plugin-userscript';
 
@@ -33,9 +34,9 @@ export default {
     plugins: [
         html(),
         nodeResolve(),
-        babel({ babelHelpers: 'bundled' }),
-        userscript('userscript.config.js'),
+        userscript(resolve(__dirname, 'userscript.config.js')),
         // Manually wrap code in our custom iife
         wrap_in_iife(),
+        getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),
     ],
 };
