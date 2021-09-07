@@ -1,8 +1,8 @@
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
-import userscript from 'rollup-plugin-userscript';
 
 function wrap_in_iife() {
     const [banner, footer] = (() => {
@@ -25,6 +25,18 @@ function wrap_in_iife() {
     };
 }
 
+function add_header_file(path, transform) {
+    const fileContent = readFileSync(path, 'utf8');
+    return {
+        name: "add_header_file",
+        banner: transform ? transform(fileContent) : fileContent
+    }
+}
+
+function set_script_version(meta) {
+    return meta.replace('%version%', require(resolve(__dirname, 'package.json')).version);
+}
+
 export default {
     input: 'src/main.js',
     output: {
@@ -34,7 +46,8 @@ export default {
     plugins: [
         html(),
         nodeResolve(),
-        userscript(resolve(__dirname, 'userscript.config.js')),
+        add_header_file(resolve(__dirname, 'userscript.config.js'), set_script_version),
+        add_header_file(resolve(__dirname, 'userscript.banner.js')),
         // Manually wrap code in our custom iife
         wrap_in_iife(),
         getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),

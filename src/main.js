@@ -10,33 +10,36 @@ try {
     interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
     interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
-} catch(err) {
-    logger.error(err);
+} catch (err) {
+    logger.error(err, "Error while attaching data interceptors");
 }
 
 function checkAndUnlock(ytData) {
-    try {
-        // Unlock #1: Another JSON-Object containing the 'playerResponse' (seems to be used by m.youtube.com with &pbj=1)
-        if (ytData.playerResponse?.playabilityStatus && ytData.playerResponse?.videoDetails && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
-            ytData.playerResponse = unlocker.unlockPlayerResponse(ytData.playerResponse);
-        }
 
-        // Unlock #2: Initial page data structure and response from the '/youtubei/v1/player' endpoint
-        if (ytData.playabilityStatus && ytData.videoDetails && inspector.isAgeRestricted(ytData.playabilityStatus)) {
+    try {
+
+        // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
+        if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
             ytData = unlocker.unlockPlayerResponse(ytData);
         }
 
+        // Unlock #2: Legacy response data structure (only used by m.youtube.com with &pbj=1)
+        if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
+            ytData.playerResponse = unlocker.unlockPlayerResponse(ytData.playerResponse);
+        }
+
         // Equivelant of unlock #1 for sidebar/next response
+        if (inspector.isWatchNextObject(ytData) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
+            ytData = unlocker.unlockNextResponse(ytData)
+        }
+
+        // Equivelant of unlock #2 for sidebar/next response
         if (inspector.isWatchNextObject(ytData.response) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
             ytData.response = unlocker.unlockNextResponse(ytData.response);
         }
 
-        // Equivelant of unlock #2 for sidebar/next response
-        if (inspector.isWatchNextObject(ytData) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
-            ytData = unlocker.unlockNextResponse(ytData)
-        }
     } catch (err) {
-        logger.error(err);
+        logger.error(err, "Video or sidebar unlock failed");
     }
 
     return ytData;
@@ -48,7 +51,7 @@ function onXhrOpenCalled(xhr, method, url) {
 
     if (inspector.isGoogleVideoUnlockRequired(url, unlocker.getLastProxiedGoogleVideoId())) {
 
-        // If the account proxy was used to retieve the video info, the following applies:
+        // If the account proxy was used to retrieve the video info, the following applies:
         // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
         // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
         // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...

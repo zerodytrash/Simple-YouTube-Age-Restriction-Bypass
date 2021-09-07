@@ -4,7 +4,7 @@ import * as Config from "../../config";
 import tDesktop from './templates/desktop.html';
 import tMobile from './templates/mobile.html';
 
-const isDesktop = window.location.href.indexOf("m.youtube") === -1;
+const isDesktop = window.location.host !== "m.youtube.com";
 
 const pageLoad = new Deferred();
 const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
