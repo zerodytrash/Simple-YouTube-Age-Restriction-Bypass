@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
+import pkg from './package.json';
 
 function wrap_in_iife() {
     const [banner, footer] = (() => {
@@ -34,7 +35,7 @@ function add_header_file(path, transform) {
 }
 
 function set_script_version(meta) {
-    return meta.replace('%version%', require(resolve(__dirname, 'package.json')).version);
+    return meta.replace('%version%', pkg.version);
 }
 
 export default {

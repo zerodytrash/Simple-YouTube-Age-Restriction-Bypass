@@ -1,7 +1,7 @@
 import { getYtcfgValue } from "../components/innertubeClient";
 
 const logPrefix = "Simple-YouTube-Age-Restriction-Bypass:";
-const logSuffix = "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues"
+const logSuffix = "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues";
 
 export function error(err, msg) {
     console.error(logPrefix, msg, err, getYtcfgDebugString(), logSuffix);
