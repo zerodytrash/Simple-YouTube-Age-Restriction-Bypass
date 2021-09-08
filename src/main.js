@@ -1,5 +1,4 @@
 import * as Config from "./config"
-import * as innertubeClient from "./components/innertubeClient";
 import * as interceptor from "./components/interceptor";
 import * as inspector from "./components/inspector";
 import * as unlocker from "./components/unlocker";
@@ -22,19 +21,16 @@ function checkAndUnlock(ytData) {
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
             ytData = unlocker.unlockPlayerResponse(ytData);
         }
-
         // Unlock #2: Legacy response data structure (only used by m.youtube.com with &pbj=1)
-        if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
+        else if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
             ytData.playerResponse = unlocker.unlockPlayerResponse(ytData.playerResponse);
         }
-
         // Equivelant of unlock #1 for sidebar/next response
-        if (inspector.isWatchNextObject(ytData) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
-            ytData = unlocker.unlockNextResponse(ytData)
+        else if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
+            ytData = unlocker.unlockNextResponse(ytData);
         }
-
         // Equivelant of unlock #2 for sidebar/next response
-        if (inspector.isWatchNextObject(ytData.response) && !innertubeClient.isUserLoggedIn() && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
+        else if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
             ytData.response = unlocker.unlockNextResponse(ytData.response);
         }
 
