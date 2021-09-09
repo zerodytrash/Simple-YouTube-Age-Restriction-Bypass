@@ -1,3 +1,4 @@
+import { isObject } from "../utils";
 import { nativeJSONParse, nativeObjectDefineProperty, nativeXMLHttpRequestOpen } from "../utils/natives";
 import * as Config from "../config"
 
@@ -27,7 +28,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
             if (playerResponse === wrappedPlayerResponse) return;
 
-            wrappedPlayerResponse = isProcessable(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
+            wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
             if (typeof chainedPlayerSetter === "function") chainedPlayerSetter(wrappedPlayerResponse);
         },
         get: () => {
@@ -40,7 +41,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
     nativeObjectDefineProperty(window, "ytInitialData", {
-        set: (nextResponse) => { wrappedNextResponse = isProcessable(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse; },
+        set: (nextResponse) => { wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse; },
         get: () => wrappedNextResponse,
         configurable: true,
     });
@@ -50,7 +51,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
 export function attachJsonInterceptor(onJsonDataReceived) {
     window.JSON.parse = (text, reviver) => {
         const data = nativeJSONParse(text, reviver);
-        return !isProcessable(data) ? data : onJsonDataReceived(data);
+        return !isObject(data) ? data : onJsonDataReceived(data);
     };
 }
 
@@ -66,8 +67,4 @@ export function attachXhrOpenInterceptor(onXhrOpenCalled) {
 
         nativeXMLHttpRequestOpen.apply(this, arguments);
     };
-}
-
-function isProcessable(obj) {
-    return obj !== null && typeof obj === "object";
 }

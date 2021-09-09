@@ -12,3 +12,9 @@ export function createElement(tagName, options) {
     options && Object.assign(node, options);
     return node;
 }
+
+export function isObject(obj) {
+    return obj !== null && typeof obj === "object";
+}
+
+export const isDesktop = window.location.host !== "m.youtube.com";
