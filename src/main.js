@@ -5,6 +5,9 @@ import * as unlocker from "./components/unlocker";
 import * as proxy from "./components/proxy";
 import * as logger from "./utils/logger";
 
+// This is just a state variable to handle age-restrictions in YouTube's embedded player.
+let isAgeRestrictedEmbeddedPlayer = false;
+
 try {
     interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
@@ -19,19 +22,29 @@ function checkAndUnlock(ytData) {
 
         // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
-            ytData = unlocker.unlockPlayerResponse(ytData);
+            unlocker.unlockPlayerResponse(ytData);
         }
         // Unlock #2: Legacy response data structure (only used by m.youtube.com with &pbj=1)
         else if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
-            ytData.playerResponse = unlocker.unlockPlayerResponse(ytData.playerResponse);
+            unlocker.unlockPlayerResponse(ytData.playerResponse);
+        }
+        // Unlock #3: Embedded Player inital data structure
+        else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
+            isAgeRestrictedEmbeddedPlayer = true;
+            unlocker.unlockPlayerResponse(ytData);
+        }
+        // Unlock #4: Embedded Player response data structure (has no age-restriction indicator, therefore we use a state variable)
+        else if (inspector.isPlayerObject(ytData) && inspector.isUnplayable(ytData.playabilityStatus) && isAgeRestrictedEmbeddedPlayer) {
+            isAgeRestrictedEmbeddedPlayer = false;
+            unlocker.unlockPlayerResponse(ytData);
         }
         // Equivelant of unlock #1 for sidebar/next response
         else if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
-            ytData = unlocker.unlockNextResponse(ytData);
+            unlocker.unlockNextResponse(ytData);
         }
         // Equivelant of unlock #2 for sidebar/next response
         else if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
-            ytData.response = unlocker.unlockNextResponse(ytData.response);
+            unlocker.unlockNextResponse(ytData.response);
         }
 
     } catch (err) {

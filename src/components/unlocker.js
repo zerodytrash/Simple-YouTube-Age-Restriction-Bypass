@@ -17,8 +17,8 @@ export function getLastProxiedGoogleVideoId() {
 }
 
 export function unlockPlayerResponse(playerResponse) {
-    const videoId = playerResponse.videoDetails.videoId;
-    const reason = playerResponse.playabilityStatus?.status;
+    const videoId = playerResponse.videoDetails?.videoId || innertubeClient.getYtcfgValue("PLAYER_VARS").video_id;
+    const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
     const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
     // account proxy error?
@@ -41,9 +41,15 @@ export function unlockPlayerResponse(playerResponse) {
         lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
     }
 
-    Notification.show(messagesMap.success);
+    // Overwrite the embedded (preview) playabilityStatus with the unlocked one
+    if(playerResponse.previewPlayabilityStatus) {
+        playerResponse.previewPlayabilityStatus = unlockedPlayerResponse.playabilityStatus;
+    }
 
-    return unlockedPlayerResponse;
+    // Assign all unlocked properties to the original player response
+    Object.assign(playerResponse, unlockedPlayerResponse);
+
+    Notification.show(messagesMap.success);
 }
 
 function getUnlockedPlayerResponse(videoId, reason) {
@@ -86,8 +92,6 @@ export function unlockNextResponse(originalNextResponse) {
 
     // Transfer some parts of the unlocked response to the original response
     mergeNextResponse(originalNextResponse, unlockedNextResponse);
-
-    return originalNextResponse;
 }
 
 function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {

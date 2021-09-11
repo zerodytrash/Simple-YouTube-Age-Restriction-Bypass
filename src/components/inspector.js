@@ -5,6 +5,10 @@ export function isPlayerObject(parsedData) {
     return parsedData?.videoDetails && parsedData?.playabilityStatus;
 }
 
+export function isEmbeddedPlayerObject(parsedData) {
+    return typeof parsedData?.previewPlayabilityStatus === "object";
+}
+
 export function isAgeRestricted(playabilityStatus) {
     if (!playabilityStatus?.status) return false;
     return !!playabilityStatus.desktopLegacyAgeGateReason || Config.UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status);
@@ -13,6 +17,10 @@ export function isAgeRestricted(playabilityStatus) {
 export function isWatchNextObject(parsedData) {
     if (!parsedData?.contents || !parsedData?.currentVideoEndpoint?.watchEndpoint?.videoId) return false;
     return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
+}
+
+export function isUnplayable(playabilityStatus) {
+    return playabilityStatus?.status === "UNPLAYABLE";
 }
 
 export function isWatchNextSidebarEmpty(parsedData) {

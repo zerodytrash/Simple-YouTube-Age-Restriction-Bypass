@@ -1,4 +1,5 @@
 import { nativeJSONParse } from "../utils/natives";
+import * as logger from "../utils/logger";
 
 export function getYtcfgValue(value) {
     return window.ytcfg?.get(value);
@@ -26,7 +27,7 @@ function sendInnertubeRequest(endpoint, payload) {
 }
 
 function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
-    return {
+    const payload = {
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
@@ -38,11 +39,37 @@ function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
         },
         playbackContext: {
             contentPlaybackContext: {
-                signatureTimestamp: getYtcfgValue('STS'),
+                // STS is missing on embedded player :(
+                signatureTimestamp: getYtcfgValue('STS') || getSignatureTimestampFromPlayerBase(),
             },
         },
         videoId,
         playlistId,
         playlistIndex,
     };
+
+    // replace embedded client with YouTube's main page client (e.g. WEB_EMBEDDED_PLAYER => WEB)
+    payload.context.client.clientName = payload.context.client.clientName.replace('_EMBEDDED_PLAYER', '');
+
+    return payload;
+}
+
+function getSignatureTimestampFromPlayerBase() {
+
+    const getPlayerBaseJsPath = (propSuffix) => {
+        return getYtcfgValue("WEB_PLAYER_CONTEXT_CONFIGS")?.["WEB_PLAYER_CONTEXT_CONFIG_ID_" + propSuffix]?.jsUrl;
+    }
+
+    // YouTube main page, mobile, embedded player
+    const playerBaseJsPath = getPlayerBaseJsPath("KEVLAR_WATCH") || getPlayerBaseJsPath("MWEB_WATCH") || getPlayerBaseJsPath("EMBEDDED_PLAYER");
+
+    logger.info(`Retrieving signatureTimestamp from ${playerBaseJsPath} ...`);
+
+    if(!playerBaseJsPath) return;
+
+    const xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", playerBaseJsPath, false);
+    xmlhttp.send(null);
+
+    return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
 }
