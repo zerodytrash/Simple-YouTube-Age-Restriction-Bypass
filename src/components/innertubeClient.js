@@ -26,11 +26,10 @@ function sendInnertubeRequest(endpoint, payload) {
 }
 
 function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
-    const payload = {
+    return {
         context: {
             client: {
-                clientName: getYtcfgValue('INNERTUBE_CLIENT_NAME').replace('_EMBEDDED_PLAYER', ''),
-                clientVersion: getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
+                ...getYtcfgValue('INNERTUBE_CONTEXT').client,
                 clientScreen: 'EMBED',
             },
             thirdParty: {
@@ -46,13 +45,4 @@ function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
         playlistId,
         playlistIndex,
     };
-
-    const innertubeContext = getYtcfgValue('INNERTUBE_CONTEXT');
-
-    // Append client info from YT config (ytcfg)
-    if (typeof innertubeContext?.client === "object") {
-        payload.context.client = { ...payload.context.client, ...innertubeContext.client };
-    }
-
-    return payload;
 }

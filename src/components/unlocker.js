@@ -1,5 +1,5 @@
 import * as innertubeClient from "./innertubeClient";
-import * as insepector from "./inspector";
+import * as inspector from "./inspector";
 import * as logger from "../utils/logger";
 import * as proxy from "./proxy";
 import Notification from "./notification";
@@ -80,7 +80,7 @@ export function unlockNextResponse(originalNextResponse) {
     const unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
 
     // check if the sidebar of the unlocked response is still empty
-    if (insepector.isWatchNextSidebarEmpty(unlockedNextResponse.contents)) {
+    if (inspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
         throw new Error(`Sidebar Unlock Failed`);
     }
 

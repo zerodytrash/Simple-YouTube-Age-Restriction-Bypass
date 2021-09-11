@@ -1,3 +1,4 @@
+import { isDesktop } from "../utils";
 import * as Config from "../config"
 
 export function isPlayerObject(parsedData) {
@@ -14,19 +15,17 @@ export function isWatchNextObject(parsedData) {
     return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
 }
 
-export function isWatchNextSidebarEmpty(contents) {
-
-    // WEB response layout
-    const secondaryResults = contents.twoColumnWatchNextResults?.secondaryResults?.secondaryResults;
-    if (secondaryResults?.results) return false;
+export function isWatchNextSidebarEmpty(parsedData) {
+    if (isDesktop) {
+        // WEB response layout
+        const result = parsedData.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results;
+        return !result;
+    }
 
     // MWEB response layout
-    const singleColumnWatchNextContents = contents.singleColumnWatchNextResults?.results?.results?.contents;
-    if (!singleColumnWatchNextContents) return true;
-
-    const itemSectionRenderer = singleColumnWatchNextContents.find(e => e.itemSectionRenderer?.targetId === "watch-next-feed")?.itemSectionRenderer;
-
-    return typeof itemSectionRenderer !== "object";
+    const content = parsedData.contents?.singleColumnWatchNextResults?.results?.results?.contents;
+    const result = content?.find(e => e.itemSectionRenderer?.targetId === "watch-next-feed")?.itemSectionRenderer;
+    return typeof result !== "object";
 }
 
 export function isGoogleVideo(method, url) {

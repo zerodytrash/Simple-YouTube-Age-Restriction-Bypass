@@ -26,11 +26,11 @@ function checkAndUnlock(ytData) {
             ytData.playerResponse = unlocker.unlockPlayerResponse(ytData.playerResponse);
         }
         // Equivelant of unlock #1 for sidebar/next response
-        else if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData.contents)) {
+        else if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
             ytData = unlocker.unlockNextResponse(ytData);
         }
         // Equivelant of unlock #2 for sidebar/next response
-        else if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response.contents)) {
+        else if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
             ytData.response = unlocker.unlockNextResponse(ytData.response);
         }
 
