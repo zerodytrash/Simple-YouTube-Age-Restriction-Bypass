@@ -10,6 +10,30 @@ const messagesMap = {
     fail: "Unable to unlock this video 🙁 - More information in the developer console",
 };
 
+const unlockStrategies = [
+    // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
+    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
+    {
+        name: 'Innertube Embed',
+        requireAuth: false,
+        fn: (videoId) => innertube.getPlayer(videoId, { clientScreen: 'EMBED' }, false)
+    },
+    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // See https://github.com/yt-dlp/yt-dlp/pull/600
+    {
+        name: 'Innertube Creator + Auth',
+        requireAuth: true,
+        fn: (videoId) => innertube.getPlayer(videoId, { clientName: 'WEB_CREATOR', clientVersion: '1.20210909.07.00' }, true)
+    },
+    // Strategy 3: Retrieve the video info from an account proxy server.
+    // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+    {
+        name: 'Account Proxy',
+        requireAuth: false,
+        fn: (videoId, reason) => proxy.getPlayer(videoId, reason)
+    }
+];
+
 let lastProxiedGoogleVideoUrlParams;
 let responseCache = {};
 
@@ -57,27 +81,15 @@ function getUnlockedPlayerResponse(videoId, reason) {
     // Check if response is cached
     if (responseCache.videoId === videoId) return responseCache.playerResponse;
 
-    const strategies = [
-        // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
-        // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-        ['Innertube Embed',
-            () => innertube.getPlayer(videoId, { clientScreen: 'EMBED' }, false)],
-        // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
-        // See https://github.com/yt-dlp/yt-dlp/pull/600
-        ['Innertube Creator + Auth',
-            () => innertube.getPlayer(videoId, { clientName: 'WEB_CREATOR', clientVersion: '1.20210909.07.00' }, true)],
-        // Strategy 3: Retrieve the video info from an account proxy server.
-        // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
-        ['Account Proxy',
-            () => proxy.getPlayer(videoId, reason)],
-    ];
-
     let playerResponse;
 
-    strategies.every(([name, fn], index) => {
-        logger.info(`Trying Unlock Method #${index + 1} (${name})`);
-        playerResponse = fn();
-        if (playerResponse?.playabilityStatus?.status === "OK") return;
+    unlockStrategies.every((strategy, index) => {
+        if(strategy.requireAuth && !innertube.isUserLoggedIn()) return true;
+
+        logger.info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
+        
+        playerResponse = strategy.fn(videoId, reason);
+        return playerResponse?.playabilityStatus?.status !== "OK";
     });
 
     // Cache response
