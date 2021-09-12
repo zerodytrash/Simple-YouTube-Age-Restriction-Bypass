@@ -1,6 +1,5 @@
 import { nativeJSONParse } from "../utils/natives";
 import * as utils from "../utils";
-import * as logger from "../utils/logger";
 
 export function getYtcfgValue(value) {
     return window.ytcfg?.get(value);
@@ -21,6 +20,26 @@ export function getNext(videoId, clientConfig, playlistId, playlistIndex) {
     return sendInnertubeRequest('v1/next', payload, false);
 }
 
+export function getMainPageClientName() {
+    // replace embedded client with YouTube's main page client (e.g. WEB_EMBEDDED_PLAYER => WEB)
+    return getYtcfgValue('INNERTUBE_CLIENT_NAME').replace('_EMBEDDED_PLAYER', '');
+}
+
+export function getSignatureTimestamp() {
+    return getYtcfgValue('STS') || function() {
+        // STS is missing on embedded player. Using base script as fallback...
+        const playerBaseJsPath = document.querySelector('script[src*="/base.js"]')?.src;
+
+        if (!playerBaseJsPath) return;
+
+        const xmlhttp = new XMLHttpRequest();
+        xmlhttp.open("GET", playerBaseJsPath, false);
+        xmlhttp.send(null);
+
+        return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
+    }()
+}
+
 function sendInnertubeRequest(endpoint, payload, useAuth) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
@@ -37,6 +56,7 @@ function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistInd
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
+                ...{ clientName: getMainPageClientName() },
                 ...clientConfig || {}
             },
             thirdParty: {
@@ -45,8 +65,7 @@ function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistInd
         },
         playbackContext: {
             contentPlaybackContext: {
-                // STS is missing on embedded player :(
-                signatureTimestamp: getYtcfgValue('STS') || getSignatureTimestampFromPlayerBase(),
+                signatureTimestamp: getSignatureTimestamp(),
             },
         },
         videoId,
@@ -54,30 +73,7 @@ function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistInd
         playlistIndex,
     };
 
-    // replace embedded client with YouTube's main page client (e.g. WEB_EMBEDDED_PLAYER => WEB)
-    payload.context.client.clientName = payload.context.client.clientName.replace('_EMBEDDED_PLAYER', '');
-
     return payload;
-}
-
-function getSignatureTimestampFromPlayerBase() {
-
-    const getPlayerBaseJsPath = (propSuffix) => {
-        return getYtcfgValue("WEB_PLAYER_CONTEXT_CONFIGS")?.["WEB_PLAYER_CONTEXT_CONFIG_ID_" + propSuffix]?.jsUrl;
-    }
-
-    // YouTube main page, mobile, embedded player
-    const playerBaseJsPath = getPlayerBaseJsPath("KEVLAR_WATCH") || getPlayerBaseJsPath("MWEB_WATCH") || getPlayerBaseJsPath("EMBEDDED_PLAYER");
-
-    logger.info(`Retrieving signatureTimestamp from ${playerBaseJsPath} ...`);
-
-    if (!playerBaseJsPath) return;
-
-    const xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", playerBaseJsPath, false);
-    xmlhttp.send(null);
-
-    return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
 }
 
 function getSidCookie() {

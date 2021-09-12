@@ -1,5 +1,5 @@
 import { nativeJSONParse } from "../utils/natives";
-import { getYtcfgValue } from "./innertubeClient";
+import * as innertube from "./innertubeClient";
 import * as Config from "../config";
 
 export function getGoogleVideoUrl(originalUrl, proxyHost) {
@@ -10,9 +10,9 @@ export function getPlayer(videoId, reason) {
     const queryParams = new URLSearchParams({
         videoId,
         reason,
-        clientName: getYtcfgValue('INNERTUBE_CLIENT_NAME'),
-        clientVersion: getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
-        signatureTimestamp: getYtcfgValue('STS')
+        clientName: innertube.getMainPageClientName(),
+        clientVersion: innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
+        signatureTimestamp: innertube.getSignatureTimestamp()
     }).toString();
 
     const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
