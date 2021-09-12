@@ -11,6 +11,7 @@ export function isUserLoggedIn() {
 }
 
 export function getPlayer(videoId, clientConfig, useAuth) {
+    if (useAuth && !isUserLoggedIn()) return;
     const payload = getInnertubeEmbedPayload(videoId, clientConfig);
     return sendInnertubeRequest('v1/player', payload, useAuth);
 }

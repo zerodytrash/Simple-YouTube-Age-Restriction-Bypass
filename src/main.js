@@ -65,12 +65,12 @@ function onXhrOpenCalled(xhr, method, url) {
         // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
         // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
 
-        // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (not required for the proxy)
+        // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (required for the proxy)
         Object.defineProperty(xhr, "withCredentials", {
             set: () => { },
             get: () => false,
         });
 
-        return proxy.getProxiedGooglevideoUrl(url.toString(), Config.VIDEO_PROXY_SERVER_HOST);
+        return proxy.getGoogleVideoUrl(url.toString(), Config.VIDEO_PROXY_SERVER_HOST);
     }
 }

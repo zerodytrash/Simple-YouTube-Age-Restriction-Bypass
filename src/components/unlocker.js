@@ -1,13 +1,38 @@
-import * as innertubeClient from "./innertubeClient";
+import * as innertube from "./innertubeClient";
 import * as inspector from "./inspector";
 import * as logger from "../utils/logger";
 import * as proxy from "./proxy";
 import Notification from "./notification";
+import { isDesktop } from "../utils";
 
 const messagesMap = {
     success: "Age-restricted video successfully unlocked!",
     fail: "Unable to unlock this video 🙁 - More information in the developer console",
 };
+
+const unlockStrategies = [
+    // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
+    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
+    {
+        name: 'Innertube Embed',
+        requireAuth: false,
+        fn: (videoId) => innertube.getPlayer(videoId, { clientScreen: 'EMBED' }, false)
+    },
+    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // See https://github.com/yt-dlp/yt-dlp/pull/600
+    {
+        name: 'Innertube Creator + Auth',
+        requireAuth: true,
+        fn: (videoId) => innertube.getPlayer(videoId, { clientName: 'WEB_CREATOR', clientVersion: '1.20210909.07.00' }, true)
+    },
+    // Strategy 3: Retrieve the video info from an account proxy server.
+    // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+    {
+        name: 'Account Proxy',
+        requireAuth: false,
+        fn: (videoId, reason) => proxy.getPlayer(videoId, reason)
+    }
+];
 
 let lastProxiedGoogleVideoUrlParams;
 let responseCache = {};
@@ -17,7 +42,7 @@ export function getLastProxiedGoogleVideoId() {
 }
 
 export function unlockPlayerResponse(playerResponse) {
-    const videoId = playerResponse.videoDetails?.videoId || innertubeClient.getYtcfgValue("PLAYER_VARS").video_id;
+    const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue("PLAYER_VARS").video_id;
     const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
     const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
@@ -56,42 +81,28 @@ function getUnlockedPlayerResponse(videoId, reason) {
     // Check if response is cached
     if (responseCache.videoId === videoId) return responseCache.playerResponse;
 
-    let playerResponse = useInnertubeEmbed();
+    let playerResponse;
 
-    if (playerResponse?.playabilityStatus?.status !== "OK" && innertubeClient.isUserLoggedIn()) playerResponse = useInnertubeCreator();
-    if (playerResponse?.playabilityStatus?.status !== "OK") playerResponse = useProxy();
+    unlockStrategies.every((strategy, index) => {
+        if(strategy.requireAuth && !innertube.isUserLoggedIn()) return true;
 
-    // Cache response for 10 seconds
+        logger.info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
+        
+        playerResponse = strategy.fn(videoId, reason);
+        return playerResponse?.playabilityStatus?.status !== "OK";
+    });
+
+    // Cache response
     responseCache = { videoId, playerResponse };
-    setTimeout(() => { responseCache = {} }, 10000);
 
     return playerResponse;
-
-    // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
-    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-    function useInnertubeEmbed() {
-        logger.info("Trying Unlock Method #1 (Innertube Embed)");
-        return innertubeClient.getPlayer(videoId, { clientScreen: 'EMBED' }, false)
-    }
-
-    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
-    // See https://github.com/yt-dlp/yt-dlp/pull/600
-    function useInnertubeCreator() {
-        logger.info("Trying Unlock Method #2 (Innertube Creator + Auth)");
-        return innertubeClient.getPlayer(videoId, { clientName: 'WEB_CREATOR', clientVersion: '1.20210909.07.00' }, true)
-    }
-
-    // Strategy 3: Retrieve the video info from an account proxy server.
-    // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
-    function useProxy() {
-        logger.info("Trying Unlock Method #3 (Account Proxy)");
-        return proxy.getPlayerFromAccountProxy(videoId, reason);
-    }
 }
 
 export function unlockNextResponse(originalNextResponse) {
+    logger.info("Trying Sidebar Unlock Method (Innertube Embed)");
+
     const { videoId, playlistId, index: playlistIndex } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
-    const unlockedNextResponse = getUnlockedNextResponse(videoId, playlistId, playlistIndex);
+    const unlockedNextResponse = innertube.getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex);
 
     // check if the sidebar of the unlocked response is still empty
     if (inspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
@@ -102,43 +113,38 @@ export function unlockNextResponse(originalNextResponse) {
     mergeNextResponse(originalNextResponse, unlockedNextResponse);
 }
 
-function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {
-    // Retrieve the sidebar by using a age-gate bypass for the innertube API
-    logger.info("Trying Sidebar Unlock Method (Innertube Embed)");
-    return innertubeClient.getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex)
-}
-
 function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
-    // Transfer WatchNextResults to original response
-    if (originalNextResponse.contents?.twoColumnWatchNextResults?.secondaryResults) {
-        originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse?.contents?.twoColumnWatchNextResults?.secondaryResults;
+    if (isDesktop) {
+        // Transfer WatchNextResults to original response
+        originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse.contents.twoColumnWatchNextResults.secondaryResults;
+
+        // Transfer video description to original response
+        const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents
+            .find(x => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
+        const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents
+            .find(x => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
+
+        if (unlockedVideoSecondaryInfoRenderer.description)
+            originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+
+        return;
     }
 
-    // Transfer mobile (MWEB) WatchNextResults to original response
-    if (originalNextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents) {
-        const unlockedWatchNextFeed = unlockedNextResponse?.contents?.singleColumnWatchNextResults?.results?.results?.contents
-            ?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
-        if (unlockedWatchNextFeed)
-            originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
-    }
+    // Transfer WatchNextResults to original response
+    const unlockedWatchNextFeed = unlockedNextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents
+        ?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
+
+    if (unlockedWatchNextFeed)
+        originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
 
     // Transfer video description to original response
-    const originalVideoSecondaryInfoRenderer = originalNextResponse.contents?.twoColumnWatchNextResults?.results?.results?.contents
-        ?.find(x => x.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
-    const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents?.twoColumnWatchNextResults?.results?.results?.contents
-        ?.find(x => x.videoSecondaryInfoRenderer)?.videoSecondaryInfoRenderer;
-
-    if (originalVideoSecondaryInfoRenderer && unlockedVideoSecondaryInfoRenderer?.description)
-        originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
-
-    // Transfer mobile (MWEB) video description to original response
     const originalStructuredDescriptionContentRenderer = originalNextResponse.engagementPanels
-        ?.find(x => x.engagementPanelSectionListRenderer)?.engagementPanelSectionListRenderer?.content?.structuredDescriptionContentRenderer?.items
-        ?.find(x => x.expandableVideoDescriptionBodyRenderer);
+        .find(x => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items
+        .find(x => x.expandableVideoDescriptionBodyRenderer);
     const unlockedStructuredDescriptionContentRenderer = unlockedNextResponse.engagementPanels
-        ?.find(x => x.engagementPanelSectionListRenderer)?.engagementPanelSectionListRenderer?.content?.structuredDescriptionContentRenderer?.items
-        ?.find(x => x.expandableVideoDescriptionBodyRenderer);
+        .find(x => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items
+        .find(x => x.expandableVideoDescriptionBodyRenderer);
 
-    if (originalStructuredDescriptionContentRenderer && unlockedStructuredDescriptionContentRenderer?.expandableVideoDescriptionBodyRenderer)
+    if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer)
         originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
 }

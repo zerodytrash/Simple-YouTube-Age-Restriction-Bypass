@@ -42,8 +42,8 @@ export function isGoogleVideo(method, url) {
 
 export function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {
     const urlParams = new URLSearchParams(googleVideoUrl.search);
-    const hasGcrFlag = urlParams.get("gcr") !== null;
-    const wasUnlockedByAccountProxy = urlParams.get("id") !== null && urlParams.get("id") === lastProxiedGoogleVideoId;
+    const hasGcrFlag = urlParams.get("gcr");
+    const wasUnlockedByAccountProxy = urlParams.get("id") === lastProxiedGoogleVideoId;
 
     return hasGcrFlag && wasUnlockedByAccountProxy
 }
