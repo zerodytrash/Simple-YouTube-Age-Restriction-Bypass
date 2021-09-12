@@ -2,11 +2,11 @@ import { nativeJSONParse } from "../utils/natives";
 import { getYtcfgValue } from "./innertubeClient";
 import * as Config from "../config";
 
-export function getProxiedGooglevideoUrl(originalUrl, proxyHost) {
+export function getGoogleVideoUrl(originalUrl, proxyHost) {
     return proxyHost + "/direct/" + btoa(originalUrl);
 }
 
-export function getPlayerFromAccountProxy(videoId, reason) {
+export function getPlayer(videoId, reason) {
     const queryParams = new URLSearchParams({
         videoId,
         reason,
