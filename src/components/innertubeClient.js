@@ -31,12 +31,12 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
     return nativeJSONParse(xmlhttp.responseText);
 }
 
-function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex) {
+function getInnertubeEmbedPayload(videoId, clientConfig = {}, playlistId, playlistIndex) {
     const payload = {
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
-                ...clientConfig || {}
+                ...clientConfig
             },
             thirdParty: {
                 embedUrl: "https://www.youtube.com/",
