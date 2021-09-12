@@ -42,7 +42,7 @@ export function unlockPlayerResponse(playerResponse) {
     }
 
     // Overwrite the embedded (preview) playabilityStatus with the unlocked one
-    if(playerResponse.previewPlayabilityStatus) {
+    if (playerResponse.previewPlayabilityStatus) {
         playerResponse.previewPlayabilityStatus = unlockedPlayerResponse.playabilityStatus;
     }
 
@@ -58,6 +58,7 @@ function getUnlockedPlayerResponse(videoId, reason) {
 
     let playerResponse = useInnertubeEmbed();
 
+    if (playerResponse?.playabilityStatus?.status !== "OK" && innertubeClient.isUserLoggedIn()) playerResponse = useInnertubeCreator();
     if (playerResponse?.playabilityStatus?.status !== "OK") playerResponse = useProxy();
 
     // Cache response for 10 seconds
@@ -70,13 +71,20 @@ function getUnlockedPlayerResponse(videoId, reason) {
     // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
     function useInnertubeEmbed() {
         logger.info("Trying Unlock Method #1 (Innertube Embed)");
-        return innertubeClient.getPlayer(videoId)
+        return innertubeClient.getPlayer(videoId, { clientScreen: 'EMBED' }, false)
     }
 
-    // Strategy 2: Retrieve the video info from an account proxy server.
+    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // See https://github.com/yt-dlp/yt-dlp/pull/600
+    function useInnertubeCreator() {
+        logger.info("Trying Unlock Method #2 (Innertube Creator + Auth)");
+        return innertubeClient.getPlayer(videoId, { clientName: 'WEB_CREATOR', clientVersion: '1.20210909.07.00' }, true)
+    }
+
+    // Strategy 3: Retrieve the video info from an account proxy server.
     // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     function useProxy() {
-        logger.info("Trying Unlock Method #2 (Account Proxy)");
+        logger.info("Trying Unlock Method #3 (Account Proxy)");
         return proxy.getPlayerFromAccountProxy(videoId, reason);
     }
 }
@@ -97,7 +105,7 @@ export function unlockNextResponse(originalNextResponse) {
 function getUnlockedNextResponse(videoId, playlistId, playlistIndex) {
     // Retrieve the sidebar by using a age-gate bypass for the innertube API
     logger.info("Trying Sidebar Unlock Method (Innertube Embed)");
-    return innertubeClient.getNext(videoId, playlistId, playlistIndex)
+    return innertubeClient.getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex)
 }
 
 function mergeNextResponse(originalNextResponse, unlockedNextResponse) {

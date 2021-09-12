@@ -1,4 +1,5 @@
 import { nativeJSONParse } from "../utils/natives";
+import * as utils from "../utils";
 import * as logger from "../utils/logger";
 
 export function getYtcfgValue(value) {
@@ -6,32 +7,36 @@ export function getYtcfgValue(value) {
 }
 
 export function isUserLoggedIn() {
-    return getYtcfgValue("LOGGED_IN") === true;
+    return getYtcfgValue("LOGGED_IN") === true && getSidCookie() !== undefined;
 }
 
-export function getPlayer(videoId) {
-    const payload = getInnertubeEmbedPayload(videoId);
-    return sendInnertubeRequest('v1/player', payload);
+export function getPlayer(videoId, clientConfig, useAuth) {
+    const payload = getInnertubeEmbedPayload(videoId, clientConfig);
+    return sendInnertubeRequest('v1/player', payload, useAuth);
 }
 
-export function getNext(videoId, playlistId, playlistIndex) {
-    const payload = getInnertubeEmbedPayload(videoId, playlistId, playlistIndex);
-    return sendInnertubeRequest('v1/next', payload);
+export function getNext(videoId, clientConfig, playlistId, playlistIndex) {
+    const payload = getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex);
+    return sendInnertubeRequest('v1/next', payload, false);
 }
 
-function sendInnertubeRequest(endpoint, payload) {
+function sendInnertubeRequest(endpoint, payload, useAuth) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
+    if (useAuth) {
+        xmlhttp.withCredentials = true;
+        xmlhttp.setRequestHeader("Authorization", generateSidBasedAuth());
+    }
     xmlhttp.send(JSON.stringify(payload));
     return nativeJSONParse(xmlhttp.responseText);
 }
 
-function getInnertubeEmbedPayload(videoId, playlistId, playlistIndex) {
+function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex) {
     const payload = {
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
-                clientScreen: 'EMBED',
+                ...clientConfig || {}
             },
             thirdParty: {
                 embedUrl: "https://www.youtube.com/",
@@ -65,11 +70,23 @@ function getSignatureTimestampFromPlayerBase() {
 
     logger.info(`Retrieving signatureTimestamp from ${playerBaseJsPath} ...`);
 
-    if(!playerBaseJsPath) return;
+    if (!playerBaseJsPath) return;
 
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", playerBaseJsPath, false);
     xmlhttp.send(null);
 
     return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
+}
+
+function getSidCookie() {
+    return utils.getCookie('SAPISID') || utils.getCookie('__Secure-3PAPISID');
+}
+
+function generateSidBasedAuth() {
+    const sid = getSidCookie();
+    const timestamp = Math.floor(new Date().getTime() / 1000);
+    const input = timestamp + " " + sid + " " + location.origin;
+    const hash = utils.generateSha1Hash(input);
+    return "SAPISIDHASH " + timestamp + "_" + hash;
 }
