@@ -6,9 +6,10 @@ export const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
 // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
 // But we need to define a custom descriptor to that variable to intercept its value. This behavior causes a race condition depending on the execution order with this script :(
+// To solve this problem the native defineProperty function will be retrieved from another window (iframe)
 export const nativeObjectDefineProperty = (() => {
     // Check if function is native
-    if (Object.defineProperty.toString().indexOf("[native code]") > -1) {
+    if (Object.defineProperty.toString().includes("[native code]")) {
         return Object.defineProperty;
     }
 

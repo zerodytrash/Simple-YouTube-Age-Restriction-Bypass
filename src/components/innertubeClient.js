@@ -6,11 +6,11 @@ export function getYtcfgValue(value) {
 }
 
 export function isUserLoggedIn() {
-    return getYtcfgValue("LOGGED_IN") === true && getSidCookie() !== undefined;
+    // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
+    return (getYtcfgValue('LOGGED_IN') || !!getYtcfgValue('DELEGATED_SESSION_ID')) && getSidCookie() !== undefined;
 }
 
 export function getPlayer(videoId, clientConfig, useAuth) {
-    if (useAuth && !isUserLoggedIn()) return;
     const payload = getInnertubeEmbedPayload(videoId, clientConfig);
     return sendInnertubeRequest('v1/player', payload, useAuth);
 }
@@ -26,8 +26,8 @@ export function getMainPageClientName() {
 }
 
 export function getSignatureTimestamp() {
-    return getYtcfgValue('STS') || function() {
-        // STS is missing on embedded player. Using base script as fallback...
+    return getYtcfgValue('STS') || (() => {
+        // STS is missing on embedded player. Retrieve from player base script as fallback...
         const playerBaseJsPath = document.querySelector('script[src*="/base.js"]')?.src;
 
         if (!playerBaseJsPath) return;
@@ -37,13 +37,13 @@ export function getSignatureTimestamp() {
         xmlhttp.send(null);
 
         return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
-    }()
+    })();
 }
 
 function sendInnertubeRequest(endpoint, payload, useAuth) {
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
-    if (useAuth) {
+    if (useAuth && isUserLoggedIn()) {
         xmlhttp.withCredentials = true;
         xmlhttp.setRequestHeader("Authorization", generateSidBasedAuth());
     }
@@ -52,7 +52,7 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
 }
 
 function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex) {
-    const payload = {
+    return {
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
@@ -71,9 +71,7 @@ function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistInd
         videoId,
         playlistId,
         playlistIndex,
-    };
-
-    return payload;
+    }
 }
 
 function getSidCookie() {
@@ -85,5 +83,5 @@ function generateSidBasedAuth() {
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const input = timestamp + " " + sid + " " + location.origin;
     const hash = utils.generateSha1Hash(input);
-    return "SAPISIDHASH " + timestamp + "_" + hash;
+    return `SAPISIDHASH ${timestamp}_${hash}`;
 }

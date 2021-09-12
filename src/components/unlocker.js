@@ -58,7 +58,7 @@ export function unlockPlayerResponse(playerResponse) {
         throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPlayerResponse.playabilityStatus?.status}`);
     }
 
-    // if the video info was retrieved via proxy, store the URL params from the url- or signatureCipher-attribute to detect later if the requested video files (googlevideo.com) are from this unlock.
+    // if the video info was retrieved via proxy, store the URL params from the url-attribute to detect later if the requested video file (googlevideo.com) need a proxy.
     if (unlockedPlayerResponse.proxied && unlockedPlayerResponse.streamingData?.adaptiveFormats) {
         const cipherText = unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
         const videoUrl = cipherText ? new URLSearchParams(cipherText).get("url") : unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
@@ -71,7 +71,7 @@ export function unlockPlayerResponse(playerResponse) {
         playerResponse.previewPlayabilityStatus = unlockedPlayerResponse.playabilityStatus;
     }
 
-    // Assign all unlocked properties to the original player response
+    // Transfer all unlocked properties to the original player response
     Object.assign(playerResponse, unlockedPlayerResponse);
 
     Notification.show(messagesMap.success);

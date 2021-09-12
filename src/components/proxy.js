@@ -12,7 +12,8 @@ export function getPlayer(videoId, reason) {
         reason,
         clientName: innertube.getMainPageClientName(),
         clientVersion: innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
-        signatureTimestamp: innertube.getSignatureTimestamp()
+        signatureTimestamp: innertube.getSignatureTimestamp(),
+        isEmbed: +location.pathname.includes("/embed/")
     }).toString();
 
     const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
