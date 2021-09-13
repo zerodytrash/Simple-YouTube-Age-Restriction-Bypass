@@ -48,7 +48,6 @@ export default {
         html(),
         nodeResolve(),
         add_header_file(resolve(__dirname, 'userscript.config.js'), set_script_version),
-        add_header_file(resolve(__dirname, 'userscript.banner.js')),
         // Manually wrap code in our custom iife
         wrap_in_iife(),
         getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),
