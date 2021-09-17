@@ -2,13 +2,7 @@
 
 name: Build & Create Release
 
-on:
-  workflow_dispatch:
-    inputs:
-      test:
-        description: 'test'
-        required: true
-        default: 'test'
+on: [ ]
 
 jobs:
   buildandrelease:
