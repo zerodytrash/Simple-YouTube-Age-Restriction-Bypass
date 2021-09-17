@@ -52,24 +52,24 @@
 
 ## How it works
 
-When the video is detected as restricted, the bypass will retrieve the video and all other information from YouTube's unrestricted ``/youtubei/v1/player`` endpoint. As a fallback (for some non-embeddable videos) an open source <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy">Account Proxy Server</a> is used. This allows you to watch age-restricted videos without verification and the need to be signed in.
+When a YouTube video is detected as age-restricted, this userscript will retrieve the video and all other information from YouTube's unrestricted ``/youtubei/v1/player`` endpoint. As a fallback (for some non-embeddable videos) an open source <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy">Account Proxy Server</a> is used. This allows you to watch all types of age-restricted videos without age verification and without the need to be signed in.
 
-All videos will be unlocked automatically.
+All videos will be unlocked automatically!
 
 ## Installation
-1. Install a userscript manager of your choice:<br>
+1. Install a userscript manager (browser extension) of your choice:<br>
 &bull; [Tampermonkey](https://www.tampermonkey.net)<br>
 &bull; [Violentmonkey](https://violentmonkey.github.io/get-it)<br>
-&bull; [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey)<br>
+&bull; [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey) (Firefox only)<br>
 
-2. Install Simple YouTube Age Restriction Bypass by clicking on one of the [downloads](#downloads).
+2. Install **Simple YouTube Age Restriction Bypass** by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js).
 
 ## Usage
 No further actions are necessary. All age restricted videos are automatically unlocked.
 
 ## Mobile Device Compatibility
 This script also works with the mobile YouTube website (m.youtube.com). But currently only [Kiwi Browser for Android](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) and [Firefox Nightly for Android](https://play.google.com/store/apps/details?id=org.mozilla.fenix) supports extensions. In Kiwi Browser you can simply visit the Chrome Web Store to install [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) and install the script.
-Using [NewPipe](https://github.com/TeamNewPipe/NewPipe) for Android is probably easier. But currently (2021-07-30) age-restricted videos do not seem to work in NewPipe. An update will hopefully be released soon.
+Using [NewPipe](https://github.com/TeamNewPipe/NewPipe) for Android is probably easier. But currently (2021-09-17) age-restricted videos do not seem to work in NewPipe. An update will hopefully be released soon.
 
 ## Development
 We use [Rollup](https://rollupjs.org) with [Babel](https://github.com/babel/babel) to transpile into a single userscript file and maintain support for older browsers.
