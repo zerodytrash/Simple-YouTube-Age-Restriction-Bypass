@@ -14,7 +14,7 @@ A very simple to use userscript to bypass YouTube's age verification by retrievi
 &bull; [Tampermonkey for Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)<br>
 &bull; [Tampermonkey for Safari](https://apps.apple.com/app/apple-store/id1482490089?mt=8)<br>
 
-3. Add "Simple-YouTube-Age-Restriction-Bypass.user.js" by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/releases/latest/download/Simple-YouTube-Age-Restriction-Bypass.user.js).
+3. Add "Simple-YouTube-Age-Restriction-Bypass.user.js" by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js).
 4. Done.
 
 
