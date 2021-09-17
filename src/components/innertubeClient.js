@@ -6,8 +6,14 @@ export function getYtcfgValue(value) {
 }
 
 export function isUserLoggedIn() {
+    // Session Cookie exists?
+    if (!getSidCookie()) return false;
+
     // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
-    return (getYtcfgValue('LOGGED_IN') || !!getYtcfgValue('DELEGATED_SESSION_ID')) && getSidCookie() !== undefined;
+    if (typeof getYtcfgValue('LOGGED_IN') === "boolean") return getYtcfgValue('LOGGED_IN');
+    if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === "string") return true;
+    
+    return false;
 }
 
 export function getPlayer(videoId, clientConfig, useAuth) {

@@ -1,3 +1,4 @@
+// Script configuration variables
 export const UNLOCKABLE_PLAYER_STATES = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
 export const PLAYER_RESPONSE_ALIASES = ["ytInitialPlayerResponse", "playerResponse"];
 
