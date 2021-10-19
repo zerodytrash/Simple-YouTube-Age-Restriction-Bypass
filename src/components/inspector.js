@@ -11,7 +11,12 @@ export function isEmbeddedPlayerObject(parsedData) {
 
 export function isAgeRestricted(playabilityStatus) {
     if (!playabilityStatus?.status) return false;
-    return !!playabilityStatus.desktopLegacyAgeGateReason || Config.UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status);
+    if (playabilityStatus.desktopLegacyAgeGateReason) return true;
+    if (Config.UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
+
+    // Fix for embed player, see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
+    return location.href.includes("/embed/") && playabilityStatus.errorScreen?.playerErrorMessageRenderer?.reason?.runs
+        ?.find(x => x.navigationEndpoint)?.navigationEndpoint?.urlEndpoint?.url?.includes("/2802167");
 }
 
 export function isWatchNextObject(parsedData) {

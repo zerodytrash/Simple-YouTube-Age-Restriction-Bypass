@@ -5,9 +5,6 @@ import * as unlocker from "./components/unlocker";
 import * as proxy from "./components/proxy";
 import * as logger from "./utils/logger";
 
-// This is just a state variable to handle age-restrictions in YouTube's embedded player.
-let isAgeRestrictedEmbeddedPlayer = false;
-
 try {
     interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
@@ -30,12 +27,6 @@ function checkAndUnlock(ytData) {
         }
         // Unlock #3: Embedded Player inital data structure
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
-            isAgeRestrictedEmbeddedPlayer = true;
-            unlocker.unlockPlayerResponse(ytData);
-        }
-        // Unlock #4: Embedded Player response data structure (has no age-restriction indicator, therefore we use a state variable)
-        else if (inspector.isPlayerObject(ytData) && inspector.isUnplayable(ytData.playabilityStatus) && isAgeRestrictedEmbeddedPlayer) {
-            isAgeRestrictedEmbeddedPlayer = false;
             unlocker.unlockPlayerResponse(ytData);
         }
         // Equivelant of unlock #1 for sidebar/next response

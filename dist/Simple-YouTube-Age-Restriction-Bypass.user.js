@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.2.1
+// @version         2.2.2
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -292,18 +292,19 @@
     return typeof (parsedData === null || parsedData === void 0 ? void 0 : parsedData.previewPlayabilityStatus) === "object";
   }
 
-  function isAgeRestricted(playabilityStatus) {
+  function isAgeRestricted(playabilityStatus) {var _playabilityStatus$er, _playabilityStatus$er2, _playabilityStatus$er3, _playabilityStatus$er4, _playabilityStatus$er5, _playabilityStatus$er6, _playabilityStatus$er7, _playabilityStatus$er8;
     if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
-    return !!playabilityStatus.desktopLegacyAgeGateReason || UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status);
+    if (playabilityStatus.desktopLegacyAgeGateReason) return true;
+    if (UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
+
+    // Fix for embed player, see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
+    return location.href.includes("/embed/") && ((_playabilityStatus$er = playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.
+    find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes("/2802167"));
   }
 
   function isWatchNextObject(parsedData) {var _parsedData$currentVi, _parsedData$currentVi2;
     if (!(parsedData !== null && parsedData !== void 0 && parsedData.contents) || !(parsedData !== null && parsedData !== void 0 && (_parsedData$currentVi = parsedData.currentVideoEndpoint) !== null && _parsedData$currentVi !== void 0 && (_parsedData$currentVi2 = _parsedData$currentVi.watchEndpoint) !== null && _parsedData$currentVi2 !== void 0 && _parsedData$currentVi2.videoId)) return false;
     return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
-  }
-
-  function isUnplayable(playabilityStatus) {
-    return (playabilityStatus === null || playabilityStatus === void 0 ? void 0 : playabilityStatus.status) === "UNPLAYABLE";
   }
 
   function isWatchNextSidebarEmpty(parsedData) {var _parsedData$contents2, _parsedData$contents3, _parsedData$contents4, _parsedData$contents5, _content$find;
@@ -658,9 +659,6 @@
     originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
   }
 
-  // This is just a state variable to handle age-restrictions in YouTube's embedded player.
-  let isAgeRestrictedEmbeddedPlayer = false;
-
   try {
     attachInitialDataInterceptor(checkAndUnlock);
     attachJsonInterceptor(checkAndUnlock);
@@ -683,12 +681,6 @@
       }
       // Unlock #3: Embedded Player inital data structure
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
-        isAgeRestrictedEmbeddedPlayer = true;
-        unlockPlayerResponse(ytData);
-      }
-      // Unlock #4: Embedded Player response data structure (has no age-restriction indicator, therefore we use a state variable)
-      else if (isPlayerObject(ytData) && isUnplayable(ytData.playabilityStatus) && isAgeRestrictedEmbeddedPlayer) {
-        isAgeRestrictedEmbeddedPlayer = false;
         unlockPlayerResponse(ytData);
       }
       // Equivelant of unlock #1 for sidebar/next response
