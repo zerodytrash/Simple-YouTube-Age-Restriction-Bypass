@@ -45,6 +45,7 @@
   const VIDEO_PROXY_SERVER_HOST = "https://phx.4everproxy.com";
 
   const isDesktop = window.location.host !== "m.youtube.com";
+  const isEmbed = window.location.pathname.includes("/embed/");
 
   class Deferred {
     constructor() {
@@ -297,8 +298,9 @@
     if (playabilityStatus.desktopLegacyAgeGateReason) return true;
     if (UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
 
-    // Fix for embed player, see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
-    return location.href.includes("/embed/") && ((_playabilityStatus$er = playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.
+    // Fix to detect age restrictions on embed player
+    // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
+    return isEmbed && ((_playabilityStatus$er = playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.
     find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes("/2802167"));
   }
 
@@ -457,7 +459,7 @@
       clientName: getMainPageClientName(),
       clientVersion: getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
       signatureTimestamp: getSignatureTimestamp(),
-      isEmbed: +location.pathname.includes("/embed/") }).
+      isEmbed: +isEmbed }).
     toString();
 
     const proxyUrl = ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;

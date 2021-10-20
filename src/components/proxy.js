@@ -1,3 +1,4 @@
+import { isEmbed } from "../utils";
 import { nativeJSONParse } from "../utils/natives";
 import * as innertube from "./innertubeClient";
 import * as Config from "../config";
@@ -13,7 +14,7 @@ export function getPlayer(videoId, reason) {
         clientName: innertube.getMainPageClientName(),
         clientVersion: innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
         signatureTimestamp: innertube.getSignatureTimestamp(),
-        isEmbed: +location.pathname.includes("/embed/")
+        isEmbed: +isEmbed
     }).toString();
 
     const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;

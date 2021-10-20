@@ -1,4 +1,5 @@
 export const isDesktop = window.location.host !== "m.youtube.com";
+export const isEmbed = window.location.pathname.includes("/embed/");
 
 export class Deferred {
     constructor() {

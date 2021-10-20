@@ -1,4 +1,4 @@
-import { isDesktop } from "../utils";
+import { isDesktop, isEmbed } from "../utils";
 import * as Config from "../config"
 
 export function isPlayerObject(parsedData) {
@@ -14,8 +14,9 @@ export function isAgeRestricted(playabilityStatus) {
     if (playabilityStatus.desktopLegacyAgeGateReason) return true;
     if (Config.UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
 
-    // Fix for embed player, see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
-    return location.href.includes("/embed/") && playabilityStatus.errorScreen?.playerErrorMessageRenderer?.reason?.runs
+    // Fix to detect age restrictions on embed player
+    // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
+    return isEmbed && playabilityStatus.errorScreen?.playerErrorMessageRenderer?.reason?.runs
         ?.find(x => x.navigationEndpoint)?.navigationEndpoint?.urlEndpoint?.url?.includes("/2802167");
 }
 
