@@ -1,56 +1,37 @@
 import { isObject } from '../utils';
-import { nativeJSONParse, nativeObjectDefineProperty, nativeXMLHttpRequestOpen } from '../utils/natives';
-import * as Config from '../config';
+import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 
-let wrappedPlayerResponse;
-let wrappedNextResponse;
+function interceptProp(obj, prop, { setter }) {
+    // Compatibility: Backup getter/setter, may be defined by other extensions like AdBlock
+    const { get, set } = Object.getOwnPropertyDescriptor(obj, prop) || {};
 
-export function attachInitialDataInterceptor(onInititalDataSet) {
-    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
+    let prevValue;
 
-    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
-    Object.defineProperty = (obj, prop, descriptor) => {
-        if (obj === window && Config.PLAYER_RESPONSE_ALIASES.includes(prop)) {
-            console.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
-
-            if (descriptor?.set) chainedPlayerSetter = descriptor.set;
-            if (descriptor?.get) chainedPlayerGetter = descriptor.get;
-        } else {
-            nativeObjectDefineProperty(obj, prop, descriptor);
-        }
-    };
-
-    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
-        set: (playerResponse) => {
+    Object.defineProperty(obj, prop, {
+        set: (value) => {
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
-            if (playerResponse === wrappedPlayerResponse) return;
+            if (value === prevValue) return;
 
-            wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
-            if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
+            setter?.(value);
+            prevValue = value;
+
+            // eslint-disable-next-line no-empty
+            if (set) try { set(prevValue) } catch (err) { }
         },
         get: () => {
             // eslint-disable-next-line no-empty
-            if (typeof chainedPlayerGetter === 'function')
-                try {
-                    return chainedPlayerGetter();
-                } catch (err) {
-                    // ignore the error
-                }
-            return wrappedPlayerResponse || {};
+            if (get) try { return get() } catch (err) { }
+            return prevValue || {};
         },
-        configurable: true
+        configurable: true,
     });
+}
 
-    // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeObjectDefineProperty(window, 'ytInitialData', {
-        set: (nextResponse) => {
-            wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
-        },
-        get: () => wrappedNextResponse,
-        configurable: true
-    });
+export function attachInitialDataInterceptor(callback) {
+    const setter = (value) => (callback(value) || {});
+
+    interceptProp(window, 'ytInitialPlayerResponse', { setter });
+    interceptProp(window, 'ytInitialData', { setter });
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
