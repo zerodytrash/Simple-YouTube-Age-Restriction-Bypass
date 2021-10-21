@@ -7,7 +7,7 @@
 <p>A very simple to use userscript to bypass YouTube's age verification.</p>
 
 [![GitHub release](https://img.shields.io/github/v/release/zerodytrash/Simple-YouTube-Age-Restriction-Bypass?style=for-the-badge)](#simple-youtube-age-restriction-bypass)
-[![downloads](https://img.shields.io/badge/downloads-26K%2B-brightgreen?style=for-the-badge)](#simple-youtube-age-restriction-bypass)
+[![downloads](https://img.shields.io/badge/downloads-42K%2B-brightgreen?style=for-the-badge)](#simple-youtube-age-restriction-bypass)
 [![license](https://img.shields.io/github/license/zerodytrash/Simple-YouTube-Age-Restriction-Bypass?style=for-the-badge)](#simple-youtube-age-restriction-bypass)
 
 ### Browser support
