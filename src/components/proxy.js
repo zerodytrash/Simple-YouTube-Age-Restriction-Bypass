@@ -14,11 +14,10 @@ export function getPlayer(videoId, reason) {
         clientName: innertube.getMainPageClientName(),
         clientVersion: innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
         signatureTimestamp: innertube.getSignatureTimestamp(),
-        isEmbed: +isEmbed,
+        isEmbed: +isEmbed
     }).toString();
 
-    const proxyUrl =
-        Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
+    const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
 
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open('GET', proxyUrl, false);

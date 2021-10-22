@@ -8,7 +8,7 @@ export class Deferred {
                 this.resolve = resolve;
                 this.reject = reject;
             }),
-            this,
+            this
         );
     }
 }
@@ -77,11 +77,7 @@ export function generateSha1Hash(msg) {
     var msg_len = msg.length;
     var word_array = new Array();
     for (i = 0; i < msg_len - 3; i += 4) {
-        j =
-            (msg.charCodeAt(i) << 24) |
-            (msg.charCodeAt(i + 1) << 16) |
-            (msg.charCodeAt(i + 2) << 8) |
-            msg.charCodeAt(i + 3);
+        j = (msg.charCodeAt(i) << 24) | (msg.charCodeAt(i + 1) << 16) | (msg.charCodeAt(i + 2) << 8) | msg.charCodeAt(i + 3);
         word_array.push(j);
     }
     switch (msg_len % 4) {
@@ -92,17 +88,10 @@ export function generateSha1Hash(msg) {
             i = (msg.charCodeAt(msg_len - 1) << 24) | 0x0800000;
             break;
         case 2:
-            i =
-                (msg.charCodeAt(msg_len - 2) << 24) |
-                (msg.charCodeAt(msg_len - 1) << 16) |
-                0x08000;
+            i = (msg.charCodeAt(msg_len - 2) << 24) | (msg.charCodeAt(msg_len - 1) << 16) | 0x08000;
             break;
         case 3:
-            i =
-                (msg.charCodeAt(msg_len - 3) << 24) |
-                (msg.charCodeAt(msg_len - 2) << 16) |
-                (msg.charCodeAt(msg_len - 1) << 8) |
-                0x80;
+            i = (msg.charCodeAt(msg_len - 3) << 24) | (msg.charCodeAt(msg_len - 2) << 16) | (msg.charCodeAt(msg_len - 1) << 8) | 0x80;
             break;
     }
     word_array.push(i);
@@ -111,21 +100,14 @@ export function generateSha1Hash(msg) {
     word_array.push((msg_len << 3) & 0x0ffffffff);
     for (blockstart = 0; blockstart < word_array.length; blockstart += 16) {
         for (i = 0; i < 16; i++) W[i] = word_array[blockstart + i];
-        for (i = 16; i <= 79; i++)
-            W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+        for (i = 16; i <= 79; i++) W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
         A = H0;
         B = H1;
         C = H2;
         D = H3;
         E = H4;
         for (i = 0; i <= 19; i++) {
-            temp =
-                (rotate_left(A, 5) +
-                    ((B & C) | (~B & D)) +
-                    E +
-                    W[i] +
-                    0x5a827999) &
-                0x0ffffffff;
+            temp = (rotate_left(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5a827999) & 0x0ffffffff;
             E = D;
             D = C;
             C = rotate_left(B, 30);
@@ -133,9 +115,7 @@ export function generateSha1Hash(msg) {
             A = temp;
         }
         for (i = 20; i <= 39; i++) {
-            temp =
-                (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ed9eba1) &
-                0x0ffffffff;
+            temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ed9eba1) & 0x0ffffffff;
             E = D;
             D = C;
             C = rotate_left(B, 30);
@@ -143,13 +123,7 @@ export function generateSha1Hash(msg) {
             A = temp;
         }
         for (i = 40; i <= 59; i++) {
-            temp =
-                (rotate_left(A, 5) +
-                    ((B & C) | (B & D) | (C & D)) +
-                    E +
-                    W[i] +
-                    0x8f1bbcdc) &
-                0x0ffffffff;
+            temp = (rotate_left(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8f1bbcdc) & 0x0ffffffff;
             E = D;
             D = C;
             C = rotate_left(B, 30);
@@ -157,9 +131,7 @@ export function generateSha1Hash(msg) {
             A = temp;
         }
         for (i = 60; i <= 79; i++) {
-            temp =
-                (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xca62c1d6) &
-                0x0ffffffff;
+            temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xca62c1d6) & 0x0ffffffff;
             E = D;
             D = C;
             C = rotate_left(B, 30);
@@ -173,11 +145,5 @@ export function generateSha1Hash(msg) {
         H4 = (H4 + E) & 0x0ffffffff;
     }
 
-    return (
-        cvt_hex(H0) +
-        cvt_hex(H1) +
-        cvt_hex(H2) +
-        cvt_hex(H3) +
-        cvt_hex(H4)
-    ).toLowerCase();
+    return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
 }

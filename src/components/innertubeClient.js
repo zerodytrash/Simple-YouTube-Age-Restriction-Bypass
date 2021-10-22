@@ -10,8 +10,7 @@ export function isUserLoggedIn() {
     if (!getSidCookie()) return false;
 
     // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
-    if (typeof getYtcfgValue('LOGGED_IN') === 'boolean')
-        return getYtcfgValue('LOGGED_IN');
+    if (typeof getYtcfgValue('LOGGED_IN') === 'boolean') return getYtcfgValue('LOGGED_IN');
     if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === 'string') return true;
 
     return false;
@@ -23,21 +22,13 @@ export function getPlayer(videoId, clientConfig, useAuth) {
 }
 
 export function getNext(videoId, clientConfig, playlistId, playlistIndex) {
-    const payload = getInnertubeEmbedPayload(
-        videoId,
-        clientConfig,
-        playlistId,
-        playlistIndex,
-    );
+    const payload = getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex);
     return sendInnertubeRequest('v1/next', payload, false);
 }
 
 export function getMainPageClientName() {
     // replace embedded client with YouTube's main page client (e.g. WEB_EMBEDDED_PLAYER => WEB)
-    return getYtcfgValue('INNERTUBE_CLIENT_NAME').replace(
-        '_EMBEDDED_PLAYER',
-        '',
-    );
+    return getYtcfgValue('INNERTUBE_CLIENT_NAME').replace('_EMBEDDED_PLAYER', '');
 }
 
 export function getSignatureTimestamp() {
@@ -45,9 +36,7 @@ export function getSignatureTimestamp() {
         getYtcfgValue('STS') ||
         (() => {
             // STS is missing on embedded player. Retrieve from player base script as fallback...
-            const playerBaseJsPath = document.querySelector(
-                'script[src*="/base.js"]',
-            )?.src;
+            const playerBaseJsPath = document.querySelector('script[src*="/base.js"]')?.src;
 
             if (!playerBaseJsPath) return;
 
@@ -55,20 +44,14 @@ export function getSignatureTimestamp() {
             xmlhttp.open('GET', playerBaseJsPath, false);
             xmlhttp.send(null);
 
-            return parseInt(
-                xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1],
-            );
+            return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
         })()
     );
 }
 
 function sendInnertubeRequest(endpoint, payload, useAuth) {
     const xmlhttp = new XMLHttpRequest();
-    xmlhttp.open(
-        'POST',
-        `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`,
-        false,
-    );
+    xmlhttp.open('POST', `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
     if (useAuth && isUserLoggedIn()) {
         xmlhttp.withCredentials = true;
         xmlhttp.setRequestHeader('Authorization', generateSidBasedAuth());
@@ -77,31 +60,26 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
     return nativeJSONParse(xmlhttp.responseText);
 }
 
-function getInnertubeEmbedPayload(
-    videoId,
-    clientConfig,
-    playlistId,
-    playlistIndex,
-) {
+function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex) {
     return {
         context: {
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
                 ...{ clientName: getMainPageClientName() },
-                ...(clientConfig || {}),
+                ...(clientConfig || {})
             },
             thirdParty: {
-                embedUrl: 'https://www.youtube.com/',
-            },
+                embedUrl: 'https://www.youtube.com/'
+            }
         },
         playbackContext: {
             contentPlaybackContext: {
-                signatureTimestamp: getSignatureTimestamp(),
-            },
+                signatureTimestamp: getSignatureTimestamp()
+            }
         },
         videoId,
         playlistId,
-        playlistIndex,
+        playlistIndex
     };
 }
 
