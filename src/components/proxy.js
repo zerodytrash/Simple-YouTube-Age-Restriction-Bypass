@@ -1,10 +1,10 @@
-import { isEmbed } from "../utils";
-import { nativeJSONParse } from "../utils/natives";
-import * as innertube from "./innertubeClient";
-import * as Config from "../config";
+import { isEmbed } from '../utils';
+import { nativeJSONParse } from '../utils/natives';
+import * as innertube from './innertubeClient';
+import * as Config from '../config';
 
 export function getGoogleVideoUrl(originalUrl, proxyHost) {
-    return proxyHost + "/direct/" + btoa(originalUrl);
+    return proxyHost + '/direct/' + btoa(originalUrl);
 }
 
 export function getPlayer(videoId, reason) {
@@ -14,10 +14,11 @@ export function getPlayer(videoId, reason) {
         clientName: innertube.getMainPageClientName(),
         clientVersion: innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION'),
         signatureTimestamp: innertube.getSignatureTimestamp(),
-        isEmbed: +isEmbed
+        isEmbed: +isEmbed,
     }).toString();
 
-    const proxyUrl = Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
+    const proxyUrl =
+        Config.ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
 
     const xmlhttp = new XMLHttpRequest();
     xmlhttp.open('GET', proxyUrl, false);

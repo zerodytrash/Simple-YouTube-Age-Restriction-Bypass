@@ -9,12 +9,12 @@ export const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 // To solve this problem the native defineProperty function will be retrieved from another window (iframe)
 export const nativeObjectDefineProperty = (() => {
     // Check if function is native
-    if (Object.defineProperty.toString().includes("[native code]")) {
+    if (Object.defineProperty.toString().includes('[native code]')) {
         return Object.defineProperty;
     }
 
     // If function is overidden, restore the native function from another window...
-    const tempFrame = createElement("iframe", { style: `display: none;` });
+    const tempFrame = createElement('iframe', { style: `display: none;` });
     document.documentElement.append(tempFrame);
 
     const native = tempFrame.contentWindow.Object.defineProperty;
