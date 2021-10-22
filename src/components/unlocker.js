@@ -1,13 +1,13 @@
-import * as innertube from "./innertubeClient";
-import * as inspector from "./inspector";
-import * as logger from "../utils/logger";
-import * as proxy from "./proxy";
-import Notification from "./notification";
-import { isDesktop } from "../utils";
+import * as innertube from './innertubeClient';
+import * as inspector from './inspector';
+import * as logger from '../utils/logger';
+import * as proxy from './proxy';
+import Notification from './notification';
+import { isDesktop } from '../utils';
 
 const messagesMap = {
-    success: "Age-restricted video successfully unlocked!",
-    fail: "Unable to unlock this video 🙁 - More information in the developer console",
+    success: 'Age-restricted video successfully unlocked!',
+    fail: 'Unable to unlock this video 🙁 - More information in the developer console'
 };
 
 const unlockStrategies = [
@@ -38,30 +38,30 @@ let lastProxiedGoogleVideoUrlParams;
 let responseCache = {};
 
 export function getLastProxiedGoogleVideoId() {
-    return lastProxiedGoogleVideoUrlParams?.get("id");
+    return lastProxiedGoogleVideoUrlParams?.get('id');
 }
 
 export function unlockPlayerResponse(playerResponse) {
-    const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue("PLAYER_VARS").video_id;
+    const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
     const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
     const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
     // account proxy error?
     if (unlockedPlayerResponse.errorMessage) {
-        Notification.show(`${messagesMap.fail} (ProxyError)`, 10)
+        Notification.show(`${messagesMap.fail} (ProxyError)`, 10);
         throw new Error(`Player Unlock Failed, Proxy Error Message: ${unlockedPlayerResponse.errorMessage}`);
     }
 
     // check if the unlocked response isn't playable
-    if (unlockedPlayerResponse.playabilityStatus?.status !== "OK") {
+    if (unlockedPlayerResponse.playabilityStatus?.status !== 'OK') {
         Notification.show(`${messagesMap.fail} (PlayabilityError)`, 10);
         throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPlayerResponse.playabilityStatus?.status}`);
     }
 
     // if the video info was retrieved via proxy, store the URL params from the url-attribute to detect later if the requested video file (googlevideo.com) need a proxy.
     if (unlockedPlayerResponse.proxied && unlockedPlayerResponse.streamingData?.adaptiveFormats) {
-        const cipherText = unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.signatureCipher)?.signatureCipher;
-        const videoUrl = cipherText ? new URLSearchParams(cipherText).get("url") : unlockedPlayerResponse.streamingData.adaptiveFormats.find(x => x.url)?.url;
+        const cipherText = unlockedPlayerResponse.streamingData.adaptiveFormats.find((x) => x.signatureCipher)?.signatureCipher;
+        const videoUrl = cipherText ? new URLSearchParams(cipherText).get('url') : unlockedPlayerResponse.streamingData.adaptiveFormats.find((x) => x.url)?.url;
 
         lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
     }
@@ -84,12 +84,12 @@ function getUnlockedPlayerResponse(videoId, reason) {
     let playerResponse;
 
     unlockStrategies.every((strategy, index) => {
-        if(strategy.requireAuth && !innertube.isUserLoggedIn()) return true;
+        if (strategy.requireAuth && !innertube.isUserLoggedIn()) return true;
 
         logger.info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
-        
+
         playerResponse = strategy.fn(videoId, reason);
-        return playerResponse?.playabilityStatus?.status !== "OK";
+        return playerResponse?.playabilityStatus?.status !== 'OK';
     });
 
     // Cache response
@@ -99,7 +99,7 @@ function getUnlockedPlayerResponse(videoId, reason) {
 }
 
 export function unlockNextResponse(originalNextResponse) {
-    logger.info("Trying Sidebar Unlock Method (Innertube Embed)");
+    logger.info('Trying Sidebar Unlock Method (Innertube Embed)');
 
     const { videoId, playlistId, index: playlistIndex } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
     const unlockedNextResponse = innertube.getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex);
@@ -119,31 +119,32 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
         originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse.contents.twoColumnWatchNextResults.secondaryResults;
 
         // Transfer video description to original response
-        const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents
-            .find(x => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
-        const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents
-            .find(x => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
+        const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
+            (x) => x.videoSecondaryInfoRenderer
+        ).videoSecondaryInfoRenderer;
+        const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
+            (x) => x.videoSecondaryInfoRenderer
+        ).videoSecondaryInfoRenderer;
 
-        if (unlockedVideoSecondaryInfoRenderer.description)
-            originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+        if (unlockedVideoSecondaryInfoRenderer.description) originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
 
         return;
     }
 
     // Transfer WatchNextResults to original response
-    const unlockedWatchNextFeed = unlockedNextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents
-        ?.find(x => x.itemSectionRenderer?.targetId === "watch-next-feed");
+    const unlockedWatchNextFeed = unlockedNextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(
+        (x) => x.itemSectionRenderer?.targetId === 'watch-next-feed'
+    );
 
-    if (unlockedWatchNextFeed)
-        originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
+    if (unlockedWatchNextFeed) originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
 
     // Transfer video description to original response
     const originalStructuredDescriptionContentRenderer = originalNextResponse.engagementPanels
-        .find(x => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items
-        .find(x => x.expandableVideoDescriptionBodyRenderer);
+        .find((x) => x.engagementPanelSectionListRenderer)
+        .engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.find((x) => x.expandableVideoDescriptionBodyRenderer);
     const unlockedStructuredDescriptionContentRenderer = unlockedNextResponse.engagementPanels
-        .find(x => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items
-        .find(x => x.expandableVideoDescriptionBodyRenderer);
+        .find((x) => x.engagementPanelSectionListRenderer)
+        .engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.find((x) => x.expandableVideoDescriptionBodyRenderer);
 
     if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer)
         originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;

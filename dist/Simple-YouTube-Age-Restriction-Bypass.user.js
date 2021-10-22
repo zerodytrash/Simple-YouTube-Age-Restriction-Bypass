@@ -36,23 +36,26 @@
 
 
   // Script configuration variables
-  const UNLOCKABLE_PLAYER_STATES = ["AGE_VERIFICATION_REQUIRED", "AGE_CHECK_REQUIRED", "LOGIN_REQUIRED"];
-  const PLAYER_RESPONSE_ALIASES = ["ytInitialPlayerResponse", "playerResponse"];
+  const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
+  const PLAYER_RESPONSE_ALIASES = ['ytInitialPlayerResponse', 'playerResponse'];
 
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
-  const ACCOUNT_PROXY_SERVER_HOST = "https://youtube-proxy.zerody.one";
-  const VIDEO_PROXY_SERVER_HOST = "https://phx.4everproxy.com";
+  const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
+  const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
 
-  const isDesktop = window.location.host !== "m.youtube.com";
-  const isEmbed = window.location.pathname.includes("/embed/");
+  const isDesktop = window.location.host !== 'm.youtube.com';
+  const isEmbed = window.location.pathname.includes('/embed/');
 
   class Deferred {
     constructor() {
-      return Object.assign(new Promise((resolve, reject) => {
+      return Object.assign(
+      new Promise((resolve, reject) => {
         this.resolve = resolve;
         this.reject = reject;
-      }), this);
+      }),
+      this);
+
     }}
 
 
@@ -63,7 +66,7 @@
   }
 
   function isObject(obj) {
-    return obj !== null && typeof obj === "object";
+    return obj !== null && typeof obj === 'object';
   }
 
   function getCookie(name) {
@@ -95,12 +98,10 @@
         var c = string.charCodeAt(n);
         if (c < 128) {
           utftext += String.fromCharCode(c);
-        } else
-        if (c > 127 && c < 2048) {
+        } else if (c > 127 && c < 2048) {
           utftext += String.fromCharCode(c >> 6 | 192);
           utftext += String.fromCharCode(c & 63 | 128);
-        } else
-        {
+        } else {
           utftext += String.fromCharCode(c >> 12 | 224);
           utftext += String.fromCharCode(c >> 6 & 63 | 128);
           utftext += String.fromCharCode(c & 63 | 128);
@@ -112,18 +113,17 @@
     var i, j;
     var W = new Array(80);
     var H0 = 0x67452301;
-    var H1 = 0xEFCDAB89;
-    var H2 = 0x98BADCFE;
+    var H1 = 0xefcdab89;
+    var H2 = 0x98badcfe;
     var H3 = 0x10325476;
-    var H4 = 0xC3D2E1F0;
+    var H4 = 0xc3d2e1f0;
     var A, B, C, D, E;
     var temp;
     msg = Utf8Encode(msg);
     var msg_len = msg.length;
     var word_array = new Array();
     for (i = 0; i < msg_len - 3; i += 4) {
-      j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 |
-      msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
+      j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
       word_array.push(j);
     }
     switch (msg_len % 4) {
@@ -153,7 +153,7 @@
       D = H3;
       E = H4;
       for (i = 0; i <= 19; i++) {
-        temp = rotate_left(A, 5) + (B & C | ~B & D) + E + W[i] + 0x5A827999 & 0x0ffffffff;
+        temp = rotate_left(A, 5) + (B & C | ~B & D) + E + W[i] + 0x5a827999 & 0x0ffffffff;
         E = D;
         D = C;
         C = rotate_left(B, 30);
@@ -161,7 +161,7 @@
         A = temp;
       }
       for (i = 20; i <= 39; i++) {
-        temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1 & 0x0ffffffff;
+        temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ed9eba1 & 0x0ffffffff;
         E = D;
         D = C;
         C = rotate_left(B, 30);
@@ -169,7 +169,7 @@
         A = temp;
       }
       for (i = 40; i <= 59; i++) {
-        temp = rotate_left(A, 5) + (B & C | B & D | C & D) + E + W[i] + 0x8F1BBCDC & 0x0ffffffff;
+        temp = rotate_left(A, 5) + (B & C | B & D | C & D) + E + W[i] + 0x8f1bbcdc & 0x0ffffffff;
         E = D;
         D = C;
         C = rotate_left(B, 30);
@@ -177,7 +177,7 @@
         A = temp;
       }
       for (i = 60; i <= 79; i++) {
-        temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6 & 0x0ffffffff;
+        temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xca62c1d6 & 0x0ffffffff;
         E = D;
         D = C;
         C = rotate_left(B, 30);
@@ -203,12 +203,12 @@
   // To solve this problem the native defineProperty function will be retrieved from another window (iframe)
   const nativeObjectDefineProperty = (() => {
     // Check if function is native
-    if (Object.defineProperty.toString().includes("[native code]")) {
+    if (Object.defineProperty.toString().includes('[native code]')) {
       return Object.defineProperty;
     }
 
     // If function is overidden, restore the native function from another window...
-    const tempFrame = createElement("iframe", { style: `display: none;` });
+    const tempFrame = createElement('iframe', { style: `display: none;` });
     document.documentElement.append(tempFrame);
 
     const native = tempFrame.contentWindow.Object.defineProperty;
@@ -222,9 +222,8 @@
   let wrappedNextResponse;
 
   function attachInitialDataInterceptor(onInititalDataSet) {
-
     // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, "ytInitialPlayerResponse") || {};
+    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
 
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     Object.defineProperty = (obj, prop, descriptor) => {
@@ -239,25 +238,32 @@
     };
 
     // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeObjectDefineProperty(window, "ytInitialPlayerResponse", {
+    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
       set: (playerResponse) => {
         // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
         if (playerResponse === wrappedPlayerResponse) return;
 
         wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
-        if (typeof chainedPlayerSetter === "function") chainedPlayerSetter(wrappedPlayerResponse);
+        if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
       },
       get: () => {
         // eslint-disable-next-line no-empty
-        if (typeof chainedPlayerGetter === "function") try {return chainedPlayerGetter();} catch (err) {}
+        if (typeof chainedPlayerGetter === 'function')
+        try {
+          return chainedPlayerGetter();
+        } catch (err) {
+          // ignore the error
+        }
         return wrappedPlayerResponse || {};
       },
       configurable: true });
 
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeObjectDefineProperty(window, "ytInitialData", {
-      set: (nextResponse) => {wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;},
+    nativeObjectDefineProperty(window, 'ytInitialData', {
+      set: (nextResponse) => {
+        wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
+      },
       get: () => wrappedNextResponse,
       configurable: true });
 
@@ -273,10 +279,10 @@
 
   function attachXhrOpenInterceptor(onXhrOpenCalled) {
     XMLHttpRequest.prototype.open = function (method, url) {
-      if (arguments.length > 1 && typeof url === "string" && url.indexOf("https://") === 0) {
+      if (arguments.length > 1 && typeof url === 'string' && url.indexOf('https://') === 0) {
         const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
 
-        if (typeof modifiedUrl === "string") {
+        if (typeof modifiedUrl === 'string') {
           url = modifiedUrl;
         }
       }
@@ -290,7 +296,7 @@
   }
 
   function isEmbeddedPlayerObject(parsedData) {
-    return typeof (parsedData === null || parsedData === void 0 ? void 0 : parsedData.previewPlayabilityStatus) === "object";
+    return typeof (parsedData === null || parsedData === void 0 ? void 0 : parsedData.previewPlayabilityStatus) === 'object';
   }
 
   function isAgeRestricted(playabilityStatus) {var _playabilityStatus$er, _playabilityStatus$er2, _playabilityStatus$er3, _playabilityStatus$er4, _playabilityStatus$er5, _playabilityStatus$er6, _playabilityStatus$er7, _playabilityStatus$er8;
@@ -300,8 +306,10 @@
 
     // Fix to detect age restrictions on embed player
     // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
-    return isEmbed && ((_playabilityStatus$er = playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.
-    find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes("/2802167"));
+    return (
+      isEmbed && ((_playabilityStatus$er =
+      playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes('/2802167')));
+
   }
 
   function isWatchNextObject(parsedData) {var _parsedData$currentVi, _parsedData$currentVi2;
@@ -318,18 +326,18 @@
 
     // MWEB response layout
     const content = (_parsedData$contents2 = parsedData.contents) === null || _parsedData$contents2 === void 0 ? void 0 : (_parsedData$contents3 = _parsedData$contents2.singleColumnWatchNextResults) === null || _parsedData$contents3 === void 0 ? void 0 : (_parsedData$contents4 = _parsedData$contents3.results) === null || _parsedData$contents4 === void 0 ? void 0 : (_parsedData$contents5 = _parsedData$contents4.results) === null || _parsedData$contents5 === void 0 ? void 0 : _parsedData$contents5.contents;
-    const result = content === null || content === void 0 ? void 0 : (_content$find = content.find((e) => {var _e$itemSectionRendere;return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId) === "watch-next-feed";})) === null || _content$find === void 0 ? void 0 : _content$find.itemSectionRenderer;
-    return typeof result !== "object";
+    const result = content === null || content === void 0 ? void 0 : (_content$find = content.find((e) => {var _e$itemSectionRendere;return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId) === 'watch-next-feed';})) === null || _content$find === void 0 ? void 0 : _content$find.itemSectionRenderer;
+    return typeof result !== 'object';
   }
 
   function isGoogleVideo(method, url) {
-    return method === "GET" && url.host.includes(".googlevideo.com");
+    return method === 'GET' && url.host.includes('.googlevideo.com');
   }
 
   function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {
     const urlParams = new URLSearchParams(googleVideoUrl.search);
-    const hasGcrFlag = urlParams.get("gcr");
-    const wasUnlockedByAccountProxy = urlParams.get("id") === lastProxiedGoogleVideoId;
+    const hasGcrFlag = urlParams.get('gcr');
+    const wasUnlockedByAccountProxy = urlParams.get('id') === lastProxiedGoogleVideoId;
 
     return hasGcrFlag && wasUnlockedByAccountProxy;
   }
@@ -343,8 +351,8 @@
     if (!getSidCookie()) return false;
 
     // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
-    if (typeof getYtcfgValue('LOGGED_IN') === "boolean") return getYtcfgValue('LOGGED_IN');
-    if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === "string") return true;
+    if (typeof getYtcfgValue('LOGGED_IN') === 'boolean') return getYtcfgValue('LOGGED_IN');
+    if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === 'string') return true;
 
     return false;
   }
@@ -365,26 +373,29 @@
   }
 
   function getSignatureTimestamp() {
-    return getYtcfgValue('STS') || (() => {var _document$querySelect;
-      // STS is missing on embedded player. Retrieve from player base script as fallback...
-      const playerBaseJsPath = (_document$querySelect = document.querySelector('script[src*="/base.js"]')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.src;
+    return (
+      getYtcfgValue('STS') ||
+      (() => {var _document$querySelect;
+        // STS is missing on embedded player. Retrieve from player base script as fallback...
+        const playerBaseJsPath = (_document$querySelect = document.querySelector('script[src*="/base.js"]')) === null || _document$querySelect === void 0 ? void 0 : _document$querySelect.src;
 
-      if (!playerBaseJsPath) return;
+        if (!playerBaseJsPath) return;
 
-      const xmlhttp = new XMLHttpRequest();
-      xmlhttp.open("GET", playerBaseJsPath, false);
-      xmlhttp.send(null);
+        const xmlhttp = new XMLHttpRequest();
+        xmlhttp.open('GET', playerBaseJsPath, false);
+        xmlhttp.send(null);
 
-      return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
-    })();
+        return parseInt(xmlhttp.responseText.match(/signatureTimestamp:([0-9]*)/)[1]);
+      })());
+
   }
 
   function sendInnertubeRequest(endpoint, payload, useAuth) {
     const xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
+    xmlhttp.open('POST', `/youtubei/${endpoint}?key=${getYtcfgValue('INNERTUBE_API_KEY')}`, false);
     if (useAuth && isUserLoggedIn()) {
       xmlhttp.withCredentials = true;
-      xmlhttp.setRequestHeader("Authorization", generateSidBasedAuth());
+      xmlhttp.setRequestHeader('Authorization', generateSidBasedAuth());
     }
     xmlhttp.send(JSON.stringify(payload));
     return nativeJSONParse(xmlhttp.responseText);
@@ -399,7 +410,7 @@
           ...(clientConfig || {}) },
 
         thirdParty: {
-          embedUrl: "https://www.youtube.com/" } },
+          embedUrl: 'https://www.youtube.com/' } },
 
 
       playbackContext: {
@@ -420,13 +431,13 @@
   function generateSidBasedAuth() {
     const sid = getSidCookie();
     const timestamp = Math.floor(new Date().getTime() / 1000);
-    const input = timestamp + " " + sid + " " + location.origin;
+    const input = timestamp + ' ' + sid + ' ' + location.origin;
     const hash = generateSha1Hash(input);
     return `SAPISIDHASH ${timestamp}_${hash}`;
   }
 
-  const logPrefix = "Simple-YouTube-Age-Restriction-Bypass:";
-  const logSuffix = "You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues";
+  const logPrefix = 'Simple-YouTube-Age-Restriction-Bypass:';
+  const logSuffix = 'You can report bugs at: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues';
 
   function error(err, msg) {
     console.error(logPrefix, msg, err, getYtcfgDebugString(), logSuffix);
@@ -438,18 +449,20 @@
 
   function getYtcfgDebugString() {
     try {
-      return `InnertubeConfig: ` +
-      `innertubeApiKey: ${getYtcfgValue('INNERTUBE_API_KEY')} ` +
-      `innertubeClientName: ${getYtcfgValue('INNERTUBE_CLIENT_NAME')} ` +
-      `innertubeClientVersion: ${getYtcfgValue('INNERTUBE_CLIENT_VERSION')} ` +
-      `loggedIn: ${getYtcfgValue('LOGGED_IN')} `;
+      return (
+        `InnertubeConfig: ` +
+        `innertubeApiKey: ${getYtcfgValue('INNERTUBE_API_KEY')} ` +
+        `innertubeClientName: ${getYtcfgValue('INNERTUBE_CLIENT_NAME')} ` +
+        `innertubeClientVersion: ${getYtcfgValue('INNERTUBE_CLIENT_VERSION')} ` +
+        `loggedIn: ${getYtcfgValue('LOGGED_IN')} `);
+
     } catch (err) {
       return `Failed to access config: ${err}`;
     }
   }
 
   function getGoogleVideoUrl(originalUrl, proxyHost) {
-    return proxyHost + "/direct/" + btoa(originalUrl);
+    return proxyHost + '/direct/' + btoa(originalUrl);
   }
 
   function getPlayer(videoId, reason) {
@@ -476,9 +489,9 @@
     return playerResponse;
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
 
-  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
+  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
 
   const pageLoad = new Deferred();
   const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
@@ -518,8 +531,8 @@
   var Notification = { show };
 
   const messagesMap = {
-    success: "Age-restricted video successfully unlocked!",
-    fail: "Unable to unlock this video 🙁 - More information in the developer console" };
+    success: 'Age-restricted video successfully unlocked!',
+    fail: 'Unable to unlock this video 🙁 - More information in the developer console' };
 
 
   const unlockStrategies = [
@@ -550,11 +563,11 @@
   let responseCache = {};
 
   function getLastProxiedGoogleVideoId() {var _lastProxiedGoogleVid;
-    return (_lastProxiedGoogleVid = lastProxiedGoogleVideoUrlParams) === null || _lastProxiedGoogleVid === void 0 ? void 0 : _lastProxiedGoogleVid.get("id");
+    return (_lastProxiedGoogleVid = lastProxiedGoogleVideoUrlParams) === null || _lastProxiedGoogleVid === void 0 ? void 0 : _lastProxiedGoogleVid.get('id');
   }
 
   function unlockPlayerResponse(playerResponse) {var _playerResponse$video, _playerResponse$playa, _playerResponse$previ, _unlockedPlayerRespon, _unlockedPlayerRespon3;
-    const videoId = ((_playerResponse$video = playerResponse.videoDetails) === null || _playerResponse$video === void 0 ? void 0 : _playerResponse$video.videoId) || getYtcfgValue("PLAYER_VARS").video_id;
+    const videoId = ((_playerResponse$video = playerResponse.videoDetails) === null || _playerResponse$video === void 0 ? void 0 : _playerResponse$video.videoId) || getYtcfgValue('PLAYER_VARS').video_id;
     const reason = ((_playerResponse$playa = playerResponse.playabilityStatus) === null || _playerResponse$playa === void 0 ? void 0 : _playerResponse$playa.status) || ((_playerResponse$previ = playerResponse.previewPlayabilityStatus) === null || _playerResponse$previ === void 0 ? void 0 : _playerResponse$previ.status);
     const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
@@ -565,7 +578,7 @@
     }
 
     // check if the unlocked response isn't playable
-    if (((_unlockedPlayerRespon = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon === void 0 ? void 0 : _unlockedPlayerRespon.status) !== "OK") {var _unlockedPlayerRespon2;
+    if (((_unlockedPlayerRespon = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon === void 0 ? void 0 : _unlockedPlayerRespon.status) !== 'OK') {var _unlockedPlayerRespon2;
       Notification.show(`${messagesMap.fail} (PlayabilityError)`, 10);
       throw new Error(`Player Unlock Failed, playabilityStatus: ${(_unlockedPlayerRespon2 = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon2 === void 0 ? void 0 : _unlockedPlayerRespon2.status}`);
     }
@@ -573,7 +586,7 @@
     // if the video info was retrieved via proxy, store the URL params from the url-attribute to detect later if the requested video file (googlevideo.com) need a proxy.
     if (unlockedPlayerResponse.proxied && (_unlockedPlayerRespon3 = unlockedPlayerResponse.streamingData) !== null && _unlockedPlayerRespon3 !== void 0 && _unlockedPlayerRespon3.adaptiveFormats) {var _unlockedPlayerRespon4, _unlockedPlayerRespon5;
       const cipherText = (_unlockedPlayerRespon4 = unlockedPlayerResponse.streamingData.adaptiveFormats.find((x) => x.signatureCipher)) === null || _unlockedPlayerRespon4 === void 0 ? void 0 : _unlockedPlayerRespon4.signatureCipher;
-      const videoUrl = cipherText ? new URLSearchParams(cipherText).get("url") : (_unlockedPlayerRespon5 = unlockedPlayerResponse.streamingData.adaptiveFormats.find((x) => x.url)) === null || _unlockedPlayerRespon5 === void 0 ? void 0 : _unlockedPlayerRespon5.url;
+      const videoUrl = cipherText ? new URLSearchParams(cipherText).get('url') : (_unlockedPlayerRespon5 = unlockedPlayerResponse.streamingData.adaptiveFormats.find((x) => x.url)) === null || _unlockedPlayerRespon5 === void 0 ? void 0 : _unlockedPlayerRespon5.url;
 
       lastProxiedGoogleVideoUrlParams = videoUrl ? new URLSearchParams(new URL(videoUrl).search) : null;
     }
@@ -601,7 +614,7 @@
       info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
 
       playerResponse = strategy.fn(videoId, reason);
-      return ((_playerResponse = playerResponse) === null || _playerResponse === void 0 ? void 0 : (_playerResponse$playa2 = _playerResponse.playabilityStatus) === null || _playerResponse$playa2 === void 0 ? void 0 : _playerResponse$playa2.status) !== "OK";
+      return ((_playerResponse = playerResponse) === null || _playerResponse === void 0 ? void 0 : (_playerResponse$playa2 = _playerResponse.playabilityStatus) === null || _playerResponse$playa2 === void 0 ? void 0 : _playerResponse$playa2.status) !== 'OK';
     });
 
     // Cache response
@@ -611,7 +624,7 @@
   }
 
   function unlockNextResponse(originalNextResponse) {
-    info("Trying Sidebar Unlock Method (Innertube Embed)");
+    info('Trying Sidebar Unlock Method (Innertube Embed)');
 
     const { videoId, playlistId, index: playlistIndex } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
     const unlockedNextResponse = getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex);
@@ -631,31 +644,32 @@
       originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse.contents.twoColumnWatchNextResults.secondaryResults;
 
       // Transfer video description to original response
-      const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents.
-      find((x) => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
-      const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents.
-      find((x) => x.videoSecondaryInfoRenderer).videoSecondaryInfoRenderer;
+      const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
+      (x) => x.videoSecondaryInfoRenderer).
+      videoSecondaryInfoRenderer;
+      const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
+      (x) => x.videoSecondaryInfoRenderer).
+      videoSecondaryInfoRenderer;
 
-      if (unlockedVideoSecondaryInfoRenderer.description)
-      originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+      if (unlockedVideoSecondaryInfoRenderer.description) originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
 
       return;
     }
 
     // Transfer WatchNextResults to original response
-    const unlockedWatchNextFeed = (_unlockedNextResponse = unlockedNextResponse.contents) === null || _unlockedNextResponse === void 0 ? void 0 : (_unlockedNextResponse2 = _unlockedNextResponse.singleColumnWatchNextResults) === null || _unlockedNextResponse2 === void 0 ? void 0 : (_unlockedNextResponse3 = _unlockedNextResponse2.results) === null || _unlockedNextResponse3 === void 0 ? void 0 : (_unlockedNextResponse4 = _unlockedNextResponse3.results) === null || _unlockedNextResponse4 === void 0 ? void 0 : (_unlockedNextResponse5 = _unlockedNextResponse4.contents) === null || _unlockedNextResponse5 === void 0 ? void 0 : _unlockedNextResponse5.
-    find((x) => {var _x$itemSectionRendere;return ((_x$itemSectionRendere = x.itemSectionRenderer) === null || _x$itemSectionRendere === void 0 ? void 0 : _x$itemSectionRendere.targetId) === "watch-next-feed";});
+    const unlockedWatchNextFeed = (_unlockedNextResponse = unlockedNextResponse.contents) === null || _unlockedNextResponse === void 0 ? void 0 : (_unlockedNextResponse2 = _unlockedNextResponse.singleColumnWatchNextResults) === null || _unlockedNextResponse2 === void 0 ? void 0 : (_unlockedNextResponse3 = _unlockedNextResponse2.results) === null || _unlockedNextResponse3 === void 0 ? void 0 : (_unlockedNextResponse4 = _unlockedNextResponse3.results) === null || _unlockedNextResponse4 === void 0 ? void 0 : (_unlockedNextResponse5 = _unlockedNextResponse4.contents) === null || _unlockedNextResponse5 === void 0 ? void 0 : _unlockedNextResponse5.find(
+    (x) => {var _x$itemSectionRendere;return ((_x$itemSectionRendere = x.itemSectionRenderer) === null || _x$itemSectionRendere === void 0 ? void 0 : _x$itemSectionRendere.targetId) === 'watch-next-feed';});
 
-    if (unlockedWatchNextFeed)
-    originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
+
+    if (unlockedWatchNextFeed) originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
 
     // Transfer video description to original response
     const originalStructuredDescriptionContentRenderer = originalNextResponse.engagementPanels.
-    find((x) => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.
-    find((x) => x.expandableVideoDescriptionBodyRenderer);
+    find((x) => x.engagementPanelSectionListRenderer).
+    engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.find((x) => x.expandableVideoDescriptionBodyRenderer);
     const unlockedStructuredDescriptionContentRenderer = unlockedNextResponse.engagementPanels.
-    find((x) => x.engagementPanelSectionListRenderer).engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.
-    find((x) => x.expandableVideoDescriptionBodyRenderer);
+    find((x) => x.engagementPanelSectionListRenderer).
+    engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.find((x) => x.expandableVideoDescriptionBodyRenderer);
 
     if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer)
     originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
@@ -666,13 +680,11 @@
     attachJsonInterceptor(checkAndUnlock);
     attachXhrOpenInterceptor(onXhrOpenCalled);
   } catch (err) {
-    error(err, "Error while attaching data interceptors");
+    error(err, 'Error while attaching data interceptors');
   }
 
   function checkAndUnlock(ytData) {
-
     try {
-
       // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
       if (isPlayerObject(ytData) && isAgeRestricted(ytData.playabilityStatus)) {
         unlockPlayerResponse(ytData);
@@ -693,27 +705,24 @@
       else if (isWatchNextObject(ytData.response) && isWatchNextSidebarEmpty(ytData.response)) {
         unlockNextResponse(ytData.response);
       }
-
     } catch (err) {
-      error(err, "Video or sidebar unlock failed");
+      error(err, 'Video or sidebar unlock failed');
     }
 
     return ytData;
   }
 
   function onXhrOpenCalled(xhr, method, url) {
-
     if (!isGoogleVideo(method, url)) return;
 
     if (isGoogleVideoUnlockRequired(url, getLastProxiedGoogleVideoId())) {
-
       // If the account proxy was used to retrieve the video info, the following applies:
       // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
       // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
       // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
 
       // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (required for the proxy)
-      Object.defineProperty(xhr, "withCredentials", {
+      Object.defineProperty(xhr, 'withCredentials', {
         set: () => {},
         get: () => false });
 

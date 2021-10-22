@@ -1,10 +1,10 @@
-import { isEmbed } from "../utils";
-import { nativeJSONParse } from "../utils/natives";
-import * as innertube from "./innertubeClient";
-import * as Config from "../config";
+import { isEmbed } from '../utils';
+import { nativeJSONParse } from '../utils/natives';
+import * as innertube from './innertubeClient';
+import * as Config from '../config';
 
 export function getGoogleVideoUrl(originalUrl, proxyHost) {
-    return proxyHost + "/direct/" + btoa(originalUrl);
+    return proxyHost + '/direct/' + btoa(originalUrl);
 }
 
 export function getPlayer(videoId, reason) {

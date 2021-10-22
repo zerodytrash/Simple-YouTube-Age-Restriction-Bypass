@@ -1,5 +1,5 @@
-import { isDesktop, Deferred, createElement } from "../../utils";
-import * as Config from "../../config";
+import { isDesktop, Deferred, createElement } from '../../utils';
+import * as Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
 import tMobile from './templates/mobile.html';
