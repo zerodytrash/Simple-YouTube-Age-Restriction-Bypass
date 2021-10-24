@@ -9,16 +9,18 @@ function interceptProp(obj, prop, { setter }) {
 
     Object.defineProperty(obj, prop, {
         set: (value) => {
+            // prettier-ignore
+            // eslint-disable-next-line no-empty
+            if (set) try { set(prevValue) } catch (err) { }
+
             // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
             if (value === prevValue) return;
 
             setter?.(value);
             prevValue = value;
-
-            // eslint-disable-next-line no-empty
-            if (set) try { set(prevValue) } catch (err) { }
         },
         get: () => {
+            // prettier-ignore
             // eslint-disable-next-line no-empty
             if (get) try { return get() } catch (err) { }
             return prevValue || {};
