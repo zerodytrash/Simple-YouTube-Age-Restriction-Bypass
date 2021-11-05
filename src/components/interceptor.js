@@ -1,46 +1,43 @@
 import { isObject } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 
-function interceptProp(obj, prop, { setter }) {
+function interceptProp(obj, prop, { getter, setter }) {
     // Compatibility: Backup getter/setter, may be defined by other extensions like AdBlock
     const { get, set } = Object.getOwnPropertyDescriptor(obj, prop) || {};
 
-    let prevValue;
+    let propValue = obj[prop];
 
     Object.defineProperty(obj, prop, {
         set: (value) => {
+            if (value !== propValue) propValue = value;
+
             // prettier-ignore
             // eslint-disable-next-line no-empty
             if (set) try { set.call(obj, value) } catch (err) { }
 
-            // prevent recursive setter calls by ignoring unchanged object reference
-            if (value === prevValue) return;
-
             setter?.call(obj, value);
-            prevValue = value;
         },
         get: () => {
             // prettier-ignore
             // eslint-disable-next-line no-empty
-            if (get) try { return get.call(obj) } catch (err) { }
-            return prevValue || {};
+            if (get) try { get.call(obj) } catch (err) { }
+            return getter ? getter.call(obj) : propValue;
         },
         configurable: true,
     });
 }
 
-export function attachInitialDataInterceptor(callback) {
-    const setter = (value) => (callback(value) || {});
-
+export function attachInitialDataInterceptor(setter) {
     interceptProp(window, 'ytInitialPlayerResponse', { setter });
     interceptProp(window, 'ytInitialData', { setter });
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
-export function attachJsonInterceptor(onJsonDataReceived) {
+export function attachJsonInterceptor(callback) {
     window.JSON.parse = (text, reviver) => {
         const data = nativeJSONParse(text, reviver);
-        return !isObject(data) ? data : onJsonDataReceived(data);
+        if (isObject(data)) callback(data);
+        return data;
     };
 }
 
