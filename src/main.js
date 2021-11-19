@@ -10,6 +10,9 @@ interceptor.attachJsonInterceptor(checkAndUnlock);
 interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
 
 function checkAndUnlock(ytData) {
+
+    if (!ytData) return;
+
     try {
         // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
