@@ -76,20 +76,20 @@ function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistInd
             client: {
                 ...getYtcfgValue('INNERTUBE_CONTEXT').client,
                 ...{ clientName: getMainPageClientName() },
-                ...(clientConfig || {})
+                ...(clientConfig || {}),
             },
             thirdParty: {
-                embedUrl: 'https://www.youtube.com/'
-            }
+                embedUrl: 'https://www.youtube.com/',
+            },
         },
         playbackContext: {
             contentPlaybackContext: {
-                signatureTimestamp: getSignatureTimestamp()
-            }
+                signatureTimestamp: getSignatureTimestamp(),
+            },
         },
         videoId,
         playlistId,
-        playlistIndex
+        playlistIndex,
     };
 }
 

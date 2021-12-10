@@ -54,7 +54,7 @@ function onXhrOpenCalled(xhr, method, url) {
         // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (required for the proxy)
         Object.defineProperty(xhr, 'withCredentials', {
             set: () => {},
-            get: () => false
+            get: () => false,
         });
 
         return proxy.getGoogleVideoUrl(url.toString(), Config.VIDEO_PROXY_SERVER_HOST);

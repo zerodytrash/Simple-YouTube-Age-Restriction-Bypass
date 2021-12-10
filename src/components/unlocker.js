@@ -7,7 +7,7 @@ import { isDesktop, isEmbed } from '../utils';
 
 const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
-    fail: 'Unable to unlock this video 🙁 - More information in the developer console'
+    fail: 'Unable to unlock this video 🙁 - More information in the developer console',
 };
 
 let lastProxiedGoogleVideoUrlParams;
