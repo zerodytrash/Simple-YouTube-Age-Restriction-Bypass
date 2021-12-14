@@ -31,7 +31,6 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
             if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
         },
         get: () => {
-            // eslint-disable-next-line no-empty
             if (typeof chainedPlayerGetter === 'function')
                 try {
                     return chainedPlayerGetter();
