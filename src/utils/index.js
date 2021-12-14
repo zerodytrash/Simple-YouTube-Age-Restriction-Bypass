@@ -147,3 +147,20 @@ export function generateSha1Hash(msg) {
 
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
 }
+
+export let pageLoadedAndVisible = (() => {
+    const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
+
+    window.addEventListener(pageLoadEventName, () => {
+        document.visibilityState === 'hidden'
+            ? document.addEventListener('visibilitychange', ready, { once: true })
+            : ready();
+    });
+
+    function ready() {
+        pageLoadedAndVisible.resolve();
+        pageLoadedAndVisible = new Deferred;
+    }
+
+    return new Deferred();
+})();

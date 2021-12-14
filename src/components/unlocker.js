@@ -2,7 +2,7 @@ import * as innertube from './innertubeClient';
 import * as inspector from './inspector';
 import * as logger from '../utils/logger';
 import * as proxy from './proxy';
-import Notification from './notification';
+import Toast from './toast';
 import { isDesktop, isEmbed } from '../utils';
 
 const messagesMap = {
@@ -80,13 +80,13 @@ export function unlockPlayerResponse(playerResponse) {
 
     // account proxy error?
     if (unlockedPlayerResponse.errorMessage) {
-        Notification.show(`${messagesMap.fail} (ProxyError)`, 10);
+        Toast.show(`${messagesMap.fail} (ProxyError)`, 10);
         throw new Error(`Player Unlock Failed, Proxy Error Message: ${unlockedPlayerResponse.errorMessage}`);
     }
 
     // check if the unlocked response isn't playable
     if (unlockedPlayerResponse.playabilityStatus?.status !== 'OK') {
-        Notification.show(`${messagesMap.fail} (PlayabilityError)`, 10);
+        Toast.show(`${messagesMap.fail} (PlayabilityError)`, 10);
         throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPlayerResponse.playabilityStatus?.status}`);
     }
 
@@ -106,7 +106,7 @@ export function unlockPlayerResponse(playerResponse) {
     // Transfer all unlocked properties to the original player response
     Object.assign(playerResponse, unlockedPlayerResponse);
 
-    Notification.show(messagesMap.success);
+    Toast.show(messagesMap.success);
 }
 
 function getUnlockedPlayerResponse(playerResponse) {
