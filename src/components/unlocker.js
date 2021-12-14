@@ -32,6 +32,14 @@ function getUnlockStrategies(playerResponse) {
                         clientVersion,
                         clientScreen: 'EMBED',
                     },
+                    thirdParty: {
+                        embedUrl: 'https://www.youtube.com/',
+                    },
+                },
+                playbackContext: {
+                    contentPlaybackContext: {
+                        signatureTimestamp: innertube.getSignatureTimestamp(),
+                    },
                 },
                 videoId,
             },
