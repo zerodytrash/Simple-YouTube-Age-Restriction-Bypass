@@ -99,10 +99,9 @@ function getUnlockedPlayerResponse(videoId, reason) {
 }
 
 export function unlockNextResponse(originalNextResponse) {
-    logger.info('Trying Sidebar Unlock Method (Innertube Embed)');
+    logger.info('Trying sidebar unlock');
 
-    const { videoId, playlistId, index: playlistIndex } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
-    const unlockedNextResponse = innertube.getNext(videoId, { clientScreen: 'EMBED' }, playlistId, playlistIndex);
+    const unlockedNextResponse = innertube.getNext(originalNextResponse);
 
     // check if the sidebar of the unlocked response is still empty
     if (inspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {

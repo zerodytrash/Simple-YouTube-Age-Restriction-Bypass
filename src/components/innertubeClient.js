@@ -21,8 +21,19 @@ export function getPlayer(videoId, clientConfig, useAuth) {
     return sendInnertubeRequest('v1/player', payload, useAuth);
 }
 
-export function getNext(videoId, clientConfig, playlistId, playlistIndex) {
-    const payload = getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex);
+export function getNext(originalNextResponse) {
+    const { videoId } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
+    const { clientName, clientVersion } = getYtcfgValue('INNERTUBE_CONTEXT').client;
+    const payload = {
+        context: {
+            client: {
+                clientName,
+                clientVersion,
+                clientScreen: 'EMBED',
+            },
+        },
+        videoId,
+    };
     return sendInnertubeRequest('v1/next', payload, false);
 }
 
