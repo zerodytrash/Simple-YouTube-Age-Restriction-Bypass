@@ -15,7 +15,8 @@
   "homepage": "https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#readme",
   "scripts": {
     "build": "rollup -c",
-    "format": "prettier -w src/**/*.js"
+    "format": "prettier --write src/**/*.js",
+    "check-format": "prettier --check src/**/*.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.4",

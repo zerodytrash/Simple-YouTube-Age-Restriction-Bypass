@@ -11,16 +11,16 @@ const nToast = nToastContainer.querySelector(':scope > *');
 
 document.documentElement.append(nToastContainer);
 
-!isDesktop && (
-    nToast.nMessage = nToast.querySelector('.notification-action-response-text'),
+if (!isDesktop) {
+    nToast.nMessage = nToast.querySelector('.notification-action-response-text');
     nToast.show = (message) => {
         nToast.nMessage.innerText = message;
         nToast.setAttribute('dir', 'in');
         setTimeout(() => {
             nToast.setAttribute('dir', 'out');
         }, nToast.duration + 225);
-    }
-);
+    };
+}
 
 async function show(message, duration = 5) {
     if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;

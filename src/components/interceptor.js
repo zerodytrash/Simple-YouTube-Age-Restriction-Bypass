@@ -39,7 +39,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
                 }
             return wrappedPlayerResponse || {};
         },
-        configurable: true
+        configurable: true,
     });
 
     // Also redefine 'ytInitialData' for the initial next/sidebar response
@@ -48,7 +48,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
             wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
         },
         get: () => wrappedNextResponse,
-        configurable: true
+        configurable: true,
     });
 }
 
