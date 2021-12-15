@@ -152,14 +152,16 @@ export let pageLoadedAndVisible = (() => {
     const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
 
     window.addEventListener(pageLoadEventName, () => {
-        document.visibilityState === 'hidden'
-            ? document.addEventListener('visibilitychange', ready, { once: true })
-            : ready();
+        if (document.visibilityState === 'hidden') {
+            document.addEventListener('visibilitychange', ready, { once: true });
+        } else {
+            ready();
+        }
     });
 
     function ready() {
         pageLoadedAndVisible.resolve();
-        pageLoadedAndVisible = new Deferred;
+        pageLoadedAndVisible = new Deferred();
     }
 
     return new Deferred();

@@ -83,7 +83,7 @@ function getUnlockStrategies(playerResponse) {
                 isEmbed: +isEmbed,
             },
             getPlayer: proxy.getPlayer,
-        }
+        },
     ];
 }
 
