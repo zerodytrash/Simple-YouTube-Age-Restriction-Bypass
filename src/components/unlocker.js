@@ -55,6 +55,14 @@ function getUnlockStrategies(playerResponse) {
                     client: {
                         clientName: 'WEB_CREATOR',
                         clientVersion: '1.20210909.07.00',
+                        thirdParty: {
+                            embedUrl: 'https://www.youtube.com/',
+                        },
+                    },
+                },
+                playbackContext: {
+                    contentPlaybackContext: {
+                        signatureTimestamp: innertube.getSignatureTimestamp(),
                     },
                 },
                 videoId,
