@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Checkout master
         uses: actions/checkout@v2
