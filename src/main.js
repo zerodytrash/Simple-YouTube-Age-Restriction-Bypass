@@ -57,6 +57,6 @@ function onXhrOpenCalled(xhr, method, url) {
             get: () => false,
         });
 
-        return proxy.getGoogleVideoUrl(url.toString(), Config.VIDEO_PROXY_SERVER_HOST);
+        return proxy.getGoogleVideoUrl(url.toString());
     }
 }

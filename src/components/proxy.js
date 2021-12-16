@@ -1,8 +1,8 @@
 import { nativeJSONParse } from '../utils/natives';
 import * as Config from '../config';
 
-export function getGoogleVideoUrl(originalUrl, proxyHost) {
-    return proxyHost + '/direct/' + btoa(originalUrl);
+export function getGoogleVideoUrl(originalUrl) {
+    return Config.VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl);
 }
 
 export function getPlayer(payload) {
