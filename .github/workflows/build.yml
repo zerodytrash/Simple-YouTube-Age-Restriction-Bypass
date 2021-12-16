@@ -3,6 +3,8 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
+    # Prevent running this on forks
+    if: github.repository_owner == 'zerodytrash'
     runs-on: ubuntu-latest
 
     steps:
