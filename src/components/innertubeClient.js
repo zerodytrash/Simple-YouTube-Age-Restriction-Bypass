@@ -70,29 +70,6 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
     return nativeJSONParse(xmlhttp.responseText);
 }
 
-function getInnertubeEmbedPayload(videoId, clientConfig, playlistId, playlistIndex) {
-    return {
-        context: {
-            client: {
-                ...getYtcfgValue('INNERTUBE_CONTEXT').client,
-                ...{ clientName: getMainPageClientName() },
-                ...(clientConfig || {}),
-            },
-            thirdParty: {
-                embedUrl: 'https://www.youtube.com/',
-            },
-        },
-        playbackContext: {
-            contentPlaybackContext: {
-                signatureTimestamp: getSignatureTimestamp(),
-            },
-        },
-        videoId,
-        playlistId,
-        playlistIndex,
-    };
-}
-
 function getSidCookie() {
     return utils.getCookie('SAPISID') || utils.getCookie('__Secure-3PAPISID');
 }
