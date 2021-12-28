@@ -6,9 +6,9 @@ import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
 
 try {
-    interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
     interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
+    interceptor.attachInitialDataInterceptor(checkAndUnlock);
 } catch (err) {
     logger.error(err, 'Error while attaching data interceptors');
 }
