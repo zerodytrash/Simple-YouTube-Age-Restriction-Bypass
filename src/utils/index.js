@@ -23,6 +23,24 @@ export function isObject(obj) {
     return obj !== null && typeof obj === 'object';
 }
 
+export function findNestedObjectsByAttributeNames(object, attributeNames) {
+    var results = [];
+
+    // Does the current object match the attribute conditions?
+    if (attributeNames.every((key) => typeof object[key] !== 'undefined')) {
+        results.push(object);
+    }
+
+    // Diggin' deeper for each nested object (recursive)
+    Object.keys(object).forEach((key) => {
+        if (object[key] && typeof object[key] === 'object') {
+            results.push(...findNestedObjectsByAttributeNames(object[key], attributeNames));
+        }
+    });
+
+    return results;
+}
+
 export function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);

@@ -2,6 +2,7 @@ import * as Config from './config';
 import * as interceptor from './components/interceptor';
 import * as inspector from './components/inspector';
 import * as unlocker from './components/unlocker';
+import * as thumbnailFix from './components/thumbnailFix';
 import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
 
@@ -37,6 +38,15 @@ function checkAndUnlock(ytData) {
         }
     } catch (err) {
         logger.error(err, 'Video or sidebar unlock failed');
+    }
+
+    try {
+        // Unlock blurry video thumbnails
+        if (inspector.isSearchResult(ytData) || inspector.isSearchResult(ytData.response)) {
+            thumbnailFix.processThumbnails(ytData);
+        }
+    } catch (err) {
+        logger.error(err, 'Thumbnail unlock failed');
     }
 
     return ytData;
