@@ -1,6 +1,7 @@
 import { isObject } from '../utils';
 import { nativeJSONParse, nativeObjectDefineProperty, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as Config from '../config';
+import * as logger from '../utils/logger';
 
 let wrappedPlayerResponse;
 let wrappedNextResponse;
@@ -12,7 +13,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
     // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
     Object.defineProperty = (obj, prop, descriptor) => {
         if (obj === window && Config.PLAYER_RESPONSE_ALIASES.includes(prop)) {
-            console.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
+            logger.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
 
             if (descriptor?.set) chainedPlayerSetter = descriptor.set;
             if (descriptor?.get) chainedPlayerGetter = descriptor.get;
