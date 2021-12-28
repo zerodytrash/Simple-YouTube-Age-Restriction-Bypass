@@ -18,6 +18,7 @@ function getUnlockStrategies(playerResponse) {
     const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
     const clientName = isEmbed || isDesktop ? 'WEB' : 'MWEB';
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION');
+    const signatureTimestamp = innertube.getSignatureTimestamp();
 
     return [
         // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
@@ -38,7 +39,7 @@ function getUnlockStrategies(playerResponse) {
                 },
                 playbackContext: {
                     contentPlaybackContext: {
-                        signatureTimestamp: innertube.getSignatureTimestamp(),
+                        signatureTimestamp,
                     },
                 },
                 videoId,
@@ -62,7 +63,7 @@ function getUnlockStrategies(playerResponse) {
                 },
                 playbackContext: {
                     contentPlaybackContext: {
-                        signatureTimestamp: innertube.getSignatureTimestamp(),
+                        signatureTimestamp,
                     },
                 },
                 videoId,
@@ -79,7 +80,7 @@ function getUnlockStrategies(playerResponse) {
                 reason,
                 clientName,
                 clientVersion,
-                signatureTimestamp: innertube.getSignatureTimestamp(),
+                signatureTimestamp,
                 isEmbed: +isEmbed,
             },
             getPlayer: proxy.getPlayer,
@@ -135,7 +136,9 @@ function getUnlockedPlayerResponse(playerResponse) {
 
     let unlockedPlayerResponse;
 
+    // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
+        // Skip strategy if authentication is required and the user is not logged in
         if (strategy.requiresAuth && !innertube.isUserLoggedIn()) return true;
 
         logger.info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
@@ -145,7 +148,7 @@ function getUnlockedPlayerResponse(playerResponse) {
         return unlockedPlayerResponse?.playabilityStatus?.status !== 'OK';
     });
 
-    // Cache response
+    // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
     responseCache = { videoId, unlockedPlayerResponse };
 
     return unlockedPlayerResponse;
