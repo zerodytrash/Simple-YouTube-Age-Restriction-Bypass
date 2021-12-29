@@ -13,8 +13,12 @@ export const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
 // Whether a thumbnail is blurred can be detected by the following "sqp" parameter values in the thumbnail URL.
 // Seems to be base64 encoded protobuf objects, see https://stackoverflow.com/a/51203860
 export const THUMBNAIL_BLURRED_SQPS = [
-    '-oaymwEiCOADEI4CSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BmZkZQg==', // Desktop Video
-    '-oaymwEiCNAFEJQDSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmZmQg==', // Desktop Video
-    '-oaymwEdCNACELwBSFryq4qpAw8IARUAAIhCGAHtAT0K10E=', // Desktop Playlist
-    '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile Video & Playlist
+    '-oaymwEpCOADEI4CSFryq4qpAxsIARUAAAAAGAElAADIQj0AgKJDeAHtAZmZGUI=', // Desktop 480x270
+    '-oaymwEiCOADEI4CSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BmZkZQg==', // Desktop 480x270
+    '-oaymwEiCOgCEMoBSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmbmQQ==', // Desktop 360x202
+    '-oaymwEiCNAFEJQDSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmZmQg==', // Desktop 720x404
+    '-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=', // Desktop 720x404 
+    '-oaymwEdCNACELwBSFryq4qpAw8IARUAAIhCGAHtAT0K10E=', // Desktop 336x188
+    '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile 320x180
+    '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
 ];
