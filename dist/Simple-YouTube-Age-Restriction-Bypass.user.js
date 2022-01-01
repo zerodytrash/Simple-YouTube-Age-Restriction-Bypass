@@ -37,7 +37,6 @@
 
   // Script configuration variables
   const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
-  const PLAYER_RESPONSE_ALIASES = ['ytInitialPlayerResponse', 'playerResponse'];
 
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
@@ -248,25 +247,110 @@
 
   const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
-  // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
-  // But we need to define a custom descriptor to that variable to intercept its value. This behavior causes a race condition depending on the execution order with this script :(
-  // To solve this problem the native defineProperty function will be retrieved from another window (iframe)
-  const nativeObjectDefineProperty = (() => {
-    // Check if function is native
-    if (Object.defineProperty.toString().includes('[native code]')) {
-      return Object.defineProperty;
+  function attachInitialDataInterceptor(onInititalDataSet) {
+    let getInitialDataFn;
+
+    Object.defineProperty(window, 'getInitialData', {
+      get: () => {
+        if (typeof getInitialDataFn === 'function') {
+          let initalData = getInitialDataFn();
+
+          // for some reason we need a deep copy of the object
+          initalData = nativeJSONParse(JSON.stringify(initalData));
+          initalData = onInititalDataSet(initalData);
+
+          return () => {
+            return initalData;
+          };
+        }
+      },
+      set: (fn) => {
+        getInitialDataFn = fn;
+      },
+      configurable: true });
+
+  }
+
+  // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
+  function attachJsonInterceptor(onJsonDataReceived) {
+    window.JSON.parse = (text, reviver) => {
+      const data = nativeJSONParse(text, reviver);
+      return !isObject(data) ? data : onJsonDataReceived(data);
+    };
+  }
+
+  function attachXhrOpenInterceptor(onXhrOpenCalled) {
+    XMLHttpRequest.prototype.open = function (method, url) {
+      if (arguments.length > 1 && typeof url === 'string' && url.indexOf('https://') === 0) {
+        const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
+
+        if (typeof modifiedUrl === 'string') {
+          url = modifiedUrl;
+        }
+      }
+
+      nativeXMLHttpRequestOpen.apply(this, arguments);
+    };
+  }
+
+  function isPlayerObject(parsedData) {
+    return (parsedData === null || parsedData === void 0 ? void 0 : parsedData.videoDetails) && (parsedData === null || parsedData === void 0 ? void 0 : parsedData.playabilityStatus);
+  }
+
+  function isEmbeddedPlayerObject(parsedData) {
+    return typeof (parsedData === null || parsedData === void 0 ? void 0 : parsedData.previewPlayabilityStatus) === 'object';
+  }
+
+  function isAgeRestricted(playabilityStatus) {var _playabilityStatus$er, _playabilityStatus$er2, _playabilityStatus$er3, _playabilityStatus$er4, _playabilityStatus$er5, _playabilityStatus$er6, _playabilityStatus$er7, _playabilityStatus$er8;
+    if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
+    if (playabilityStatus.desktopLegacyAgeGateReason) return true;
+    if (UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
+
+    // Fix to detect age restrictions on embed player
+    // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
+    return (
+      isEmbed && ((_playabilityStatus$er =
+      playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes('/2802167')));
+
+  }
+
+  function isWatchNextObject(parsedData) {var _parsedData$currentVi, _parsedData$currentVi2;
+    if (!(parsedData !== null && parsedData !== void 0 && parsedData.contents) || !(parsedData !== null && parsedData !== void 0 && (_parsedData$currentVi = parsedData.currentVideoEndpoint) !== null && _parsedData$currentVi !== void 0 && (_parsedData$currentVi2 = _parsedData$currentVi.watchEndpoint) !== null && _parsedData$currentVi2 !== void 0 && _parsedData$currentVi2.videoId)) return false;
+    return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
+  }
+
+  function isWatchNextSidebarEmpty(parsedData) {var _parsedData$contents2, _parsedData$contents3, _parsedData$contents4, _parsedData$contents5, _content$find;
+    if (isDesktop) {var _parsedData$contents, _parsedData$contents$, _parsedData$contents$2, _parsedData$contents$3;
+      // WEB response layout
+      const result = (_parsedData$contents = parsedData.contents) === null || _parsedData$contents === void 0 ? void 0 : (_parsedData$contents$ = _parsedData$contents.twoColumnWatchNextResults) === null || _parsedData$contents$ === void 0 ? void 0 : (_parsedData$contents$2 = _parsedData$contents$.secondaryResults) === null || _parsedData$contents$2 === void 0 ? void 0 : (_parsedData$contents$3 = _parsedData$contents$2.secondaryResults) === null || _parsedData$contents$3 === void 0 ? void 0 : _parsedData$contents$3.results;
+      return !result;
     }
 
-    // If function is overidden, restore the native function from another window...
-    const tempFrame = createElement('iframe', { style: `display: none;` });
-    document.documentElement.append(tempFrame);
+    // MWEB response layout
+    const content = (_parsedData$contents2 = parsedData.contents) === null || _parsedData$contents2 === void 0 ? void 0 : (_parsedData$contents3 = _parsedData$contents2.singleColumnWatchNextResults) === null || _parsedData$contents3 === void 0 ? void 0 : (_parsedData$contents4 = _parsedData$contents3.results) === null || _parsedData$contents4 === void 0 ? void 0 : (_parsedData$contents5 = _parsedData$contents4.results) === null || _parsedData$contents5 === void 0 ? void 0 : _parsedData$contents5.contents;
+    const result = content === null || content === void 0 ? void 0 : (_content$find = content.find((e) => {var _e$itemSectionRendere;return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId) === 'watch-next-feed';})) === null || _content$find === void 0 ? void 0 : _content$find.itemSectionRenderer;
+    return typeof result !== 'object';
+  }
 
-    const native = tempFrame.contentWindow.Object.defineProperty;
+  function isGoogleVideo(method, url) {
+    return method === 'GET' && url.host.includes('.googlevideo.com');
+  }
 
-    tempFrame.remove();
+  function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {
+    const urlParams = new URLSearchParams(googleVideoUrl.search);
+    const hasGcrFlag = urlParams.get('gcr');
+    const wasUnlockedByAccountProxy = urlParams.get('id') === lastProxiedGoogleVideoId;
 
-    return native;
-  })();
+    return hasGcrFlag && wasUnlockedByAccountProxy;
+  }
+
+  function isSearchResult(parsedData) {var _parsedData$contents6, _parsedData$contents7, _parsedData$contents8, _parsedData$onRespons, _parsedData$onRespons2, _parsedData$onRespons3;
+    return (
+      typeof (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$contents6 = parsedData.contents) === null || _parsedData$contents6 === void 0 ? void 0 : _parsedData$contents6.twoColumnSearchResultsRenderer) === 'object' || // Desktop initial results
+      (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$contents7 = parsedData.contents) === null || _parsedData$contents7 === void 0 ? void 0 : (_parsedData$contents8 = _parsedData$contents7.sectionListRenderer) === null || _parsedData$contents8 === void 0 ? void 0 : _parsedData$contents8.targetId) === 'search-feed' || // Mobile initial results
+      (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$onRespons = parsedData.onResponseReceivedCommands) === null || _parsedData$onRespons === void 0 ? void 0 : (_parsedData$onRespons2 = _parsedData$onRespons.find((x) => x.appendContinuationItemsAction)) === null || _parsedData$onRespons2 === void 0 ? void 0 : (_parsedData$onRespons3 = _parsedData$onRespons2.appendContinuationItemsAction) === null || _parsedData$onRespons3 === void 0 ? void 0 : _parsedData$onRespons3.targetId) === 'search-feed' // Desktop & Mobile scroll continuation
+    );
+  }
 
   function getYtcfgValue(value) {var _window$ytcfg;
     return (_window$ytcfg = window.ytcfg) === null || _window$ytcfg === void 0 ? void 0 : _window$ytcfg.get(value);
@@ -356,137 +440,6 @@
     } catch (err) {
       return `Failed to access config: ${err}`;
     }
-  }
-
-  let wrappedPlayerResponse;
-  let wrappedNextResponse;
-
-  function attachInitialDataInterceptor(onInititalDataSet) {
-    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
-
-    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
-    Object.defineProperty = (obj, prop, descriptor) => {
-      if (obj === window && PLAYER_RESPONSE_ALIASES.includes(prop)) {
-        info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
-
-        if (descriptor !== null && descriptor !== void 0 && descriptor.set) chainedPlayerSetter = descriptor.set;
-        if (descriptor !== null && descriptor !== void 0 && descriptor.get) chainedPlayerGetter = descriptor.get;
-      } else {
-        nativeObjectDefineProperty(obj, prop, descriptor);
-      }
-    };
-
-    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
-      set: (playerResponse) => {
-        // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
-        if (playerResponse === wrappedPlayerResponse) return;
-
-        wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
-        if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
-      },
-      get: () => {
-        if (typeof chainedPlayerGetter === 'function')
-        try {
-          return chainedPlayerGetter();
-        } catch (err) {
-          // ignore the error
-        }
-        return wrappedPlayerResponse || {};
-      },
-      configurable: true });
-
-
-    // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeObjectDefineProperty(window, 'ytInitialData', {
-      set: (nextResponse) => {
-        wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
-      },
-      get: () => wrappedNextResponse,
-      configurable: true });
-
-  }
-
-  // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
-  function attachJsonInterceptor(onJsonDataReceived) {
-    window.JSON.parse = (text, reviver) => {
-      const data = nativeJSONParse(text, reviver);
-      return !isObject(data) ? data : onJsonDataReceived(data);
-    };
-  }
-
-  function attachXhrOpenInterceptor(onXhrOpenCalled) {
-    XMLHttpRequest.prototype.open = function (method, url) {
-      if (arguments.length > 1 && typeof url === 'string' && url.indexOf('https://') === 0) {
-        const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
-
-        if (typeof modifiedUrl === 'string') {
-          url = modifiedUrl;
-        }
-      }
-
-      nativeXMLHttpRequestOpen.apply(this, arguments);
-    };
-  }
-
-  function isPlayerObject(parsedData) {
-    return (parsedData === null || parsedData === void 0 ? void 0 : parsedData.videoDetails) && (parsedData === null || parsedData === void 0 ? void 0 : parsedData.playabilityStatus);
-  }
-
-  function isEmbeddedPlayerObject(parsedData) {
-    return typeof (parsedData === null || parsedData === void 0 ? void 0 : parsedData.previewPlayabilityStatus) === 'object';
-  }
-
-  function isAgeRestricted(playabilityStatus) {var _playabilityStatus$er, _playabilityStatus$er2, _playabilityStatus$er3, _playabilityStatus$er4, _playabilityStatus$er5, _playabilityStatus$er6, _playabilityStatus$er7, _playabilityStatus$er8;
-    if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
-    if (playabilityStatus.desktopLegacyAgeGateReason) return true;
-    if (UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
-
-    // Fix to detect age restrictions on embed player
-    // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
-    return (
-      isEmbed && ((_playabilityStatus$er =
-      playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0 ? void 0 : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0 ? void 0 : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0 ? void 0 : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0 ? void 0 : (_playabilityStatus$er5 = _playabilityStatus$er4.find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0 ? void 0 : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0 ? void 0 : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0 ? void 0 : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0 ? void 0 : _playabilityStatus$er8.includes('/2802167')));
-
-  }
-
-  function isWatchNextObject(parsedData) {var _parsedData$currentVi, _parsedData$currentVi2;
-    if (!(parsedData !== null && parsedData !== void 0 && parsedData.contents) || !(parsedData !== null && parsedData !== void 0 && (_parsedData$currentVi = parsedData.currentVideoEndpoint) !== null && _parsedData$currentVi !== void 0 && (_parsedData$currentVi2 = _parsedData$currentVi.watchEndpoint) !== null && _parsedData$currentVi2 !== void 0 && _parsedData$currentVi2.videoId)) return false;
-    return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
-  }
-
-  function isWatchNextSidebarEmpty(parsedData) {var _parsedData$contents2, _parsedData$contents3, _parsedData$contents4, _parsedData$contents5, _content$find;
-    if (isDesktop) {var _parsedData$contents, _parsedData$contents$, _parsedData$contents$2, _parsedData$contents$3;
-      // WEB response layout
-      const result = (_parsedData$contents = parsedData.contents) === null || _parsedData$contents === void 0 ? void 0 : (_parsedData$contents$ = _parsedData$contents.twoColumnWatchNextResults) === null || _parsedData$contents$ === void 0 ? void 0 : (_parsedData$contents$2 = _parsedData$contents$.secondaryResults) === null || _parsedData$contents$2 === void 0 ? void 0 : (_parsedData$contents$3 = _parsedData$contents$2.secondaryResults) === null || _parsedData$contents$3 === void 0 ? void 0 : _parsedData$contents$3.results;
-      return !result;
-    }
-
-    // MWEB response layout
-    const content = (_parsedData$contents2 = parsedData.contents) === null || _parsedData$contents2 === void 0 ? void 0 : (_parsedData$contents3 = _parsedData$contents2.singleColumnWatchNextResults) === null || _parsedData$contents3 === void 0 ? void 0 : (_parsedData$contents4 = _parsedData$contents3.results) === null || _parsedData$contents4 === void 0 ? void 0 : (_parsedData$contents5 = _parsedData$contents4.results) === null || _parsedData$contents5 === void 0 ? void 0 : _parsedData$contents5.contents;
-    const result = content === null || content === void 0 ? void 0 : (_content$find = content.find((e) => {var _e$itemSectionRendere;return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId) === 'watch-next-feed';})) === null || _content$find === void 0 ? void 0 : _content$find.itemSectionRenderer;
-    return typeof result !== 'object';
-  }
-
-  function isGoogleVideo(method, url) {
-    return method === 'GET' && url.host.includes('.googlevideo.com');
-  }
-
-  function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {
-    const urlParams = new URLSearchParams(googleVideoUrl.search);
-    const hasGcrFlag = urlParams.get('gcr');
-    const wasUnlockedByAccountProxy = urlParams.get('id') === lastProxiedGoogleVideoId;
-
-    return hasGcrFlag && wasUnlockedByAccountProxy;
-  }
-
-  function isSearchResult(parsedData) {var _parsedData$contents6, _parsedData$contents7, _parsedData$contents8, _parsedData$onRespons, _parsedData$onRespons2, _parsedData$onRespons3;
-    return (
-      typeof (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$contents6 = parsedData.contents) === null || _parsedData$contents6 === void 0 ? void 0 : _parsedData$contents6.twoColumnSearchResultsRenderer) === 'object' || // Desktop initial results
-      (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$contents7 = parsedData.contents) === null || _parsedData$contents7 === void 0 ? void 0 : (_parsedData$contents8 = _parsedData$contents7.sectionListRenderer) === null || _parsedData$contents8 === void 0 ? void 0 : _parsedData$contents8.targetId) === 'search-feed' || // Mobile initial results
-      (parsedData === null || parsedData === void 0 ? void 0 : (_parsedData$onRespons = parsedData.onResponseReceivedCommands) === null || _parsedData$onRespons === void 0 ? void 0 : (_parsedData$onRespons2 = _parsedData$onRespons.find((x) => x.appendContinuationItemsAction)) === null || _parsedData$onRespons2 === void 0 ? void 0 : (_parsedData$onRespons3 = _parsedData$onRespons2.appendContinuationItemsAction) === null || _parsedData$onRespons3 === void 0 ? void 0 : _parsedData$onRespons3.targetId) === 'search-feed' // Desktop & Mobile scroll continuation
-    );
   }
 
   function getGoogleVideoUrl(originalUrl) {
@@ -792,8 +745,13 @@
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
+    } catch (err) {
+      error(err, 'Video unlock failed');
+    }
+
+    try {
       // Equivelant of unlock #1 for sidebar/next response
-      else if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
+      if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
         unlockNextResponse(ytData);
       }
       // Equivelant of unlock #2 for sidebar/next response
@@ -801,7 +759,7 @@
         unlockNextResponse(ytData.response);
       }
     } catch (err) {
-      error(err, 'Video or sidebar unlock failed');
+      error(err, 'Sidebar unlock failed');
     }
 
     try {

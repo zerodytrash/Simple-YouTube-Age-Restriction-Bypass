@@ -1,6 +1,5 @@
 // Script configuration variables
 export const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
-export const PLAYER_RESPONSE_ALIASES = ['ytInitialPlayerResponse', 'playerResponse'];
 
 // Show notification?
 export const ENABLE_UNLOCK_NOTIFICATION = true;
@@ -17,7 +16,7 @@ export const THUMBNAIL_BLURRED_SQPS = [
     '-oaymwEiCOADEI4CSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BmZkZQg==', // Desktop 480x270
     '-oaymwEiCOgCEMoBSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmbmQQ==', // Desktop 360x202
     '-oaymwEiCNAFEJQDSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmZmQg==', // Desktop 720x404
-    '-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=', // Desktop 720x404 
+    '-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=', // Desktop 720x404
     '-oaymwEdCNACELwBSFryq4qpAw8IARUAAIhCGAHtAT0K10E=', // Desktop 336x188
     '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile 320x180
     '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
