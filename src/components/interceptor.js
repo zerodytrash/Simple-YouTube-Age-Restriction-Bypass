@@ -21,7 +21,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
         set: (fn) => {
             getInitialDataFn = fn;
         },
-        configurable: true
+        configurable: true,
     });
 }
 
