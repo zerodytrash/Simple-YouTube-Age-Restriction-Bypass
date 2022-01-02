@@ -1,34 +1,44 @@
-import { isObject } from '../utils';
+import { isObject, isDesktop } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
+import * as logger from '../utils/logger';
+
+let originalGetInitialData;
 
 export function attachInitialDataInterceptor(onInititalDataSet) {
-    const tryHijackInitialData = () => {
-        if (typeof window.getInitialData === 'function') {
-            const originalGetInitialData = window.getInitialData;
+    const tryHijackInitialData = (event) => {
+        try {
+            if (isDesktop && !originalGetInitialData && typeof window.getInitialData === 'function') {
+                originalGetInitialData = window.getInitialData;
 
-            window.getInitialData = function () {
-                let initialData = originalGetInitialData();
+                window.getInitialData = () => {
+                    // for some reason we need a deep copy of the object
+                    let initialData = originalGetInitialData();
+                    let initialDataCopy = nativeJSONParse(JSON.stringify(initialData));
 
-                // for some reason we need a deep copy of the object
-                let initialDataCopy = nativeJSONParse(JSON.stringify(initialData));
-                let initialDataProcessed = onInititalDataSet(initialDataCopy);
+                    onInititalDataSet(initialDataCopy);
+                    logger.info('Desktop initialData processed!');
 
-                return initialDataProcessed;
-            };
+                    return initialDataCopy;
+                };
 
-            // on mobile the loading of the data must be triggered.
-            if (typeof window.loadInitialData === 'function') {
-                window.loadInitialData(window.getInitialData());
+                logger.info(`'getInitialData' overwritten! Trigger: ${event?.type ?? 'direct'}`);
+            } else if (event?.type === 'initialdata') {
+                onInititalDataSet(window.getInitialData());
+                logger.info('Mobile initialData processed!');
             }
+        } catch (err) {
+            logger.error(err, `Error while handling initial data. Trigger: ${event?.type ?? 'direct'}`);
         }
     };
 
-    // The initial data is available as soon as the DOM is parsed (DOMContentLoaded) and as long as the YouTube app has not been initialized
+    // The initial data is available on Deskop as soon as the DOM is parsed (DOMContentLoaded) and as long as the YouTube app has not been initialized
     // However, some userscript managers use the DOMContentLoaded event to execute the script.
     // Therefore, in some cases, it must be tried immediately on execution.
+    // On mobile there is a special 'initialdata' event
 
     tryHijackInitialData();
     window.addEventListener('DOMContentLoaded', tryHijackInitialData);
+    window.addEventListener('initialdata', tryHijackInitialData);
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
