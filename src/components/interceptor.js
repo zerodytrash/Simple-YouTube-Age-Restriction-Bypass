@@ -2,27 +2,27 @@ import { isObject } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 
 export function attachInitialDataInterceptor(onInititalDataSet) {
-    let getInitialDataFn;
-
-    Object.defineProperty(window, 'getInitialData', {
-        get: () => {
-            if (typeof getInitialDataFn === 'function') {
-                let initalData = getInitialDataFn();
+    const tryHijackInitialData = () => {
+        let originalGetInitialData = window.getInitialData;
+        if (typeof originalGetInitialData === 'function') {
+            window.getInitialData = function () {
+                let initialData = originalGetInitialData();
 
                 // for some reason we need a deep copy of the object
-                initalData = nativeJSONParse(JSON.stringify(initalData));
-                initalData = onInititalDataSet(initalData);
+                let initialDataCopy = nativeJSONParse(JSON.stringify(initialData));
+                let initialDataProcessed = onInititalDataSet(initialDataCopy);
 
-                return () => {
-                    return initalData;
-                };
-            }
-        },
-        set: (fn) => {
-            getInitialDataFn = fn;
-        },
-        configurable: true,
-    });
+                return initialDataProcessed;
+            };
+        }
+    };
+
+    // The initial data is available as soon as the DOM is parsed (DOMContentLoaded) and as long as the YouTube app has not been initialized
+    // However, some userscript managers use the DOMContentLoaded event to execute the script.
+    // Therefore, in some cases, it must be tried immediately on execution.
+
+    tryHijackInitialData();
+    window.addEventListener('DOMContentLoaded', tryHijackInitialData);
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
