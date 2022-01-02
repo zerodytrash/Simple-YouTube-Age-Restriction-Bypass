@@ -3,8 +3,9 @@ import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 
 export function attachInitialDataInterceptor(onInititalDataSet) {
     const tryHijackInitialData = () => {
-        let originalGetInitialData = window.getInitialData;
-        if (typeof originalGetInitialData === 'function') {
+        if (typeof window.getInitialData === 'function') {
+            const originalGetInitialData = window.getInitialData;
+
             window.getInitialData = function () {
                 let initialData = originalGetInitialData();
 
@@ -14,6 +15,11 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
 
                 return initialDataProcessed;
             };
+
+            // on mobile the loading of the data must be triggered.
+            if (typeof window.loadInitialData === 'function') {
+                window.loadInitialData(window.getInitialData());
+            }
         }
     };
 
