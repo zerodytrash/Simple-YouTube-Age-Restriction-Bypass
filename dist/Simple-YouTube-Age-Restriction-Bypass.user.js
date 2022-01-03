@@ -337,43 +337,24 @@
     }
   }
 
-  let originalGetInitialData;
-
   function attachInitialDataInterceptor(onInititalDataSet) {
-    const tryHijackInitialData = (event) => {
-      try {
-        if (isDesktop && !originalGetInitialData && typeof window.getInitialData === 'function') {var _event$type;
-          originalGetInitialData = window.getInitialData;
+    if (!isDesktop) {
+      window.addEventListener('initialdata', () => {
+        info('Mobile initialData fired');
+        onInititalDataSet(window.getInitialData());
+      });
+      return;
+    }
+    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
+    // As long as YouTube has not fully initialized, `getInitialData` is defined
+    window.addEventListener('DOMContentLoaded', () => {var _window;
+      (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
+        apply(target) {
+          info('Desktop initialData fired');
+          return onInititalDataSet(JSON.parse(JSON.stringify(target())));
+        } }));
 
-          window.getInitialData = () => {
-            // for some reason we need a deep copy of the object
-            let initialData = originalGetInitialData();
-            let initialDataCopy = nativeJSONParse(JSON.stringify(initialData));
-
-            onInititalDataSet(initialDataCopy);
-            info('Desktop initialData processed!');
-
-            return initialDataCopy;
-          };
-
-          info(`'getInitialData' overwritten! Trigger: ${(_event$type = event === null || event === void 0 ? void 0 : event.type) !== null && _event$type !== void 0 ? _event$type : 'direct'}`);
-        } else if ((event === null || event === void 0 ? void 0 : event.type) === 'initialdata') {
-          onInititalDataSet(window.getInitialData());
-          info('Mobile initialData processed!');
-        }
-      } catch (err) {var _event$type2;
-        error(err, `Error while handling initial data. Trigger: ${(_event$type2 = event === null || event === void 0 ? void 0 : event.type) !== null && _event$type2 !== void 0 ? _event$type2 : 'direct'}`);
-      }
-    };
-
-    // The initial data is available on Deskop as soon as the DOM is parsed (DOMContentLoaded) and as long as the YouTube app has not been initialized
-    // However, some userscript managers use the DOMContentLoaded event to execute the script.
-    // Therefore, in some cases, it must be tried immediately on execution.
-    // On mobile there is a special 'initialdata' event
-
-    tryHijackInitialData();
-    window.addEventListener('DOMContentLoaded', tryHijackInitialData);
-    window.addEventListener('initialdata', tryHijackInitialData);
+    });
   }
 
   // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
@@ -483,9 +464,9 @@
     }
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
 
-  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
+  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
 
   const template = isDesktop ? tDesktop : tMobile;
 

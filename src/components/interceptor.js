@@ -2,43 +2,24 @@ import { isObject, isDesktop } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
-let originalGetInitialData;
-
 export function attachInitialDataInterceptor(onInititalDataSet) {
-    const tryHijackInitialData = (event) => {
-        try {
-            if (isDesktop && !originalGetInitialData && typeof window.getInitialData === 'function') {
-                originalGetInitialData = window.getInitialData;
-
-                window.getInitialData = () => {
-                    // for some reason we need a deep copy of the object
-                    let initialData = originalGetInitialData();
-                    let initialDataCopy = nativeJSONParse(JSON.stringify(initialData));
-
-                    onInititalDataSet(initialDataCopy);
-                    logger.info('Desktop initialData processed!');
-
-                    return initialDataCopy;
-                };
-
-                logger.info(`'getInitialData' overwritten! Trigger: ${event?.type ?? 'direct'}`);
-            } else if (event?.type === 'initialdata') {
-                onInititalDataSet(window.getInitialData());
-                logger.info('Mobile initialData processed!');
-            }
-        } catch (err) {
-            logger.error(err, `Error while handling initial data. Trigger: ${event?.type ?? 'direct'}`);
-        }
-    };
-
-    // The initial data is available on Deskop as soon as the DOM is parsed (DOMContentLoaded) and as long as the YouTube app has not been initialized
-    // However, some userscript managers use the DOMContentLoaded event to execute the script.
-    // Therefore, in some cases, it must be tried immediately on execution.
-    // On mobile there is a special 'initialdata' event
-
-    tryHijackInitialData();
-    window.addEventListener('DOMContentLoaded', tryHijackInitialData);
-    window.addEventListener('initialdata', tryHijackInitialData);
+    if (!isDesktop) {
+        window.addEventListener('initialdata', () => {
+            logger.info('Mobile initialData fired');
+            onInititalDataSet(window.getInitialData());
+        });
+        return;
+    }
+    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
+    // As long as YouTube has not fully initialized, `getInitialData` is defined
+    window.addEventListener('DOMContentLoaded', () => {
+        window.getInitialData &&= new Proxy(window.getInitialData, {
+            apply(target) {
+                logger.info('Desktop initialData fired');
+                return onInititalDataSet(JSON.parse(JSON.stringify(target())));
+            },
+        });
+    });
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
