@@ -74,7 +74,7 @@ function getUnlockStrategies(playerResponse) {
         // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
         {
             name: 'Account Proxy',
-            requireAuth: false,
+            requiresAuth: false,
             payload: {
                 videoId,
                 reason,
