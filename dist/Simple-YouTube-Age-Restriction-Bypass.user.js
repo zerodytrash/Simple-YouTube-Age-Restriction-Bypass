@@ -350,7 +350,7 @@
       (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
         apply(target) {
           info('Desktop initialData fired');
-          return onInititalDataSet(JSON.parse(JSON.stringify(target())));
+          return onInititalDataSet(nativeJSONParse(JSON.stringify(target())));
         } }));
 
     };

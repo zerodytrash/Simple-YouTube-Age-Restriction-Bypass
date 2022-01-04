@@ -15,7 +15,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
         window.getInitialData &&= new Proxy(window.getInitialData, {
             apply(target) {
                 logger.info('Desktop initialData fired');
-                return onInititalDataSet(JSON.parse(JSON.stringify(target())));
+                return onInititalDataSet(nativeJSONParse(JSON.stringify(target())));
             },
         });
     };
