@@ -345,16 +345,22 @@
       });
       return;
     }
-    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
-    // As long as YouTube has not fully initialized, `getInitialData` is defined
-    window.addEventListener('DOMContentLoaded', () => {var _window;
+
+    const addInitialDataProxy = () => {var _window;
       (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
         apply(target) {
           info('Desktop initialData fired');
           return onInititalDataSet(JSON.parse(JSON.stringify(target())));
         } }));
 
-    });
+    };
+
+    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
+    // As long as YouTube has not fully initialized, `getInitialData` is defined
+    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
+
+    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
+    if (document.readyState !== 'loading') addInitialDataProxy();
   }
 
   // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
@@ -464,9 +470,9 @@
     }
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
 
-  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
+  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
 
   const template = isDesktop ? tDesktop : tMobile;
 
