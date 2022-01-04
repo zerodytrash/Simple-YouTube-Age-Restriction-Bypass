@@ -24,11 +24,6 @@ export function getNext(payload) {
     return sendInnertubeRequest('v1/next', payload, false);
 }
 
-export function getMainPageClientName() {
-    // replace embedded client with YouTube's main page client (e.g. WEB_EMBEDDED_PLAYER => WEB)
-    return getYtcfgValue('INNERTUBE_CLIENT_NAME').replace('_EMBEDDED_PLAYER', '');
-}
-
 export function getSignatureTimestamp() {
     return (
         getYtcfgValue('STS') ||
