@@ -28,8 +28,13 @@ function checkAndUnlock(ytData) {
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
         }
+    } catch (err) {
+        logger.error(err, 'Video unlock failed');
+    }
+
+    try {
         // Equivelant of unlock #1 for sidebar/next response
-        else if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
+        if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
             unlocker.unlockNextResponse(ytData);
         }
         // Equivelant of unlock #2 for sidebar/next response
@@ -37,7 +42,7 @@ function checkAndUnlock(ytData) {
             unlocker.unlockNextResponse(ytData.response);
         }
     } catch (err) {
-        logger.error(err, 'Video or sidebar unlock failed');
+        logger.error(err, 'Sidebar unlock failed');
     }
 
     try {

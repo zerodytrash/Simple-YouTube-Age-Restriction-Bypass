@@ -1,56 +1,31 @@
-import { isObject } from '../utils';
-import { nativeJSONParse, nativeObjectDefineProperty, nativeXMLHttpRequestOpen } from '../utils/natives';
-import * as Config from '../config';
+import { isObject, isDesktop } from '../utils';
+import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
-let wrappedPlayerResponse;
-let wrappedNextResponse;
-
 export function attachInitialDataInterceptor(onInititalDataSet) {
-    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
+    if (!isDesktop) {
+        window.addEventListener('initialdata', () => {
+            logger.info('Mobile initialData fired');
+            onInititalDataSet(window.getInitialData());
+        });
+        return;
+    }
 
-    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
-    Object.defineProperty = (obj, prop, descriptor) => {
-        if (obj === window && Config.PLAYER_RESPONSE_ALIASES.includes(prop)) {
-            logger.info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
-
-            if (descriptor?.set) chainedPlayerSetter = descriptor.set;
-            if (descriptor?.get) chainedPlayerGetter = descriptor.get;
-        } else {
-            nativeObjectDefineProperty(obj, prop, descriptor);
-        }
+    const addInitialDataProxy = () => {
+        window.getInitialData &&= new Proxy(window.getInitialData, {
+            apply(target) {
+                logger.info('Desktop initialData fired');
+                return onInititalDataSet(nativeJSONParse(JSON.stringify(target())));
+            },
+        });
     };
 
-    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
-        set: (playerResponse) => {
-            // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
-            if (playerResponse === wrappedPlayerResponse) return;
+    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
+    // As long as YouTube has not fully initialized, `getInitialData` is defined
+    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
 
-            wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
-            if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
-        },
-        get: () => {
-            if (typeof chainedPlayerGetter === 'function')
-                try {
-                    return chainedPlayerGetter();
-                } catch (err) {
-                    // ignore the error
-                }
-            return wrappedPlayerResponse || {};
-        },
-        configurable: true,
-    });
-
-    // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeObjectDefineProperty(window, 'ytInitialData', {
-        set: (nextResponse) => {
-            wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
-        },
-        get: () => wrappedNextResponse,
-        configurable: true,
-    });
+    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
+    if (document.readyState !== 'loading') addInitialDataProxy();
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
