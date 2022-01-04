@@ -37,6 +37,7 @@
 
   // Script configuration variables
   const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
+  const PLAYER_RESPONSE_ALIASES = ['ytInitialPlayerResponse', 'playerResponse'];
 
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
@@ -247,6 +248,26 @@
 
   const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
+  // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
+  // But we need to define a custom descriptor to that variable to intercept its value. This behavior causes a race condition depending on the execution order with this script :(
+  // To solve this problem the native defineProperty function will be retrieved from another window (iframe)
+  const nativeObjectDefineProperty = (() => {
+    // Check if function is native
+    if (Object.defineProperty.toString().includes('[native code]')) {
+      return Object.defineProperty;
+    }
+
+    // If function is overidden, restore the native function from another window...
+    const tempFrame = createElement('iframe', { style: `display: none;` });
+    document.documentElement.append(tempFrame);
+
+    const native = tempFrame.contentWindow.Object.defineProperty;
+
+    tempFrame.remove();
+
+    return native;
+  })();
+
   function getYtcfgValue(value) {var _window$ytcfg;
     return (_window$ytcfg = window.ytcfg) === null || _window$ytcfg === void 0 ? void 0 : _window$ytcfg.get(value);
   }
@@ -337,30 +358,54 @@
     }
   }
 
+  let wrappedPlayerResponse;
+  let wrappedNextResponse;
+
   function attachInitialDataInterceptor(onInititalDataSet) {
-    if (!isDesktop) {
-      window.addEventListener('initialdata', () => {
-        info('Mobile initialData fired');
-        onInititalDataSet(window.getInitialData());
-      });
-      return;
-    }
+    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
+    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
 
-    const addInitialDataProxy = () => {var _window;
-      (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
-        apply(target) {
-          info('Desktop initialData fired');
-          return onInititalDataSet(nativeJSONParse(JSON.stringify(target())));
-        } }));
+    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
+    Object.defineProperty = (obj, prop, descriptor) => {
+      if (obj === window && PLAYER_RESPONSE_ALIASES.includes(prop)) {
+        info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
 
+        if (descriptor !== null && descriptor !== void 0 && descriptor.set) chainedPlayerSetter = descriptor.set;
+        if (descriptor !== null && descriptor !== void 0 && descriptor.get) chainedPlayerGetter = descriptor.get;
+      } else {
+        nativeObjectDefineProperty(obj, prop, descriptor);
+      }
     };
 
-    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
-    // As long as YouTube has not fully initialized, `getInitialData` is defined
-    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
+    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
+    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
+      set: (playerResponse) => {
+        // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
+        if (playerResponse === wrappedPlayerResponse) return;
 
-    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
-    if (document.readyState !== 'loading') addInitialDataProxy();
+        wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
+        if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
+      },
+      get: () => {
+        if (typeof chainedPlayerGetter === 'function')
+        try {
+          return chainedPlayerGetter();
+        } catch (err) {
+          // ignore the error
+        }
+        return wrappedPlayerResponse || {};
+      },
+      configurable: true });
+
+
+    // Also redefine 'ytInitialData' for the initial next/sidebar response
+    nativeObjectDefineProperty(window, 'ytInitialData', {
+      set: (nextResponse) => {
+        wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
+      },
+      get: () => wrappedNextResponse,
+      configurable: true });
+
   }
 
   // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
@@ -747,13 +792,8 @@
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
-    } catch (err) {
-      error(err, 'Video unlock failed');
-    }
-
-    try {
       // Equivelant of unlock #1 for sidebar/next response
-      if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
+      else if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
         unlockNextResponse(ytData);
       }
       // Equivelant of unlock #2 for sidebar/next response
@@ -761,7 +801,7 @@
         unlockNextResponse(ytData.response);
       }
     } catch (err) {
-      error(err, 'Sidebar unlock failed');
+      error(err, 'Video or sidebar unlock failed');
     }
 
     try {
