@@ -3,7 +3,7 @@ import * as inspector from './inspector';
 import * as logger from '../utils/logger';
 import * as proxy from './proxy';
 import Toast from './toast';
-import { isDesktop, isEmbed } from '../utils';
+import { isDesktop, isEmbed, createDeepCopy } from '../utils';
 
 const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
@@ -11,7 +11,7 @@ const messagesMap = {
 };
 
 let lastProxiedGoogleVideoUrlParams;
-let responseCache = {};
+let cachedPlayerResponse = {};
 
 function getUnlockStrategies(playerResponse) {
     const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
@@ -130,7 +130,7 @@ function getUnlockedPlayerResponse(playerResponse) {
     const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
 
     // Check if response is cached
-    if (responseCache.videoId === videoId) return responseCache.unlockedPlayerResponse;
+    if (cachedPlayerResponse.videoId === videoId) return createDeepCopy(cachedPlayerResponse);
 
     const unlockStrategies = getUnlockStrategies(playerResponse);
 
@@ -149,7 +149,7 @@ function getUnlockedPlayerResponse(playerResponse) {
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
-    responseCache = { videoId, unlockedPlayerResponse };
+    cachedPlayerResponse = { videoId, ...createDeepCopy(unlockedPlayerResponse) };
 
     return unlockedPlayerResponse;
 }

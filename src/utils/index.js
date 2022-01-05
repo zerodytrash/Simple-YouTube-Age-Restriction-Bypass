@@ -1,3 +1,4 @@
+import { nativeJSONParse } from './natives';
 export const isDesktop = window.location.host !== 'm.youtube.com';
 export const isEmbed = window.location.pathname.includes('/embed/');
 
@@ -184,3 +185,7 @@ export let pageLoadedAndVisible = (() => {
 
     return new Deferred();
 })();
+
+export function createDeepCopy(obj) {
+    return nativeJSONParse(JSON.stringify(obj));
+}

@@ -7,20 +7,20 @@ import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
 
 try {
+    interceptor.attachInitialDataInterceptor(checkAndUnlock);
     interceptor.attachJsonInterceptor(checkAndUnlock);
     interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
-    interceptor.attachInitialDataInterceptor(checkAndUnlock);
 } catch (err) {
     logger.error(err, 'Error while attaching data interceptors');
 }
 
 function checkAndUnlock(ytData) {
     try {
-        // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
+        // Unlock #1: Response from `/youtubei/v1/player` XHR request
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
         }
-        // Unlock #2: Legacy response data structure (only used by m.youtube.com with &pbj=1)
+        // Unlock #2: Initial page data structure from `window.getInitialData()`
         else if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData.playerResponse);
         }

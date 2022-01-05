@@ -1,4 +1,4 @@
-import { isObject, isDesktop } from '../utils';
+import { isObject, isDesktop, createDeepCopy } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
@@ -15,7 +15,7 @@ export function attachInitialDataInterceptor(onInititalDataSet) {
         window.getInitialData &&= new Proxy(window.getInitialData, {
             apply(target) {
                 logger.info('Desktop initialData fired');
-                return onInititalDataSet(nativeJSONParse(JSON.stringify(target())));
+                return onInititalDataSet(createDeepCopy(target()));
             },
         });
     };
