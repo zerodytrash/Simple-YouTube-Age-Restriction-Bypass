@@ -1,9 +1,10 @@
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, copyFileSync, mkdirSync } from 'fs';
+import { resolve, basename, join } from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import babel, { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
 import pkg from './package.json';
+import manifest from './src/extension/manifest.json';
 
 function wrap_in_iife() {
     const [banner, footer] = (() => {
@@ -38,18 +39,57 @@ function set_script_version(meta) {
     return meta.replace('%version%', pkg.version);
 }
 
-export default {
-    input: 'src/main.js',
-    output: {
-        file: 'dist/Simple-YouTube-Age-Restriction-Bypass.user.js',
-        format: 'esm',
+function copy({ src, dest }) {
+    return {
+        name: 'copy',
+        buildEnd() {
+            mkdirSync(dest, { recursive: true })
+            copyFileSync(src, join(dest, basename(src)));
+        },
+    };
+}
+
+const EXTENSION_OUTPUT_DIR = 'dist/extension';
+const EXTENSION_MAIN_SCRIPT_NAME = manifest.content_scripts[0].js[0];
+const EXTENSION_WEB_SCRIPT_NAME = manifest.web_accessible_resources[0].resources[0];
+
+export default [
+    {
+        input: 'src/main.js',
+        output: {
+            file: 'dist/Simple-YouTube-Age-Restriction-Bypass.user.js',
+            format: 'esm',
+        },
+        plugins: [
+            html(),
+            nodeResolve(),
+            add_header_file(resolve(__dirname, 'userscript.config.js'), set_script_version),
+            // Manually wrap code in our custom iife
+            wrap_in_iife(),
+            getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),
+        ],
     },
-    plugins: [
-        html(),
-        nodeResolve(),
-        add_header_file(resolve(__dirname, 'userscript.config.js'), set_script_version),
-        // Manually wrap code in our custom iife
-        wrap_in_iife(),
-        getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),
-    ],
-};
+    {
+        input: 'src/main.js',
+        output: {
+            file: `${EXTENSION_OUTPUT_DIR}/${EXTENSION_WEB_SCRIPT_NAME}`,
+            format: 'iife',
+        },
+        plugins: [
+            html(),
+            nodeResolve(),
+            // babel({ babelHelpers: 'bundled' }),
+        ],
+    },
+    {
+        input: 'src/extension/main.js',
+        output: {
+            file: `${EXTENSION_OUTPUT_DIR}/${EXTENSION_MAIN_SCRIPT_NAME}`,
+            format: 'esm',
+        },
+        plugins: [
+            // babel({ babelHelpers: 'bundled' }),
+            copy({ src: 'src/extension/manifest.json', dest: EXTENSION_OUTPUT_DIR }),
+        ],
+    },
+];
