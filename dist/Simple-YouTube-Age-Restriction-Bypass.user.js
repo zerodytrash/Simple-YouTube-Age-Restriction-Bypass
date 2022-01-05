@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.3.1
+// @version         2.3.2
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -37,7 +37,6 @@
 
   // Script configuration variables
   const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
-  const PLAYER_RESPONSE_ALIASES = ['ytInitialPlayerResponse', 'playerResponse'];
 
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
@@ -56,6 +55,10 @@
   '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile 320x180
   '-oaymwESCOADEOgC8quKqQMG7QGZmRlC' // Mobile 480x360
   ];
+
+  const nativeJSONParse = window.JSON.parse;
+
+  const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
   const isDesktop = window.location.host !== 'm.youtube.com';
   const isEmbed = window.location.pathname.includes('/embed/');
@@ -244,29 +247,9 @@
     return new Deferred();
   })();
 
-  const nativeJSONParse = window.JSON.parse;
-
-  const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
-
-  // Some extensions like AdBlock override the Object.defineProperty function to prevent a redefinition of the 'ytInitialPlayerResponse' variable by YouTube.
-  // But we need to define a custom descriptor to that variable to intercept its value. This behavior causes a race condition depending on the execution order with this script :(
-  // To solve this problem the native defineProperty function will be retrieved from another window (iframe)
-  const nativeObjectDefineProperty = (() => {
-    // Check if function is native
-    if (Object.defineProperty.toString().includes('[native code]')) {
-      return Object.defineProperty;
-    }
-
-    // If function is overidden, restore the native function from another window...
-    const tempFrame = createElement('iframe', { style: `display: none;` });
-    document.documentElement.append(tempFrame);
-
-    const native = tempFrame.contentWindow.Object.defineProperty;
-
-    tempFrame.remove();
-
-    return native;
-  })();
+  function createDeepCopy(obj) {
+    return nativeJSONParse(JSON.stringify(obj));
+  }
 
   function getYtcfgValue(value) {var _window$ytcfg;
     return (_window$ytcfg = window.ytcfg) === null || _window$ytcfg === void 0 ? void 0 : _window$ytcfg.get(value);
@@ -358,67 +341,43 @@
     }
   }
 
-  let wrappedPlayerResponse;
-  let wrappedNextResponse;
-
   function attachInitialDataInterceptor(onInititalDataSet) {
-    // Just for compatibility: Backup original getter/setter for 'ytInitialPlayerResponse', defined by other extensions like AdBlock
-    let { get: chainedPlayerGetter, set: chainedPlayerSetter } = Object.getOwnPropertyDescriptor(window, 'ytInitialPlayerResponse') || {};
+    if (!isDesktop) {
+      window.addEventListener('initialdata', () => {
+        info('Mobile initialData fired');
+        onInititalDataSet(window.getInitialData());
+      });
+      return;
+    }
 
-    // Just for compatibility: Intercept (re-)definitions on YouTube's initial player response property to chain setter/getter from other extensions by hijacking the Object.defineProperty function
-    Object.defineProperty = (obj, prop, descriptor) => {
-      if (obj === window && PLAYER_RESPONSE_ALIASES.includes(prop)) {
-        info("Another extension tries to redefine '" + prop + "' (probably an AdBlock extension). Chain it...");
+    const addInitialDataProxy = () => {var _window;
+      (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
+        apply(target) {
+          info('Desktop initialData fired');
+          return onInititalDataSet(createDeepCopy(target()));
+        } }));
 
-        if (descriptor !== null && descriptor !== void 0 && descriptor.set) chainedPlayerSetter = descriptor.set;
-        if (descriptor !== null && descriptor !== void 0 && descriptor.get) chainedPlayerGetter = descriptor.get;
-      } else {
-        nativeObjectDefineProperty(obj, prop, descriptor);
-      }
     };
 
-    // Redefine 'ytInitialPlayerResponse' to inspect and modify the initial player response as soon as the variable is set on page load
-    nativeObjectDefineProperty(window, 'ytInitialPlayerResponse', {
-      set: (playerResponse) => {
-        // prevent recursive setter calls by ignoring unchanged data (this fixes a problem caused by Brave browser shield)
-        if (playerResponse === wrappedPlayerResponse) return;
+    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
+    // As long as YouTube has not fully initialized, `getInitialData` is defined
+    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
 
-        wrappedPlayerResponse = isObject(playerResponse) ? onInititalDataSet(playerResponse) : playerResponse;
-        if (typeof chainedPlayerSetter === 'function') chainedPlayerSetter(wrappedPlayerResponse);
-      },
-      get: () => {
-        if (typeof chainedPlayerGetter === 'function')
-        try {
-          return chainedPlayerGetter();
-        } catch (err) {
-          // ignore the error
-        }
-        return wrappedPlayerResponse || {};
-      },
-      configurable: true });
-
-
-    // Also redefine 'ytInitialData' for the initial next/sidebar response
-    nativeObjectDefineProperty(window, 'ytInitialData', {
-      set: (nextResponse) => {
-        wrappedNextResponse = isObject(nextResponse) ? onInititalDataSet(nextResponse) : nextResponse;
-      },
-      get: () => wrappedNextResponse,
-      configurable: true });
-
+    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
+    if (document.readyState !== 'loading') addInitialDataProxy();
   }
 
   // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
   function attachJsonInterceptor(onJsonDataReceived) {
-    window.JSON.parse = (text, reviver) => {
-      const data = nativeJSONParse(text, reviver);
-      return !isObject(data) ? data : onJsonDataReceived(data);
+    window.JSON.parse = function () {
+      const data = nativeJSONParse.apply(this, arguments);
+      return isObject(data) ? onJsonDataReceived(data) : data;
     };
   }
 
   function attachXhrOpenInterceptor(onXhrOpenCalled) {
     XMLHttpRequest.prototype.open = function (method, url) {
-      if (arguments.length > 1 && typeof url === 'string' && url.indexOf('https://') === 0) {
+      if (typeof url === 'string' && url.indexOf('https://') === 0) {
         const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
 
         if (typeof modifiedUrl === 'string') {
@@ -553,7 +512,7 @@
 
 
   let lastProxiedGoogleVideoUrlParams;
-  let responseCache = {};
+  let cachedPlayerResponse = {};
 
   function getUnlockStrategies(playerResponse) {var _playerResponse$video, _playerResponse$playa, _playerResponse$previ;
     const videoId = ((_playerResponse$video = playerResponse.videoDetails) === null || _playerResponse$video === void 0 ? void 0 : _playerResponse$video.videoId) || getYtcfgValue('PLAYER_VARS').video_id;
@@ -616,7 +575,7 @@
     // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     {
       name: 'Account Proxy',
-      requireAuth: false,
+      requiresAuth: false,
       payload: {
         videoId,
         reason,
@@ -672,7 +631,7 @@
     const videoId = ((_playerResponse$video2 = playerResponse.videoDetails) === null || _playerResponse$video2 === void 0 ? void 0 : _playerResponse$video2.videoId) || getYtcfgValue('PLAYER_VARS').video_id;
 
     // Check if response is cached
-    if (responseCache.videoId === videoId) return responseCache.unlockedPlayerResponse;
+    if (cachedPlayerResponse.videoId === videoId) return createDeepCopy(cachedPlayerResponse);
 
     const unlockStrategies = getUnlockStrategies(playerResponse);
 
@@ -691,7 +650,7 @@
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
-    responseCache = { videoId, unlockedPlayerResponse };
+    cachedPlayerResponse = { videoId, ...createDeepCopy(unlockedPlayerResponse) };
 
     return unlockedPlayerResponse;
   }
@@ -771,20 +730,20 @@
   }
 
   try {
+    attachInitialDataInterceptor(checkAndUnlock);
     attachJsonInterceptor(checkAndUnlock);
     attachXhrOpenInterceptor(onXhrOpenCalled);
-    attachInitialDataInterceptor(checkAndUnlock);
   } catch (err) {
     error(err, 'Error while attaching data interceptors');
   }
 
   function checkAndUnlock(ytData) {
     try {
-      // Unlock #1: Initial page data structure and response from the '/youtubei/v1/player' endpoint
+      // Unlock #1: Response from `/youtubei/v1/player` XHR request
       if (isPlayerObject(ytData) && isAgeRestricted(ytData.playabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
-      // Unlock #2: Legacy response data structure (only used by m.youtube.com with &pbj=1)
+      // Unlock #2: Initial page data structure from `window.getInitialData()`
       else if (isPlayerObject(ytData.playerResponse) && isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
         unlockPlayerResponse(ytData.playerResponse);
       }
@@ -792,8 +751,13 @@
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
+    } catch (err) {
+      error(err, 'Video unlock failed');
+    }
+
+    try {
       // Equivelant of unlock #1 for sidebar/next response
-      else if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
+      if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
         unlockNextResponse(ytData);
       }
       // Equivelant of unlock #2 for sidebar/next response
@@ -801,7 +765,7 @@
         unlockNextResponse(ytData.response);
       }
     } catch (err) {
-      error(err, 'Video or sidebar unlock failed');
+      error(err, 'Sidebar unlock failed');
     }
 
     try {
