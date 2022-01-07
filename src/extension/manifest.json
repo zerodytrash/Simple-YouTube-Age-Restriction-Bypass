@@ -5,19 +5,20 @@
     "manifest_version": 3,
     "content_scripts": [
         {
-            "run_at": "document_start",
             "js": ["main.js"],
+            "run_at": "document_start",
+            "all_frames": true,
             "matches": [
-                "https://www.youtube.com/*",
-                "https://m.youtube.com/*"
+                "*://www.youtube.com/*",
+                "*://m.youtube.com/*"
             ]
         }
     ],
     "web_accessible_resources": [{
-        "resources": ["Simple-YouTube-Age-Restriction-Bypass.js"],
+        "resources": ["injected.js"],
         "matches": [
-            "https://www.youtube.com/*",
-            "https://m.youtube.com/*"
+            "*://www.youtube.com/*",
+            "*://m.youtube.com/*"
         ]
     }]
 }
