@@ -474,9 +474,9 @@
     }
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
 
-  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
+  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
 
   const template = isDesktop ? tDesktop : tMobile;
 
