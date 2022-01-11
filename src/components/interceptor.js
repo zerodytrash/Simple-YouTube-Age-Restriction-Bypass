@@ -1,31 +1,31 @@
-import { isObject, isDesktop, createDeepCopy } from '../utils';
+import { isObject, createDeepCopy } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
-export function attachInitialDataInterceptor(onInititalDataSet) {
-    if (!isDesktop) {
-        window.addEventListener('initialdata', () => {
-            logger.info('Mobile initialData fired');
-            onInititalDataSet(window.getInitialData());
-        });
-        return;
-    }
+function interceptObject(proto, prop, onSet) {
+    Object.defineProperty(proto, prop, {
+        set: function (value) {
+            this['__' + prop] = isObject(value) ? onSet(this, value) : value;
+        },
+        get: function () {
+            return this['__' + prop];
+        },
+        configurable: true,
+    });
+}
 
-    const addInitialDataProxy = () => {
-        window.getInitialData &&= new Proxy(window.getInitialData, {
-            apply(target) {
-                logger.info('Desktop initialData fired');
-                return onInititalDataSet(createDeepCopy(target()));
-            },
-        });
-    };
+export function attachInitialDataInterceptor(onInitialData) {
+    interceptObject(Object.prototype, 'playerResponse', (obj, playerResponse) => {
+        logger.info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 
-    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
-    // As long as YouTube has not fully initialized, `getInitialData` is defined
-    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
+        // The same object also contains the sidebar data and video description
+        if (isObject(obj.response)) onInitialData(obj.response);
 
-    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
-    if (document.readyState !== 'loading') addInitialDataProxy();
+        // If the script is executed too late and the bootstrap data has already been processed,
+        // a reload of the player can be forced by creating a deep copy of the object.
+        delete playerResponse.unlocked && onInitialData(playerResponse);
+        return playerResponse.unlocked ? createDeepCopy(playerResponse) : playerResponse;
+    });
 }
 
 // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
