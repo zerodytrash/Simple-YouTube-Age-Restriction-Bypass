@@ -123,6 +123,8 @@ export function unlockPlayerResponse(playerResponse) {
     // Transfer all unlocked properties to the original player response
     Object.assign(playerResponse, unlockedPlayerResponse);
 
+    playerResponse.unlocked = true;
+
     Toast.show(messagesMap.success);
 }
 
