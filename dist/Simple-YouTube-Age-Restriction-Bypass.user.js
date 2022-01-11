@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.3.2
+// @version         2.3.3
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -341,30 +341,31 @@
     }
   }
 
-  function attachInitialDataInterceptor(onInititalDataSet) {
-    if (!isDesktop) {
-      window.addEventListener('initialdata', () => {
-        info('Mobile initialData fired');
-        onInititalDataSet(window.getInitialData());
-      });
-      return;
-    }
+  function interceptObject(proto, prop, onSet) {
+    Object.defineProperty(proto, prop, {
+      set: function (value) {
+        this['__' + prop] = isObject(value) ? onSet(this, value) : value;
+      },
+      get: function () {
+        return this['__' + prop];
+      },
+      configurable: true });
 
-    const addInitialDataProxy = () => {var _window;
-      (_window = window).getInitialData && (_window.getInitialData = new Proxy(window.getInitialData, {
-        apply(target) {
-          info('Desktop initialData fired');
-          return onInititalDataSet(createDeepCopy(target()));
-        } }));
+  }
 
-    };
+  function attachInitialDataInterceptor(onInitialData) {
+    interceptObject(Object.prototype, 'playerResponse', (obj, playerResponse) => {
+      info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 
-    // `getInitialData` is only available a little earlier and a little later than `DOMContentLoaded`
-    // As long as YouTube has not fully initialized, `getInitialData` is defined
-    window.addEventListener('DOMContentLoaded', addInitialDataProxy);
+      // The same object also contains the sidebar data and video description
+      if (isObject(obj.response)) onInitialData(obj.response);
 
-    // Support for `@run-at document-end`, since in that case it's already too late for `DOMContentLoaded`
-    if (document.readyState !== 'loading') addInitialDataProxy();
+      // If the script is executed too late and the bootstrap data has already been processed,
+      // a reload of the player can be forced by creating a deep copy of the object.
+      playerResponse.unlocked = false;
+      onInitialData(playerResponse);
+      return playerResponse.unlocked ? createDeepCopy(playerResponse) : playerResponse;
+    });
   }
 
   // Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
@@ -474,9 +475,9 @@
     }
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
 
-  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
+  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
 
   const template = isDesktop ? tDesktop : tMobile;
 
@@ -624,6 +625,8 @@
     // Transfer all unlocked properties to the original player response
     Object.assign(playerResponse, unlockedPlayerResponse);
 
+    playerResponse.unlocked = true;
+
     Toast.show(messagesMap.success);
   }
 
@@ -730,54 +733,53 @@
   }
 
   try {
-    attachInitialDataInterceptor(checkAndUnlock);
-    attachJsonInterceptor(checkAndUnlock);
+    attachInitialDataInterceptor(processYtData);
+    attachJsonInterceptor(processYtData);
     attachXhrOpenInterceptor(onXhrOpenCalled);
   } catch (err) {
     error(err, 'Error while attaching data interceptors');
   }
 
-  function checkAndUnlock(ytData) {
-    try {
-      // Unlock #1: Response from `/youtubei/v1/player` XHR request
+  function processYtData(ytData) {
+    tryFeatureUnlock(() => {
+      // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
       if (isPlayerObject(ytData) && isAgeRestricted(ytData.playabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
-      // Unlock #2: Initial page data structure from `window.getInitialData()`
-      else if (isPlayerObject(ytData.playerResponse) && isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
-        unlockPlayerResponse(ytData.playerResponse);
-      }
-      // Unlock #3: Embedded Player inital data structure
+      // Player Unlock #2: Embedded Player inital data structure
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
-    } catch (err) {
-      error(err, 'Video unlock failed');
-    }
+    }, 'Video unlock failed');
 
-    try {
-      // Equivelant of unlock #1 for sidebar/next response
+    tryFeatureUnlock(() => {
+      // Unlock sidebar watch next feed (sidebar) and video description
       if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
         unlockNextResponse(ytData);
       }
-      // Equivelant of unlock #2 for sidebar/next response
-      else if (isWatchNextObject(ytData.response) && isWatchNextSidebarEmpty(ytData.response)) {
+
+      // Mobile version
+      if (isWatchNextObject(ytData.response) && isWatchNextSidebarEmpty(ytData.response)) {
         unlockNextResponse(ytData.response);
       }
-    } catch (err) {
-      error(err, 'Sidebar unlock failed');
-    }
+    }, 'Sidebar unlock failed');
 
-    try {
-      // Unlock blurry video thumbnails
-      if (isSearchResult(ytData) || isSearchResult(ytData.response)) {
+    tryFeatureUnlock(() => {
+      // Unlock blurry video thumbnails in search results
+      if (isSearchResult(ytData)) {
         processThumbnails(ytData);
       }
-    } catch (err) {
-      error(err, 'Thumbnail unlock failed');
-    }
+    }, 'Thumbnail unlock failed');
 
     return ytData;
+  }
+
+  function tryFeatureUnlock(fn, errorMsg) {
+    try {
+      fn();
+    } catch (err) {
+      error(err, errorMsg);
+    }
   }
 
   function onXhrOpenCalled(xhr, method, url) {
