@@ -1,6 +1,8 @@
 import { nativeJSONParse } from './natives';
+
 export const isDesktop = window.location.host !== 'm.youtube.com';
-export const isEmbed = window.location.pathname.includes('/embed/');
+
+export const isEmbed = window !== window.top;
 
 export class Deferred {
     constructor() {
@@ -167,24 +169,32 @@ export function generateSha1Hash(msg) {
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
 }
 
-export let pageLoadedAndVisible = (() => {
-    const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
+const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
 
-    window.addEventListener(pageLoadEventName, () => {
-        if (document.visibilityState === 'hidden') {
-            document.addEventListener('visibilitychange', ready, { once: true });
-        } else {
-            ready();
-        }
-    });
+let isPageLoaded = false;
 
-    function ready() {
-        pageLoadedAndVisible.resolve();
-        pageLoadedAndVisible = new Deferred();
-    }
+export function pageLoaded() {
+    if (isPageLoaded) return Promise.resolve();
 
-    return new Deferred();
-})();
+    const deferred = new Deferred();
+
+    window.addEventListener(pageLoadEventName, (event) => {
+        deferred.resolve(event);
+        isPageLoaded = true;
+    }, { once: true });
+
+    return deferred;
+}
+
+export function pageVisible() {
+    if (document.visibilityState !== 'hidden') return Promise.resolve();
+
+    const deferred = new Deferred();
+
+    document.addEventListener('visibilitychange', deferred.resolve, { once: true });
+
+    return deferred;
+}
 
 export function createDeepCopy(obj) {
     return nativeJSONParse(JSON.stringify(obj));

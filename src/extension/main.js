@@ -1,11 +1,4 @@
-/*
- *  Don't use imports for now, as it currently bundles additional unused code
- */
-
-function createElement(tagName, options) {
-    const node = document.createElement(tagName);
-    return options ? Object.assign(node, options) : node;
-}
+import { createElement } from '../utils/index.js';
 
 function injectScript() {
     const nScript = createElement('script', { src: chrome.runtime.getURL('injected.js') });
