@@ -178,10 +178,14 @@ export function pageLoaded() {
 
     const deferred = new Deferred();
 
-    window.addEventListener(pageLoadEventName, (event) => {
-        deferred.resolve(event);
-        isPageLoaded = true;
-    }, { once: true });
+    window.addEventListener(
+        pageLoadEventName,
+        (event) => {
+            deferred.resolve(event);
+            isPageLoaded = true;
+        },
+        { once: true }
+    );
 
     return deferred;
 }
