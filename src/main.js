@@ -7,54 +7,53 @@ import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
 
 try {
-    interceptor.attachInitialDataInterceptor(checkAndUnlock);
-    interceptor.attachJsonInterceptor(checkAndUnlock);
+    interceptor.attachInitialDataInterceptor(processYtData);
+    interceptor.attachJsonInterceptor(processYtData);
     interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
 } catch (err) {
     logger.error(err, 'Error while attaching data interceptors');
 }
 
-function checkAndUnlock(ytData) {
-    try {
-        // Unlock #1: Response from `/youtubei/v1/player` XHR request
+function processYtData(ytData) {
+    tryFeatureUnlock(() => {
+        // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
         }
-        // Unlock #2: Initial page data structure from `window.getInitialData()`
-        else if (inspector.isPlayerObject(ytData.playerResponse) && inspector.isAgeRestricted(ytData.playerResponse.playabilityStatus)) {
-            unlocker.unlockPlayerResponse(ytData.playerResponse);
-        }
-        // Unlock #3: Embedded Player inital data structure
+        // Player Unlock #2: Embedded Player inital data structure
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
         }
-    } catch (err) {
-        logger.error(err, 'Video unlock failed');
-    }
+    }, 'Video unlock failed');
 
-    try {
-        // Equivelant of unlock #1 for sidebar/next response
+    tryFeatureUnlock(() => {
+        // Unlock sidebar watch next feed (sidebar) and video description
         if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
             unlocker.unlockNextResponse(ytData);
         }
-        // Equivelant of unlock #2 for sidebar/next response
-        else if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
+
+        // Mobile version
+        if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
             unlocker.unlockNextResponse(ytData.response);
         }
-    } catch (err) {
-        logger.error(err, 'Sidebar unlock failed');
-    }
+    }, 'Sidebar unlock failed');
 
-    try {
-        // Unlock blurry video thumbnails
-        if (inspector.isSearchResult(ytData) || inspector.isSearchResult(ytData.response)) {
+    tryFeatureUnlock(() => {
+        // Unlock blurry video thumbnails in search results
+        if (inspector.isSearchResult(ytData)) {
             thumbnailFix.processThumbnails(ytData);
         }
-    } catch (err) {
-        logger.error(err, 'Thumbnail unlock failed');
-    }
+    }, 'Thumbnail unlock failed');
 
     return ytData;
+}
+
+function tryFeatureUnlock(fn, errorMsg) {
+    try {
+        fn();
+    } catch (err) {
+        logger.error(err, errorMsg);
+    }
 }
 
 function onXhrOpenCalled(xhr, method, url) {
