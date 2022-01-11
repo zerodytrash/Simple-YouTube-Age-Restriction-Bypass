@@ -23,7 +23,8 @@ export function attachInitialDataInterceptor(onInitialData) {
 
         // If the script is executed too late and the bootstrap data has already been processed,
         // a reload of the player can be forced by creating a deep copy of the object.
-        delete playerResponse.unlocked && onInitialData(playerResponse);
+        playerResponse.unlocked = false;
+        onInitialData(playerResponse);
         return playerResponse.unlocked ? createDeepCopy(playerResponse) : playerResponse;
     });
 }
