@@ -14,9 +14,9 @@
   },
   "homepage": "https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#readme",
   "scripts": {
-    "build": "npm install && npm run pre-build && rollup -c && npm run post-build",
-    "pre-build": "node scripts/pre-build.js",
-    "post-build": "node scripts/post-build.js",
+    "build": "npm install && npm run clean && rollup -c && npm run archive-extension",
+    "clean": "node scripts/clean.js",
+    "archive-extension": "node scripts/archive-extension.js",
     "format": "prettier --write src/**/*.js",
     "check-format": "prettier --check src/**/*.js"
   },
