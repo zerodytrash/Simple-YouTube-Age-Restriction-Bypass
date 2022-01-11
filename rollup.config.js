@@ -1,5 +1,5 @@
-import { readFileSync, copyFileSync, mkdirSync } from 'fs';
-import { resolve, basename, join } from 'path';
+import fs from 'fs';
+import path from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import babel, { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
@@ -28,7 +28,7 @@ function wrap_in_iife() {
 }
 
 function add_header_file(path, transform) {
-    const fileContent = readFileSync(path, 'utf8');
+    const fileContent = fs.readFileSync(path, 'utf8');
     return {
         name: "add_header_file",
         banner: transform ? transform(fileContent) : fileContent
@@ -43,8 +43,8 @@ function copy({ src, dest }) {
     return {
         name: 'copy',
         buildEnd() {
-            mkdirSync(dest, { recursive: true })
-            copyFileSync(src, join(dest, basename(src)));
+            fs.mkdirSync(dest, { recursive: true })
+            fs.copyFileSync(src, path.join(dest, path.basename(src)));
         },
     };
 }
@@ -63,10 +63,10 @@ export default [
         plugins: [
             html(),
             nodeResolve(),
-            add_header_file(resolve(__dirname, 'userscript.config.js'), set_script_version),
+            add_header_file('userscript.config.js', set_script_version),
             // Manually wrap code in our custom iife
             wrap_in_iife(),
-            getBabelOutputPlugin({ configFile: resolve(__dirname, 'babel.config.js') }),
+            getBabelOutputPlugin({ configFile: './babel.config.js' }),
         ],
     },
     {
