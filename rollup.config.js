@@ -39,12 +39,13 @@ function set_script_version(meta) {
     return meta.replace('%version%', pkg.version);
 }
 
-function copy({ src, dest }) {
+function copy({ src, dest, transform }) {
     return {
         name: 'copy',
         buildEnd() {
-            fs.mkdirSync(dest, { recursive: true })
-            fs.copyFileSync(src, path.join(dest, path.basename(src)));
+            fs.mkdirSync(dest, { recursive: true });
+            const fileContent = transform ? transform(fs.readFileSync(src, 'utf8')) : fs.readFileSync(src);
+            fs.writeFileSync(path.join(dest, path.basename(src)), fileContent);
         },
     };
 }
@@ -89,8 +90,8 @@ export default [
         },
         plugins: [
             // babel({ babelHelpers: 'bundled' }),
-            copy({ src: 'src/extension/manifest.json', dest: EXTENSION_OUTPUT_DIR }),
-            copy({ src: 'src/extension/popup.html', dest: EXTENSION_OUTPUT_DIR }),
+            copy({ src: 'src/extension/manifest.json', dest: EXTENSION_OUTPUT_DIR, transform: set_script_version }),
+            copy({ src: 'src/extension/popup.html', dest: EXTENSION_OUTPUT_DIR, transform: set_script_version }),
             copy({ src: 'src/extension/icon/icon_16.png', dest: EXTENSION_OUTPUT_DIR }),
             copy({ src: 'src/extension/icon/icon_48.png', dest: EXTENSION_OUTPUT_DIR }),
             copy({ src: 'src/extension/icon/icon_128.png', dest: EXTENSION_OUTPUT_DIR }),

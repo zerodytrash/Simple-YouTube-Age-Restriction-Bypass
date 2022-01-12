@@ -1,7 +1,7 @@
 {
     "name": "Simple YouTube Age Restriction Bypass",
     "description": "Extension to bypass YouTube's age verification and watch age restricted videos without having to sign in.",
-    "version": "2.3.2",
+    "version": "%version%",
     "manifest_version": 3,
     "content_scripts": [
         {
