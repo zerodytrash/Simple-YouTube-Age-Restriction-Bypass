@@ -90,6 +90,7 @@ export default [
         plugins: [
             // babel({ babelHelpers: 'bundled' }),
             copy({ src: 'src/extension/manifest.json', dest: EXTENSION_OUTPUT_DIR }),
+            copy({ src: 'src/extension/popup.html', dest: EXTENSION_OUTPUT_DIR }),
             copy({ src: 'src/extension/icon/icon_16.png', dest: EXTENSION_OUTPUT_DIR }),
             copy({ src: 'src/extension/icon/icon_48.png', dest: EXTENSION_OUTPUT_DIR }),
             copy({ src: 'src/extension/icon/icon_128.png', dest: EXTENSION_OUTPUT_DIR }),
