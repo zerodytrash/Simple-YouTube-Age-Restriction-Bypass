@@ -16,6 +16,14 @@
             background-color: #202124;
         }
 
+        /* Firefox does not use the default UI font for extension popups */
+        @-moz-document url-prefix() { 
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                font-size: 0.8em;
+            }
+        }
+
         .logo {
             height: 55px;
         }
