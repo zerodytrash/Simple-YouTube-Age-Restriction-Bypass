@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import babel, { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
 import pkg from './package.json';
 import manifest from './src/extension/manifest.json';
@@ -79,7 +79,6 @@ export default [
         plugins: [
             html(),
             nodeResolve(),
-            // babel({ babelHelpers: 'bundled' }),
         ],
     },
     {
@@ -89,7 +88,6 @@ export default [
             format: 'esm',
         },
         plugins: [
-            // babel({ babelHelpers: 'bundled' }),
             copy({ src: 'src/extension/manifest.json', dest: EXTENSION_OUTPUT_DIR, transform: set_script_version }),
             copy({ src: 'src/extension/popup.html', dest: EXTENSION_OUTPUT_DIR, transform: set_script_version }),
             copy({ src: 'src/extension/icon/icon_16.png', dest: EXTENSION_OUTPUT_DIR }),
