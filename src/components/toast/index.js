@@ -1,4 +1,4 @@
-import { isDesktop, pageLoadedAndVisible, createElement } from '../../utils';
+import { isDesktop, pageLoaded, pageVisible, createElement } from '../../utils';
 import * as Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
@@ -25,7 +25,8 @@ if (!isDesktop) {
 async function show(message, duration = 5) {
     if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
 
-    await pageLoadedAndVisible;
+    await pageLoaded();
+    await pageVisible();
 
     nToast.duration = duration * 1000;
     nToast.show(message);
