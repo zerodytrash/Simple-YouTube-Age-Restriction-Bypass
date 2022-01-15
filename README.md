@@ -36,6 +36,12 @@ All videos will be unlocked automatically!
 
 ### Installation
 
+#### Browser Extension
+
+Install **Age Restriction Bypass for Youtube™** for your browser from the [downloads](#downloads) section.
+
+#### Userscript
+
 1. Install the [userscript manager](https://en.wikipedia.org/wiki/Userscript_manager) of your choice.
     > Few of the most popular userscript managers:
     > - [Tampermonkey](https://www.tampermonkey.net)<br>
@@ -49,6 +55,23 @@ All videos will be unlocked automatically!
 No further actions are necessary. All age restricted videos are automatically unlocked.
 
 ## Downloads
+
+### Browser Extension
+
+<a href="/" target="_blank">
+    <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" alt="Chrome Web Store"/>
+</a>
+
+<a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/" target="_blank">
+    <img src="https://ffp4g1ylyit3jdyti1hqcvtb-wpengine.netdna-ssl.com/addons/files/2015/11/get-the-addon.png" alt="Mozilla Add-ons"/>
+</a>
+
+<a href="/" target="_blank">
+    <img src="https://i.imgur.com/X6WxLdx.png" alt="Edge Add-ons"/>
+</a>
+
+### Userscript
+
 Install **Simple YouTube Age Restriction Bypass** by clicking on one of the multiple sources we provide.
 
 <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js">
