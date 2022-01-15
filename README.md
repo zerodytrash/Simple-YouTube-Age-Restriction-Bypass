@@ -58,6 +58,8 @@ No further actions are necessary. All age restricted videos are automatically un
 
 ### Browser Extension
 
+The most popular browsers are supported!
+
 <a href="/" target="_blank">
     <img src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/UV4C4ybeBTsZt43U4xis.png" alt="Chrome Web Store"/>
 </a>
@@ -68,6 +70,10 @@ No further actions are necessary. All age restricted videos are automatically un
 
 <a href="/" target="_blank">
     <img src="https://i.imgur.com/X6WxLdx.png" alt="Edge Add-ons"/>
+</a>
+
+<a href="/" target="_blank">
+    <img src="https://i.imgur.com/9AG2eWY.png" alt="Opera Add-ons"/>
 </a>
 
 ### Userscript
