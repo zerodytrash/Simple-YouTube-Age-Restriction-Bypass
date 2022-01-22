@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.3.3
+// @version         2.3.4
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -29,7 +29,7 @@
 (function iife(inject) {
   // Trick to get around the sandbox restrictions in Greasemonkey (Firefox)
   // Inject code into the main window if criteria match
-  if (typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey" && inject) {
+  if (this !== window && inject) {
     window.eval("(" + iife.toString() + ")();");
     return;
   }
@@ -61,7 +61,8 @@
   const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
   const isDesktop = window.location.host !== 'm.youtube.com';
-  const isEmbed = window.location.pathname.includes('/embed/');
+
+  const isEmbed = window !== window.top;
 
   class Deferred {
     constructor() {
@@ -228,24 +229,36 @@
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
   }
 
-  let pageLoadedAndVisible = (() => {
-    const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
+  const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
 
-    window.addEventListener(pageLoadEventName, () => {
-      if (document.visibilityState === 'hidden') {
-        document.addEventListener('visibilitychange', ready, { once: true });
-      } else {
-        ready();
-      }
-    });
+  let isPageLoaded = false;
 
-    function ready() {
-      pageLoadedAndVisible.resolve();
-      pageLoadedAndVisible = new Deferred();
-    }
+  function pageLoaded() {
+    if (isPageLoaded) return Promise.resolve();
 
-    return new Deferred();
-  })();
+    const deferred = new Deferred();
+
+    window.addEventListener(
+    pageLoadEventName,
+    (event) => {
+      deferred.resolve(event);
+      isPageLoaded = true;
+    },
+    { once: true });
+
+
+    return deferred;
+  }
+
+  function pageVisible() {
+    if (document.visibilityState !== 'hidden') return Promise.resolve();
+
+    const deferred = new Deferred();
+
+    document.addEventListener('visibilitychange', deferred.resolve, { once: true });
+
+    return deferred;
+  }
 
   function createDeepCopy(obj) {
     return nativeJSONParse(JSON.stringify(obj));
@@ -475,16 +488,14 @@
     }
   }
 
-  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\r\n";
+  var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
 
-  var tMobile = "<c3-toast>\r\n    <ytm-notification-action-renderer>\r\n        <div class=\"notification-action-response-text\"></div>\r\n    </ytm-notification-action-renderer>\r\n</c3-toast>\r\n";
+  var tMobile = "<c3-toast>\n    <ytm-notification-action-renderer>\n        <div class=\"notification-action-response-text\"></div>\n    </ytm-notification-action-renderer>\n</c3-toast>\n";
 
   const template = isDesktop ? tDesktop : tMobile;
 
   const nToastContainer = createElement('div', { id: 'toast-container', innerHTML: template });
   const nToast = nToastContainer.querySelector(':scope > *');
-
-  document.documentElement.append(nToastContainer);
 
   if (!isDesktop) {
     nToast.nMessage = nToast.querySelector('.notification-action-response-text');
@@ -499,7 +510,10 @@
 
   async function show(message) {let duration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
 
-    await pageLoadedAndVisible;
+    await pageLoaded();
+    await pageVisible();
+
+    if (!nToastContainer.isConnected) document.documentElement.append(nToastContainer);
 
     nToast.duration = duration * 1000;
     nToast.show(message);
