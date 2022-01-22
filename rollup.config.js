@@ -15,7 +15,7 @@ function wrap_in_iife() {
         (function iife(inject) {
             // Trick to get around the sandbox restrictions in Greasemonkey (Firefox)
             // Inject code into the main window if criteria match
-            if (typeof GM_info === "object" && GM_info.scriptHandler === "Greasemonkey" && inject) {
+            if (this !== window && inject) {
                 window.eval("(" + iife.toString() + ")();");
                 return;
             }
