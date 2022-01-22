@@ -9,8 +9,6 @@ const template = isDesktop ? tDesktop : tMobile;
 const nToastContainer = createElement('div', { id: 'toast-container', innerHTML: template });
 const nToast = nToastContainer.querySelector(':scope > *');
 
-document.documentElement.append(nToastContainer);
-
 if (!isDesktop) {
     nToast.nMessage = nToast.querySelector('.notification-action-response-text');
     nToast.show = (message) => {
@@ -27,6 +25,8 @@ async function show(message, duration = 5) {
 
     await pageLoaded();
     await pageVisible();
+
+    if (!nToastContainer.isConnected) document.documentElement.append(nToastContainer);
 
     nToast.duration = duration * 1000;
     nToast.show(message);
