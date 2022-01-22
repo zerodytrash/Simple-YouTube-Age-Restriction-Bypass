@@ -9,7 +9,16 @@ const template = isDesktop ? tDesktop : tMobile;
 const nToastContainer = createElement('div', { id: 'toast-container', innerHTML: template });
 const nToast = nToastContainer.querySelector(':scope > *');
 
-document.documentElement.append(nToastContainer);
+if (document.documentElement) {
+    document.documentElement.append(nToastContainer);
+} else {
+    new MutationObserver((_, observer) => {
+        if (document.documentElement) {
+            observer.disconnect();
+            document.documentElement.append(nToastContainer);
+        }
+    }).observe(document, { childList: true });
+}
 
 if (!isDesktop) {
     nToast.nMessage = nToast.querySelector('.notification-action-response-text');
