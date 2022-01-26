@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.3.4
+// @version         2.3.5
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -36,7 +36,8 @@
 
 
   // Script configuration variables
-  const UNLOCKABLE_PLAYER_STATES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
+  const UNLOCKABLE_PLAYABILITY_STATUSES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
+  const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
@@ -414,7 +415,7 @@
   function isAgeRestricted(playabilityStatus) {var _playabilityStatus$er, _playabilityStatus$er2, _playabilityStatus$er3, _playabilityStatus$er4, _playabilityStatus$er5, _playabilityStatus$er6, _playabilityStatus$er7, _playabilityStatus$er8;
     if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
     if (playabilityStatus.desktopLegacyAgeGateReason) return true;
-    if (UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
+    if (UNLOCKABLE_PLAYABILITY_STATUSES.includes(playabilityStatus.status)) return true;
 
     // Fix to detect age restrictions on embed player
     // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
@@ -618,7 +619,7 @@
     }
 
     // check if the unlocked response isn't playable
-    if (((_unlockedPlayerRespon = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon === void 0 ? void 0 : _unlockedPlayerRespon.status) !== 'OK') {var _unlockedPlayerRespon2;
+    if (!VALID_PLAYABILITY_STATUSES.includes((_unlockedPlayerRespon = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon === void 0 ? void 0 : _unlockedPlayerRespon.status)) {var _unlockedPlayerRespon2;
       Toast.show(`${messagesMap.fail} (PlayabilityError)`, 10);
       throw new Error(`Player Unlock Failed, playabilityStatus: ${(_unlockedPlayerRespon2 = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon2 === void 0 ? void 0 : _unlockedPlayerRespon2.status}`);
     }
@@ -663,7 +664,7 @@
 
       unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
 
-      return ((_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0 ? void 0 : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0 ? void 0 : _unlockedPlayerRespon7.status) !== 'OK';
+      return !VALID_PLAYABILITY_STATUSES.includes((_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0 ? void 0 : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0 ? void 0 : _unlockedPlayerRespon7.status);
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
