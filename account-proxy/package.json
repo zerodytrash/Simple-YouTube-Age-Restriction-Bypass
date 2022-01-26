@@ -1,6 +1,6 @@
 {
   "name": "simple-youtube-age-restriction-bypass-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "proxy backend",
   "main": "server.js",
   "scripts": {
