@@ -148,7 +148,7 @@ function getUnlockedPlayerResponse(playerResponse) {
 
         unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
 
-        return unlockedPlayerResponse?.playabilityStatus?.status !== 'OK';
+        return !Config.VALID_PLAYABILITY_STATUSES.includes(unlockedPlayerResponse?.playabilityStatus?.status);
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
