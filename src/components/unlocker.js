@@ -1,3 +1,4 @@
+import * as Config from '../config';
 import * as innertube from './innertubeClient';
 import * as inspector from './inspector';
 import * as logger from '../utils/logger';
@@ -102,7 +103,7 @@ export function unlockPlayerResponse(playerResponse) {
     }
 
     // check if the unlocked response isn't playable
-    if (unlockedPlayerResponse.playabilityStatus?.status !== 'OK') {
+    if (!Config.VALID_PLAYABILITY_STATUSES.includes(unlockedPlayerResponse.playabilityStatus?.status)) {
         Toast.show(`${messagesMap.fail} (PlayabilityError)`, 10);
         throw new Error(`Player Unlock Failed, playabilityStatus: ${unlockedPlayerResponse.playabilityStatus?.status}`);
     }

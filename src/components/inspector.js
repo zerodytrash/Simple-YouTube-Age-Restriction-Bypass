@@ -12,7 +12,7 @@ export function isEmbeddedPlayerObject(parsedData) {
 export function isAgeRestricted(playabilityStatus) {
     if (!playabilityStatus?.status) return false;
     if (playabilityStatus.desktopLegacyAgeGateReason) return true;
-    if (Config.UNLOCKABLE_PLAYER_STATES.includes(playabilityStatus.status)) return true;
+    if (Config.UNLOCKABLE_PLAYABILITY_STATUSES.includes(playabilityStatus.status)) return true;
 
     // Fix to detect age restrictions on embed player
     // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
