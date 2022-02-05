@@ -58,12 +58,6 @@ No further actions are necessary. All age restricted videos are automatically un
 
 ### Browser Extension
 
-The most popular browsers are supported!
-
-<a href="/" target="_blank">
-    <img src="https://i.imgur.com/eu6uYp1.png" alt="Chrome Web Store"/>
-</a>
-
 <a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/" target="_blank">
     <img src="https://i.imgur.com/4ViiH7U.png" alt="Mozilla Add-ons"/>
 </a>
@@ -72,9 +66,19 @@ The most popular browsers are supported!
     <img src="https://i.imgur.com/X6WxLdx.png" alt="Edge Add-ons"/>
 </a>
 
-<a href="/" target="_blank">
-    <img src="https://i.imgur.com/9AG2eWY.png" alt="Opera Add-ons"/>
-</a>
+<br>
+<br>
+
+Currently only Edge and Firefox are supported. Chrome and Opera support may come in the future.
+ 
+> A temporary workaround for the unsupported Chromium browsers:
+> 1. Download the latest unpacked extension [here](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/releases/download/v2.3.5/extension_manifest_v3_chromium.zip).
+> 2. Extract the contents in a folder.
+> 3. Go to the extensions page of your browser.
+> 4. Enable developer mode.
+> 5. Click on the `Load Unpacked` button and select the folder with the extracted contents.
+> 
+> Note: the extension has to be manually updated using this workaround.
 
 ### Userscript
 
