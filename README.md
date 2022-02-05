@@ -91,11 +91,11 @@ The following browsers are supported:
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px"/>
-                <br>Edge<br><a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/"><b>Extension</b></a>
+                <br>Edge<br><a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp"><b>Extension</b></a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px"/>
-                <br>Firefox<br><a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp"><b>Extension</b></a>
+                <br>Firefox<br><a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/"><b>Extension</b></a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px"/>
