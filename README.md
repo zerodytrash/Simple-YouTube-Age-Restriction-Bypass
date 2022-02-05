@@ -36,27 +36,11 @@ All videos will be unlocked automatically!
 
 ### Installation
 
+You have two options depending on the browser you use. You can install the script as a **[Userscript](https://en.wikipedia.org/wiki/Userscript)** in all popular browsers or as a **Browser Extension** in some supported browsers listed below.
+
 #### Browser Extension
 
-Install **Age Restriction Bypass for Youtube™** for your browser from the [downloads](#downloads) section.
-
-#### Userscript
-
-1. Install the [userscript manager](https://en.wikipedia.org/wiki/Userscript_manager) of your choice.
-    > Few of the most popular userscript managers:
-    > - [Tampermonkey](https://www.tampermonkey.net)<br>
-    > - [Violentmonkey](https://violentmonkey.github.io/get-it)<br>
-    > - [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey) (Firefox only)<br>
-
-2. Install **Simple YouTube Age Restriction Bypass** from the [downloads](#downloads) section or simply by clicking [this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js)  from GitHub.
-
-### Usage
-
-No further actions are necessary. All age restricted videos are automatically unlocked.
-
-## Downloads
-
-### Browser Extension
+The **Age Restriction Bypass for Youtube™** extension is currently available for **Firefox and Edge**.
 
 <a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/" target="_blank">
     <img src="https://i.imgur.com/4ViiH7U.png" alt="Mozilla Add-ons"/>
@@ -65,34 +49,33 @@ No further actions are necessary. All age restricted videos are automatically un
 <a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp" target="_blank">
     <img src="https://i.imgur.com/X6WxLdx.png" alt="Edge Add-ons"/>
 </a>
+<br><br>
 
-<br>
-<br>
+> If you use another browser (e.g. Google Chrome), install the Userscript below.
 
-Currently only Edge and Firefox are supported. Chrome and Opera support may come in the future.
- 
-> A temporary workaround for the unsupported Chromium browsers:
-> 1. Download the latest unpacked extension [here](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/releases/download/v2.3.5/extension_manifest_v3_chromium.zip).
-> 2. Extract the contents in a folder.
-> 3. Go to the extensions page of your browser.
-> 4. Enable developer mode.
-> 5. Click on the `Load Unpacked` button and select the folder with the extracted contents.
-> 
-> Note: the extension has to be manually updated using this workaround.
+#### Userscript
 
-### Userscript
+1. Install a [Userscript Manager](https://en.wikipedia.org/wiki/Userscript_manager) of your choice. We recommend [Tampermonkey](https://www.tampermonkey.net/).
+    > - [Tampermonkey for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)<br>
+    > - [Tampermonkey for Firefox](https://addons.mozilla.org/en/firefox/addon/tampermonkey/)<br>
+    > - [Tampermonkey for Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta/)<br>
+    > - [Tampermonkey for Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)<br>
+    > - [Userscripts for Safari (MacOS/iOS/iPadOS)](https://apps.apple.com/us/app/userscripts/id1463298887)<br>
 
-Install **Simple YouTube Age Restriction Bypass** by clicking on one of the multiple sources we provide.
+2. Install **Simple YouTube Age Restriction Bypass** by clicking **[this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js)**.
 
-<a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js">
-        <img src="https://img.shields.io/badge/-github-222222?style=for-the-badge&logo=github" alt="GitHub"/>
-</a>
+Alternative mirrors:
+
 <a href="https://greasyfork.org/en/scripts/423851-simple-youtube-age-restriction-bypass">
     <img src="https://img.shields.io/badge/-greasyfork-950000?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAXNSR0IArs4c6QAAAYdJREFUeNpNkU1LVHEUh3+jn8GdtYg+QOHiCiESBokQFaFQYBFYGAlGZMnQVLNIVFB8uQPqoCPeq+JCdBgUHXUUBF9WioLrOzsXLl0M18v/Uf6oeB44HM554Cx+klQmSaoe8SqD4bA7/BH0+ZWO7OWmxb6kRxmkjjlyLLDFBPdcYjeK2rbesm46IpkanvDRvIm+GgcVrCK1pj+RLzWQp516niJLTelqcu3vIZbNB7L85JQZFkizQj8tzBufhCN538hEi/zlHDhgGP+K/7QxFQ3Q4UmBkElyBsAR4jHCYoQCNYbveE4VGY45AfI84wV1vEb0kAw1frHLfXrpp4teq2wjchSoZ4LJUPFiHJn3tJLE5RX7wBrlNCLzm85AZZ5QJGrRNXvAKnaLPDU7CVKmk2myeGywzi+rrPDZJJAjyXU9ZktLZJkhS4414hxCaZOBlGzFqgq1NJlHUYV5STMZ0xTJ5JnfuROWXFHBA2RpoQGlVH59/We9h9Xf/a5iOpwM/xTH/PbbuC8B++4oDDg4lrsAAAAASUVORK5CYII=" alt="GreasyFork"/>
 </a>
 <a href="https://openuserjs.org/scripts/zerodytrash/Simple_YouTube_Age_Restriction_Bypass">
     <img src="https://img.shields.io/badge/-openuserjs-2C3E50?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAADsQAAA7EB9YPtSQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAcdEVYdFRpdGxlAE9wZW5Vc2VySlMub3JnIGZhdmljb26U3BnCAAAALnRFWHRBdXRob3IATWFydGkgTWFydHogKGh0dHBzOi8vZ2l0aHViLmNvbS9NYXJ0aWkpxKc3NgAAACB0RVh0RGVzY3JpcHRpb24AQmFzZSBTVkcgZm9yIGZhdmljb245LGFfAAAAGHRFWHRDcmVhdGlvbiBUaW1lADIwMTQtMDUtMzFYrHNkAAAAhXRFWHRTb3VyY2UAaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL09wZW5Vc2VySlMvT3BlblVzZXJKUy5vcmcvNDQxZjZlNWZjNjMzYzhjNmQ4YzhhM2Q0NWE1ODY4NTQ0ZTY4ZGNiNS9wdWJsaWMvaW1hZ2VzL2Zhdmljb24uaWNv8+hvVQAAAPhJREFUOMtjuP307n9KMAPVDbj55M7/CRu2/3epnvBfLrEWjEHsiZt2gOXwGnDm9tX/1qU9/9kCCsFYLLoSjGF8m7IeoJpr2A0AmQ7TDFK4+eQJuKItp07+t6voA8vZlvWiuARuQP+GbWAFIEOuP76N4dQbj+7ADQF5B8MAp6p+sOSG4ydwBhjIJSA1LtUTMQ2QTaj9LxRZTjDUQWGikFSH24BbWEIaGYtG4TAA5oX1x46T5wVYIFoBA/HaI8xABAUsKHZwBiJyNIIMQXYJKGBhcjijEVtCEggv+y8YUYaWkK4STsog74DCBBSwIAxOyhu3E07KA5IbAVwKM3i/YjSuAAAAAElFTkSuQmCC" alt="OpenUserJS"/>
 </a>
+
+### Usage
+
+No further actions are necessary. All age restricted videos are automatically unlocked. Make sure you reload YouTube after installation.
 
 ## Compatibility
 
@@ -104,27 +87,27 @@ The following browsers are supported:
         <tr>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px"/>
-                <br>Chrome
+                <br>Chrome<br><a href="#userscript">Userscript</a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px"/>
-                <br>Edge
+                <br>Edge<br><a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/"><b>Extension</b></a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px"/>
-                <br>Firefox
+                <br>Firefox<br><a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp"><b>Extension</b></a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px"/>
-                <br>Safari
+                <br>Safari<br><a href="#userscript">Userscript</a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px"/>
-                <br>Opera
+                <br>Opera<br><a href="#userscript">Userscript</a>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/brave/brave_48x48.png" alt="Brave" width="24px" height="24px"/>
-                <br>Brave
+                <br>Brave<br><a href="#userscript">Userscript</a>
             </td>
         </tr>
     </tbody>
@@ -134,8 +117,13 @@ And many more!
 
 ### Android
 
-**Simple YouTube Age Restriction Bypass** also works on Android with the browser version of YouTube [m.youtube.com](https://m.youtube.com).
-> Only a few browsers such as [Firefox](https://play.google.com/store/apps/details?id=org.mozilla.firefox) and [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) currently support extensions.
+**Simple YouTube Age Restriction Bypass** works on Android with the browser version of YouTube [m.youtube.com](https://m.youtube.com) in combination with the [Userscript](#userscript).
+> Only a few browsers such as [Firefox](https://play.google.com/store/apps/details?id=org.mozilla.firefox) and [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) currently support extensions. Tampermonkey can be installed there.
+
+### iOS/iPadOS
+
+**Simple YouTube Age Restriction Bypass** also works on iOS/iPadOS Safari with the browser version of YouTube [m.youtube.com](https://m.youtube.com) in combination with the [Userscript](#userscript).
+> You need to install the free extension [Userscripts](https://apps.apple.com/us/app/userscripts/id1463298887) for Safari from the AppStore to install the [Userscript](#userscript).
 
 ## Development
 
