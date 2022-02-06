@@ -1,8 +1,8 @@
 import { nativeJSONParse } from './natives';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
-export const isEmbed = window !== window.top;
 export const isMusic = window.location.host === 'music.youtube.com';
+export const isEmbed = location.pathname.indexOf('/embed/') === 0;
 
 export class Deferred {
     constructor() {
