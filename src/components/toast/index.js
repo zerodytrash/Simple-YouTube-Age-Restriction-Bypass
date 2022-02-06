@@ -1,4 +1,4 @@
-import { isDesktop, pageLoaded, pageVisible, createElement } from '../../utils';
+import { isDesktop, isMusic, pageLoaded, pageVisible, createElement } from '../../utils';
 import * as Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
@@ -8,6 +8,11 @@ const template = isDesktop ? tDesktop : tMobile;
 
 const nToastContainer = createElement('div', { id: 'toast-container', innerHTML: template });
 const nToast = nToastContainer.querySelector(':scope > *');
+
+// On YT Music show the toast above the player controls
+if (isMusic) {
+    nToast.style['margin-bottom'] = '80px';
+}
 
 if (!isDesktop) {
     nToast.nMessage = nToast.querySelector('.notification-action-response-text');

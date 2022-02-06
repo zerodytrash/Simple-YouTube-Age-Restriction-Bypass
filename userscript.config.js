@@ -11,6 +11,7 @@
 // @license         MIT
 // @match           https://www.youtube.com/*
 // @match           https://m.youtube.com/*
+// @match           https://music.youtube.com/*
 // @grant           none
 // @run-at          document-start
 // @compatible      chrome Chrome + Tampermonkey or Violentmonkey

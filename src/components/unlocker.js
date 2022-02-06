@@ -17,8 +17,8 @@ let cachedPlayerResponse = {};
 function getUnlockStrategies(playerResponse) {
     const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
     const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
-    const clientName = isEmbed || isDesktop ? 'WEB' : 'MWEB';
-    const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION');
+    const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = innertube.getSignatureTimestamp();
 
     return [

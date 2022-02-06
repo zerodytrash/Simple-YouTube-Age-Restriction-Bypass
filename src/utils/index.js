@@ -1,8 +1,8 @@
 import { nativeJSONParse } from './natives';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
-
 export const isEmbed = window !== window.top;
+export const isMusic = window.location.host === 'music.youtube.com';
 
 export class Deferred {
     constructor() {
@@ -169,29 +169,18 @@ export function generateSha1Hash(msg) {
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
 }
 
-const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
-
-let isPageLoaded = false;
-
 export function pageLoaded() {
-    if (isPageLoaded) return Promise.resolve();
+    if (document.readyState === 'complete') return Promise.resolve();
 
     const deferred = new Deferred();
 
-    window.addEventListener(
-        pageLoadEventName,
-        (event) => {
-            deferred.resolve(event);
-            isPageLoaded = true;
-        },
-        { once: true }
-    );
+    window.addEventListener('load', deferred.resolve, { once: true });
 
     return deferred;
 }
 
 export function pageVisible() {
-    if (document.visibilityState !== 'hidden') return Promise.resolve();
+    if (document.visibilityState === 'visible') return Promise.resolve();
 
     const deferred = new Deferred();
 
