@@ -2,7 +2,7 @@
   "type": "module",
   "name": "simple-youtube-age-restriction-bypass",
   "description": "A simple userscript to bypass YouTube's age verification and watch age restricted videos without having to sign in.",
-  "version": "2.3.5",
+  "version": "2.4.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass.git"

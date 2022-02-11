@@ -5,13 +5,14 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.3.5
+// @version         2.4.1
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
 // @license         MIT
 // @match           https://www.youtube.com/*
 // @match           https://m.youtube.com/*
+// @match           https://music.youtube.com/*
 // @grant           none
 // @run-at          document-start
 // @compatible      chrome Chrome + Tampermonkey or Violentmonkey
@@ -62,8 +63,8 @@
   const nativeXMLHttpRequestOpen = XMLHttpRequest.prototype.open;
 
   const isDesktop = window.location.host !== 'm.youtube.com';
-
-  const isEmbed = window !== window.top;
+  const isMusic = window.location.host === 'music.youtube.com';
+  const isEmbed = location.pathname.indexOf('/embed/') === 0;
 
   class Deferred {
     constructor() {
@@ -230,33 +231,12 @@
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
   }
 
-  const pageLoadEventName = isDesktop ? 'yt-navigate-finish' : 'state-navigateend';
-
-  let isPageLoaded = false;
-
   function pageLoaded() {
-    if (isPageLoaded) return Promise.resolve();
+    if (document.readyState === 'complete') return Promise.resolve();
 
     const deferred = new Deferred();
 
-    window.addEventListener(
-    pageLoadEventName,
-    (event) => {
-      deferred.resolve(event);
-      isPageLoaded = true;
-    },
-    { once: true });
-
-
-    return deferred;
-  }
-
-  function pageVisible() {
-    if (document.visibilityState !== 'hidden') return Promise.resolve();
-
-    const deferred = new Deferred();
-
-    document.addEventListener('visibilitychange', deferred.resolve, { once: true });
+    window.addEventListener('load', deferred.resolve, { once: true });
 
     return deferred;
   }
@@ -498,6 +478,11 @@
   const nToastContainer = createElement('div', { id: 'toast-container', innerHTML: template });
   const nToast = nToastContainer.querySelector(':scope > *');
 
+  // On YT Music show the toast above the player controls
+  if (isMusic) {
+    nToast.style['margin-bottom'] = '85px';
+  }
+
   if (!isDesktop) {
     nToast.nMessage = nToast.querySelector('.notification-action-response-text');
     nToast.show = (message) => {
@@ -512,8 +497,11 @@
   async function show(message) {let duration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
 
     await pageLoaded();
-    await pageVisible();
 
+    // Do not show notification when tab is in background
+    if (document.visibilityState === 'hidden') return;
+
+    // Append toast container to DOM, if not already done
     if (!nToastContainer.isConnected) document.documentElement.append(nToastContainer);
 
     nToast.duration = duration * 1000;
@@ -533,8 +521,8 @@
   function getUnlockStrategies(playerResponse) {var _playerResponse$video, _playerResponse$playa, _playerResponse$previ;
     const videoId = ((_playerResponse$video = playerResponse.videoDetails) === null || _playerResponse$video === void 0 ? void 0 : _playerResponse$video.videoId) || getYtcfgValue('PLAYER_VARS').video_id;
     const reason = ((_playerResponse$playa = playerResponse.playabilityStatus) === null || _playerResponse$playa === void 0 ? void 0 : _playerResponse$playa.status) || ((_playerResponse$previ = playerResponse.previewPlayabilityStatus) === null || _playerResponse$previ === void 0 ? void 0 : _playerResponse$previ.status);
-    const clientName = isEmbed || isDesktop ? 'WEB' : 'MWEB';
-    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION');
+    const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = getSignatureTimestamp();
 
     return [
