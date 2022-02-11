@@ -179,16 +179,6 @@ export function pageLoaded() {
     return deferred;
 }
 
-export function pageVisible() {
-    if (document.visibilityState === 'visible') return Promise.resolve();
-
-    const deferred = new Deferred();
-
-    document.addEventListener('visibilitychange', deferred.resolve, { once: true });
-
-    return deferred;
-}
-
 export function createDeepCopy(obj) {
     return nativeJSONParse(JSON.stringify(obj));
 }
