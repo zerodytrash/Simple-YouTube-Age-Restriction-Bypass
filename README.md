@@ -27,7 +27,7 @@
 
 ## How it works
 
-When a YouTube video is detected as age-restricted, this userscript will retrieve the video and all other information from YouTube's unrestricted ``/youtubei/v1/player`` endpoint. As a fallback (for some non-embeddable videos) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos without age verification and without the need to be signed in.
+When a YouTube video is detected as age-restricted, this userscript will retrieve the video and all other information from YouTube's unrestricted ``/youtubei/v1/player`` endpoint. As a fallback (for some non-embeddable videos) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos on YouTube and YouTube Music without age verification and without the need to be signed in.
 
 All videos will be unlocked automatically!
 
