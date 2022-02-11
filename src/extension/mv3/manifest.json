@@ -10,7 +10,8 @@
             "all_frames": true,
             "matches": [
                 "*://www.youtube.com/*",
-                "*://m.youtube.com/*"
+                "*://m.youtube.com/*",
+                "*://music.youtube.com/*"
             ]
         }
     ],
@@ -18,7 +19,8 @@
         "resources": ["injected.js"],
         "matches": [
             "*://www.youtube.com/*",
-            "*://m.youtube.com/*"
+            "*://m.youtube.com/*",
+            "*://music.youtube.com/*"
         ]
     }],
     "icons": { 
