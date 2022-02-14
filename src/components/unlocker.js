@@ -169,6 +169,9 @@ export function unlockNextResponse(originalNextResponse) {
                 clientVersion,
                 clientScreen: 'EMBED',
             },
+            thirdParty: {
+                embedUrl: 'https://www.youtube.com/',
+            },
         },
         videoId,
     };
