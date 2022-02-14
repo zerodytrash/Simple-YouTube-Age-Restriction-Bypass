@@ -1,4 +1,4 @@
-import { isDesktop, isMusic, pageLoaded, pageVisible, createElement } from '../../utils';
+import { isDesktop, isMusic, pageLoaded, createElement } from '../../utils';
 import * as Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
