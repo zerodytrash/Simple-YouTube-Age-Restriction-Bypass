@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.4.1
+// @version         2.4.2
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -671,7 +671,10 @@
         client: {
           clientName,
           clientVersion,
-          clientScreen: 'EMBED' } },
+          clientScreen: 'EMBED' },
+
+        thirdParty: {
+          embedUrl: 'https://www.youtube.com/' } },
 
 
       videoId };
