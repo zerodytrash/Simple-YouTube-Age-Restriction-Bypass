@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.4.2
+// @version         2.4.3
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -264,7 +264,7 @@
     return sendInnertubeRequest('v1/player', payload, requiresAuth);
   }
 
-  function getNext(payload) {
+  function getNext$1(payload) {
     return sendInnertubeRequest('v1/next', payload, false);
   }
 
@@ -447,26 +447,33 @@
     return VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl);
   }
 
-  function getPlayer(payload) {
-    const queryParams = new URLSearchParams(payload).toString();
-
-    const proxyUrl = ACCOUNT_PROXY_SERVER_HOST + '/getPlayer?' + queryParams;
+  function sendRequest(endpoint, payload) {
+    const queryParams = new URLSearchParams(payload);
+    const proxyUrl = `${ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}`;
 
     try {
       const xmlhttp = new XMLHttpRequest();
       xmlhttp.open('GET', proxyUrl, false);
       xmlhttp.send(null);
 
-      const playerResponse = nativeJSONParse(xmlhttp.responseText);
+      const proxyResponse = nativeJSONParse(xmlhttp.responseText);
 
       // mark request as 'proxied'
-      playerResponse.proxied = true;
+      proxyResponse.proxied = true;
 
-      return playerResponse;
+      return proxyResponse;
     } catch (err) {
       error(err);
       return { errorMessage: 'Proxy Connection failed' };
     }
+  }
+
+  function getPlayer(payload) {
+    return sendRequest('getPlayer', payload);
+  }
+
+  function getNext(payload) {
+    return sendRequest('getNext', payload);
   }
 
   var tDesktop = "<tp-yt-paper-toast></tp-yt-paper-toast>\n";
@@ -518,7 +525,7 @@
   let lastProxiedGoogleVideoUrlParams;
   let cachedPlayerResponse = {};
 
-  function getUnlockStrategies(playerResponse) {var _playerResponse$video, _playerResponse$playa, _playerResponse$previ;
+  function getPlayerUnlockStrategies(playerResponse) {var _playerResponse$video, _playerResponse$playa, _playerResponse$previ;
     const videoId = ((_playerResponse$video = playerResponse.videoDetails) === null || _playerResponse$video === void 0 ? void 0 : _playerResponse$video.videoId) || getYtcfgValue('PLAYER_VARS').video_id;
     const reason = ((_playerResponse$playa = playerResponse.playabilityStatus) === null || _playerResponse$playa === void 0 ? void 0 : _playerResponse$playa.status) || ((_playerResponse$previ = playerResponse.previewPlayabilityStatus) === null || _playerResponse$previ === void 0 ? void 0 : _playerResponse$previ.status);
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
@@ -528,8 +535,9 @@
     return [
     // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
     // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
+    // 2022-02-24: No longer works properly. Sporadic error messages. YouTube seems to fix this.
     {
-      name: 'Embed',
+      name: 'Client Screen Embed',
       requiresAuth: false,
       payload: {
         context: {
@@ -551,7 +559,32 @@
 
       getPlayer: getPlayer$1 },
 
-    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // Strategy 2: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
+    // Only usable to bypass login restrictions on a handful of low restricted videos.
+    {
+      name: 'Embedded Player',
+      requiresAuth: false,
+      payload: {
+        context: {
+          client: {
+            clientName: 'WEB_EMBEDDED_PLAYER',
+            clientVersion: '1.20220220.00.00',
+            clientScreen: 'EMBED' },
+
+          thirdParty: {
+            embedUrl: 'https://www.youtube.com/' } },
+
+
+        playbackContext: {
+          contentPlaybackContext: {
+            signatureTimestamp } },
+
+
+        videoId },
+
+      getPlayer: getPlayer$1 },
+
+    // Strategy 3: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
     // See https://github.com/yt-dlp/yt-dlp/pull/600
     {
       name: 'Creator + Auth',
@@ -575,7 +608,7 @@
 
       getPlayer: getPlayer$1 },
 
-    // Strategy 3: Retrieve the video info from an account proxy server.
+    // Strategy 4: Retrieve the video info from an account proxy server.
     // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     {
       name: 'Account Proxy',
@@ -639,7 +672,7 @@
     // Check if response is cached
     if (cachedPlayerResponse.videoId === videoId) return createDeepCopy(cachedPlayerResponse);
 
-    const unlockStrategies = getUnlockStrategies(playerResponse);
+    const unlockStrategies = getPlayerUnlockStrategies(playerResponse);
 
     let unlockedPlayerResponse;
 
@@ -648,7 +681,7 @@
       // Skip strategy if authentication is required and the user is not logged in
       if (strategy.requiresAuth && !isUserLoggedIn()) return true;
 
-      info(`Trying Unlock Method #${index + 1} (${strategy.name})`);
+      info(`Trying Player Unlock Method #${index + 1} (${strategy.name})`);
 
       unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
 
@@ -661,26 +694,50 @@
     return unlockedPlayerResponse;
   }
 
+  let cachedNextResponse = {};
+
+  function getNextUnlockStrategies(nextResponse) {
+    const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
+    const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+
+    return [
+    // Strategy 1: Retrieve the sidebar and video description by using a age-gate bypass for the innertube API
+    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
+    {
+      name: 'Embed',
+      payload: {
+        context: {
+          client: {
+            clientName,
+            clientVersion,
+            clientScreen: 'EMBED' },
+
+          thirdParty: {
+            embedUrl: 'https://www.youtube.com/' } },
+
+
+        videoId },
+
+      getNext: getNext$1 },
+
+    // Strategy 2: Retrieve the sidebar and video description from an account proxy server.
+    // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+    {
+      name: 'Account Proxy',
+      payload: {
+        videoId,
+        clientName,
+        clientVersion,
+        isEmbed: +isEmbed },
+
+      getNext: getNext }];
+
+
+  }
+
   function unlockNextResponse(originalNextResponse) {
-    info('Trying sidebar unlock');
-
-    const { videoId } = originalNextResponse.currentVideoEndpoint.watchEndpoint;
-    const { clientName, clientVersion } = getYtcfgValue('INNERTUBE_CONTEXT').client;
-    const payload = {
-      context: {
-        client: {
-          clientName,
-          clientVersion,
-          clientScreen: 'EMBED' },
-
-        thirdParty: {
-          embedUrl: 'https://www.youtube.com/' } },
-
-
-      videoId };
-
-
-    const unlockedNextResponse = getNext(payload);
+    const unlockedNextResponse = getUnlockedNextResponse(originalNextResponse);
 
     // check if the sidebar of the unlocked response is still empty
     if (isWatchNextSidebarEmpty(unlockedNextResponse)) {
@@ -689,6 +746,35 @@
 
     // Transfer some parts of the unlocked response to the original response
     mergeNextResponse(originalNextResponse, unlockedNextResponse);
+  }
+
+  function getUnlockedNextResponse(nextResponse) {
+    const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
+
+    if (!videoId) {
+      throw new Error(`Missing videoId in nextResponse`);
+    }
+
+    // Check if response is cached
+    if (cachedNextResponse.videoId === videoId) return createDeepCopy(cachedNextResponse);
+
+    const unlockStrategies = getNextUnlockStrategies(nextResponse);
+
+    let unlockedNextResponse;
+
+    // Try every strategy until one of them works
+    unlockStrategies.every((strategy, index) => {
+      info(`Trying Sidebar Unlock Method #${index + 1} (${strategy.name})`);
+
+      unlockedNextResponse = strategy.getNext(strategy.payload);
+
+      return isWatchNextSidebarEmpty(unlockedNextResponse);
+    });
+
+    // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
+    cachedNextResponse = { videoId, ...createDeepCopy(unlockedNextResponse) };
+
+    return unlockedNextResponse;
   }
 
   function mergeNextResponse(originalNextResponse, unlockedNextResponse) {var _unlockedNextResponse, _unlockedNextResponse2, _unlockedNextResponse3, _unlockedNextResponse4, _unlockedNextResponse5;
