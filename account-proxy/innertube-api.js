@@ -2,7 +2,7 @@ const crypto = require("crypto")
 const axios = require("axios");
 const httpsProxyAgent = require("https-proxy-agent");
 
-const generatePlayerRequestData = function (videoId, clientName, clientVersion, signatureTimestamp) {
+const generateApiRequestData = function (videoId, clientName, clientVersion, signatureTimestamp) {
     if (!clientName) clientName = "WEB";
     if (!clientVersion) clientVersion = "2.20210721.00.00";
     if (!signatureTimestamp) signatureTimestamp = 18834;
@@ -80,7 +80,7 @@ const generateSidBasedAuth = function (sapisid, origin) {
     return "SAPISIDHASH " + timestamp + "_" + hash;
 }
 
-const generatePlayerRequestHeaders = function (sapisid, psid) {
+const generateApiRequestHeaders = function (sapisid, psid) {
     var origin = "https://www.youtube.com";
 
     return {
@@ -97,11 +97,11 @@ const generatePlayerRequestHeaders = function (sapisid, psid) {
     }
 }
 
-const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
+const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
 
-    var url = `https://www.youtube.com/youtubei/v1/player?key=${apiKey}`;
-    var headers = generatePlayerRequestHeaders(sapisid, psid);
-    var data = generatePlayerRequestData(videoId, clientName, clientVersion, signatureTimestamp);
+    var url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${apiKey}`;
+    var headers = generateApiRequestHeaders(sapisid, psid);
+    var data = generateApiRequestData(videoId, clientName, clientVersion, signatureTimestamp);
 
     var axiosOptions = {
         method: "POST",
@@ -116,6 +116,15 @@ const getPlayer = function (videoId, clientName, clientVersion, signatureTimesta
     return axios(axiosOptions);
 }
 
+const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
+    return sendApiRequest('player', videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy);
+}
+
+const getNext = function (videoId, clientName, clientVersion, apiKey, sapisid, psid, proxy) {
+    return sendApiRequest('next', videoId, clientName, clientVersion, null, apiKey, sapisid, psid, proxy);
+}
+
 module.exports = {
-    getPlayer
+    getPlayer,
+    getNext
 }
