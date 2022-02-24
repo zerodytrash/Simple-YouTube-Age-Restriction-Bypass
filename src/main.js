@@ -1,7 +1,8 @@
 import * as Config from './config';
 import * as interceptor from './components/interceptor';
 import * as inspector from './components/inspector';
-import * as unlocker from './components/unlocker';
+import * as playerUnlocker from './components/playerUnlocker';
+import * as sidebarUnlocker from './components/sidebarUnlocker';
 import * as thumbnailFix from './components/thumbnailFix';
 import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
@@ -18,23 +19,23 @@ function processYtData(ytData) {
     tryFeatureUnlock(() => {
         // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
-            unlocker.unlockPlayerResponse(ytData);
+            playerUnlocker.unlockPlayerResponse(ytData);
         }
         // Player Unlock #2: Embedded Player inital data structure
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
-            unlocker.unlockPlayerResponse(ytData);
+            playerUnlocker.unlockPlayerResponse(ytData);
         }
     }, 'Video unlock failed');
 
     tryFeatureUnlock(() => {
         // Unlock sidebar watch next feed (sidebar) and video description
         if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
-            unlocker.unlockNextResponse(ytData);
+            sidebarUnlocker.unlockNextResponse(ytData);
         }
 
         // Mobile version
         if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
-            unlocker.unlockNextResponse(ytData.response);
+            sidebarUnlocker.unlockNextResponse(ytData.response);
         }
     }, 'Sidebar unlock failed');
 
@@ -59,7 +60,7 @@ function tryFeatureUnlock(fn, errorMsg) {
 function onXhrOpenCalled(xhr, method, url) {
     if (!Config.VIDEO_PROXY_SERVER_HOST || !inspector.isGoogleVideo(method, url)) return;
 
-    if (inspector.isGoogleVideoUnlockRequired(url, unlocker.getLastProxiedGoogleVideoId())) {
+    if (inspector.isGoogleVideoUnlockRequired(url, playerUnlocker.getLastProxiedGoogleVideoId())) {
         // If the account proxy was used to retrieve the video info, the following applies:
         // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
         // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
