@@ -19,6 +19,7 @@ function getPlayerUnlockStrategies(playerResponse) {
     const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = innertube.getSignatureTimestamp();
+    const startTimeSecs = new URLSearchParams(window.location.search).get('t').replace('s', '');
     const hl = getYtcfgValue('HL');
 
     return [
@@ -46,6 +47,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                     },
                 },
                 videoId,
+                startTimeSecs,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -72,6 +74,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                     },
                 },
                 videoId,
+                startTimeSecs,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -94,6 +97,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                     },
                 },
                 videoId,
+                startTimeSecs,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -108,6 +112,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                 clientName,
                 clientVersion,
                 signatureTimestamp,
+                startTimeSecs,
                 hl,
                 isEmbed: +isEmbed,
             },
