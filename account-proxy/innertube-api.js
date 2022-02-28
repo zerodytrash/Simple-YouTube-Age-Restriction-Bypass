@@ -2,7 +2,7 @@ const crypto = require("crypto")
 const axios = require("axios");
 const httpsProxyAgent = require("https-proxy-agent");
 
-const generateApiRequestData = function (videoId, clientName, clientVersion, signatureTimestamp) {
+const generateApiRequestData = function (videoId, clientName, clientVersion, signatureTimestamp, hl) {
     if (!clientName) clientName = "WEB";
     if (!clientVersion) clientVersion = "2.20210721.00.00";
     if (!signatureTimestamp) signatureTimestamp = 18834;
@@ -11,7 +11,7 @@ const generateApiRequestData = function (videoId, clientName, clientVersion, sig
         "videoId": videoId,
         "context": {
             "client": {
-                "hl": "en",
+                hl,
                 "gl": "US",
                 "deviceMake": "",
                 "deviceModel": "",
@@ -117,11 +117,11 @@ const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, s
 }
 
 const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
-    return sendApiRequest('player', videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy);
+    return sendApiRequest('player', videoId, clientName, clientVersion, signatureTimestamp, hl, apiKey, sapisid, psid, proxy);
 }
 
 const getNext = function (videoId, clientName, clientVersion, apiKey, sapisid, psid, proxy) {
-    return sendApiRequest('next', videoId, clientName, clientVersion, null, apiKey, sapisid, psid, proxy);
+    return sendApiRequest('next', videoId, clientName, clientVersion, hl, null, apiKey, sapisid, psid, proxy);
 }
 
 module.exports = {

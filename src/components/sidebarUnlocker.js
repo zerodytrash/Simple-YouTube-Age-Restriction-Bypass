@@ -10,6 +10,7 @@ function getNextUnlockStrategies(nextResponse) {
     const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
     const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+    const hl = getYtcfgValue('HL');
 
     return [
         // Strategy 1: Retrieve the sidebar and video description by using a age-gate bypass for the innertube API
@@ -22,6 +23,7 @@ function getNextUnlockStrategies(nextResponse) {
                         clientName,
                         clientVersion,
                         clientScreen: 'EMBED',
+                        hl,
                     },
                     thirdParty: {
                         embedUrl: 'https://www.youtube.com/',
@@ -39,6 +41,7 @@ function getNextUnlockStrategies(nextResponse) {
                 videoId,
                 clientName,
                 clientVersion,
+                hl,
                 isEmbed: +isEmbed,
             },
             getNext: proxy.getNext,
