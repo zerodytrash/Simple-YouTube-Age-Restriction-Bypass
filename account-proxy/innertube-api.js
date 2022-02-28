@@ -97,11 +97,11 @@ const generateApiRequestHeaders = function (sapisid, psid) {
     }
 }
 
-const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
+const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, signatureTimestamp, hl, apiKey, sapisid, psid, proxy) {
 
     var url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${apiKey}`;
     var headers = generateApiRequestHeaders(sapisid, psid);
-    var data = generateApiRequestData(videoId, clientName, clientVersion, signatureTimestamp);
+    var data = generateApiRequestData(videoId, clientName, clientVersion, signatureTimestamp, hl);
 
     var axiosOptions = {
         method: "POST",
@@ -116,11 +116,11 @@ const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, s
     return axios(axiosOptions);
 }
 
-const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, apiKey, sapisid, psid, proxy) {
+const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, hl, apiKey, sapisid, psid, proxy) {
     return sendApiRequest('player', videoId, clientName, clientVersion, signatureTimestamp, hl, apiKey, sapisid, psid, proxy);
 }
 
-const getNext = function (videoId, clientName, clientVersion, apiKey, sapisid, psid, proxy) {
+const getNext = function (videoId, clientName, clientVersion, hl, apiKey, sapisid, psid, proxy) {
     return sendApiRequest('next', videoId, clientName, clientVersion, hl, null, apiKey, sapisid, psid, proxy);
 }
 
