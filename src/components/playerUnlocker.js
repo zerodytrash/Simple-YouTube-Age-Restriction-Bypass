@@ -20,7 +20,7 @@ function getPlayerUnlockStrategies(playerResponse) {
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = innertube.getSignatureTimestamp();
     const startTimeSecs = new URLSearchParams(window.location.search).get('t')?.replace('s', '');
-    const hl = getYtcfgValue('HL');
+    const hl = innertube.getYtcfgValue('HL');
 
     return [
         // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
