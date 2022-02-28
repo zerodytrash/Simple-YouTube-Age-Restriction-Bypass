@@ -73,8 +73,8 @@ app.get("/getPlayer", (req, res) => {
         req.query.clientName = 'WEB';
     }
 
-    innertube.getPlayer(req.query.videoId, req.query.clientName, req.query.clientVersion, parseInt(req.query.signatureTimestamp), req.query.startTimeSecs, process.env.API_KEY, process.env.SAPISID, process.env.PSID, process.env.PROXY).then(videoInfoResponse => {
 
+    innertube.getPlayer(req.query.videoId, req.query.clientName, req.query.clientVersion, parseInt(req.query.signatureTimestamp), req.query.hl, req.query.startTimeSecs, process.env.API_KEY, process.env.SAPISID, process.env.PSID, process.env.PROXY).then(videoInfoResponse => {
         // extract relevant data
         var publicData = {
             videoDetails: videoInfoResponse.data.videoDetails,
@@ -106,7 +106,7 @@ app.get("/getNext", (req, res) => {
         return;
     }
 
-    innertube.getNext(req.query.videoId, req.query.clientName, req.query.clientVersion, process.env.API_KEY, process.env.SAPISID, process.env.PSID, process.env.PROXY).then(nextResponse => {
+    innertube.getNext(req.query.videoId, req.query.clientName, req.query.clientVersion, req.query.hl, process.env.API_KEY, process.env.SAPISID, process.env.PSID, process.env.PROXY).then(nextResponse => {
 
         // extract relevant data
         var publicData = {

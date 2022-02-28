@@ -20,6 +20,7 @@ function getPlayerUnlockStrategies(playerResponse) {
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = innertube.getSignatureTimestamp();
     const startTimeSecs = new URLSearchParams(window.location.search).get('t').replace('s', '');
+    const hl = getYtcfgValue('HL');
 
     return [
         // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
@@ -34,6 +35,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                         clientName,
                         clientVersion,
                         clientScreen: 'EMBED',
+                        hl,
                     },
                     thirdParty: {
                         embedUrl: 'https://www.youtube.com/',
@@ -60,6 +62,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                         clientName: 'WEB_EMBEDDED_PLAYER',
                         clientVersion: '1.20220220.00.00',
                         clientScreen: 'EMBED',
+                        hl,
                     },
                     thirdParty: {
                         embedUrl: 'https://www.youtube.com/',
@@ -85,9 +88,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                     client: {
                         clientName: 'WEB_CREATOR',
                         clientVersion: '1.20210909.07.00',
-                        thirdParty: {
-                            embedUrl: 'https://www.youtube.com/',
-                        },
+                        hl,
                     },
                 },
                 playbackContext: {
@@ -112,6 +113,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                 clientVersion,
                 signatureTimestamp,
                 startTimeSecs,
+                hl,
                 isEmbed: +isEmbed,
             },
             getPlayer: proxy.getPlayer,
