@@ -3,12 +3,25 @@ import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
 function interceptObject(proto, prop, onSet) {
-    Object.defineProperty(proto, prop, {
-        set: function (value) {
-            this['__' + prop] = isObject(value) ? onSet(this, value) : value;
+    const symbol = Symbol.for('SYARB' + prop);
+    // Allow other userscripts to decorate this descriptor, if they do something similar to this as well
+    const {
+        get: getter,
+        set: setter,
+    } = Object.getOwnPropertyDescriptor(proto, prop) ?? {
+        set(value) {
+            this[symbol] = value;
         },
-        get: function () {
-            return this['__' + prop];
+        get() {
+            return this[symbol];
+        },
+    };
+    Object.defineProperty(proto, prop, {
+        set(value) {
+            setter.call(this, isObject(value) ? onSet(this, value) : value);
+        },
+        get() {
+            return getter.call(this);
         },
         configurable: true,
     });
