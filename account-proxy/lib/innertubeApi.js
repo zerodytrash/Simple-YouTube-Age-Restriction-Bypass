@@ -2,26 +2,22 @@ const crypto = require("crypto")
 const axios = require("axios");
 const httpsProxyAgent = require("https-proxy-agent");
 
-const generateApiRequestData = function (videoId, clientName, clientVersion, signatureTimestamp, hl, startTimeSecs) {
-    if (!clientName) clientName = "WEB";
-    if (!clientVersion) clientVersion = "2.20210721.00.00";
-    if (!signatureTimestamp) signatureTimestamp = 18834;
-
+const generateApiRequestData = function (clientParams) {
     return {
-        "videoId": videoId,
+        "videoId": clientParams.videoId,
         "context": {
             "client": {
-                hl,
+                "hl": clientParams.hl,
                 "gl": "US",
                 "deviceMake": "",
                 "deviceModel": "",
                 "visitorData": "CgtIZDE3aXJqLXFwNCiZpPaHBg%3D%3D",
                 "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36,gzip(gfe)",
-                "clientName": clientName,
-                "clientVersion": clientVersion,
+                "clientName": clientParams.clientName,
+                "clientVersion": clientParams.clientVersion,
                 "osName": "Windows",
                 "osVersion": "10.0",
-                "originalUrl": "https://www.youtube.com/watch?v=" + videoId,
+                "originalUrl": "https://www.youtube.com/watch?v=" + clientParams.videoId,
                 "screenPixelDensity": 1,
                 "platform": "DESKTOP",
                 "clientFormFactor": "UNKNOWN_FORM_FACTOR",
@@ -35,7 +31,7 @@ const generateApiRequestData = function (videoId, clientName, clientVersion, sig
                 "userInterfaceTheme": "USER_INTERFACE_THEME_DARK",
                 "connectionType": "CONN_CELLULAR_4G",
                 "mainAppWebInfo": {
-                    "graftUrl": "https://www.youtube.com/watch?v=" + videoId,
+                    "graftUrl": "https://www.youtube.com/watch?v=" + clientParams.videoId,
                     "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
                     "isWebNativeShareAvailable": true
                 },
@@ -58,8 +54,8 @@ const generateApiRequestData = function (videoId, clientName, clientVersion, sig
             "contentPlaybackContext": {
                 "html5Preference": "HTML5_PREF_WANTS",
                 "lactMilliseconds": "2132",
-                "referer": "https://www.youtube.com/watch?v=" + videoId,
-                "signatureTimestamp": signatureTimestamp,
+                "referer": "https://www.youtube.com/watch?v=" + clientParams.videoId,
+                "signatureTimestamp": clientParams.signatureTimestamp,
                 "autoCaptionsDefaultOn": false,
                 "autoplay": true,
                 "mdxContext": {},
@@ -70,25 +66,25 @@ const generateApiRequestData = function (videoId, clientName, clientVersion, sig
         "captionParams": {},
         "racyCheckOk": true,
         "contentCheckOk": true,
-        startTimeSecs,
+        "startTimeSecs": clientParams.startTimeSecs,
     }
 }
 
 const generateSidBasedAuth = function (sapisid, origin) {
     var timestamp = Math.floor(new Date().getTime() / 1000);
-    var input = timestamp + " " + sapisid + " " + origin;
-    var hash = crypto.createHash("sha1").update(input).digest("hex");
-    return "SAPISIDHASH " + timestamp + "_" + hash;
+    var hashInput = timestamp + " " + sapisid + " " + origin;
+    var hashDigest = crypto.createHash("sha1").update(hashInput).digest("hex");
+    return `SAPISIDHASH ${timestamp}_${hashDigest}`;
 }
 
-const generateApiRequestHeaders = function (sapisid, psid) {
+const generateApiRequestHeaders = function (credentials) {
     var origin = "https://www.youtube.com";
 
     return {
-        "Cookie": `SAPISID=${sapisid}; __Secure-3PAPISID=${sapisid}; __Secure-3PSID=${psid};`,
+        "Cookie": `SAPISID=${credentials.sapiSid}; __Secure-3PAPISID=${credentials.sapiSid}; __Secure-3PSID=${credentials.pSid};`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36",
         "Content-Type": "application/json",
-        "Authorization": generateSidBasedAuth(sapisid, origin),
+        "Authorization": generateSidBasedAuth(credentials.sapiSid, origin),
         "X-Origin": origin,
         "X-Youtube-Client-Name": "1",
         "X-Youtube-Client-Version": "2.20210721.00.00",
@@ -98,11 +94,11 @@ const generateApiRequestHeaders = function (sapisid, psid) {
     }
 }
 
-const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, signatureTimestamp, hl, startTimeSecs, apiKey, sapisid, psid, proxy) {
+const sendApiRequest = function (endpoint, clientParams, credentials, proxy) {
 
-    var url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${apiKey}`;
-    var headers = generateApiRequestHeaders(sapisid, psid);
-    var data = generateApiRequestData(videoId, clientName, clientVersion, signatureTimestamp, hl, startTimeSecs);
+    var url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}`;
+    var headers = generateApiRequestHeaders(credentials);
+    var data = generateApiRequestData(clientParams);
 
     var axiosOptions = {
         method: "POST",
@@ -117,16 +113,6 @@ const sendApiRequest = function (endpoint, videoId, clientName, clientVersion, s
     return axios(axiosOptions);
 }
 
-
-const getPlayer = function (videoId, clientName, clientVersion, signatureTimestamp, hl, startTimeSecs, apiKey, sapisid, psid, proxy) {
-    return sendApiRequest('player', videoId, clientName, clientVersion, signatureTimestamp, hl, startTimeSecs, apiKey, sapisid, psid, proxy);
-}
-
-const getNext = function (videoId, clientName, clientVersion, hl, apiKey, sapisid, psid, proxy) {
-    return sendApiRequest('next', videoId, clientName, clientVersion, hl, null, null, null, apiKey, sapisid, psid, proxy);
-}
-
 module.exports = {
-    getPlayer,
-    getNext
+    sendApiRequest
 }

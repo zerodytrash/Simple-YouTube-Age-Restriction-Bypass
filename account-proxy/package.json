@@ -1,7 +1,7 @@
 {
   "name": "simple-youtube-age-restriction-bypass-server",
-  "version": "1.0.1",
-  "description": "proxy backend",
+  "version": "1.0.2",
+  "description": "simple-youtube-age-restriction-bypass proxy backend",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
