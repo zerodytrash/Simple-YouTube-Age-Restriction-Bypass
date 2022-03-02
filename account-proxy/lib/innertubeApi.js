@@ -71,14 +71,14 @@ const generateApiRequestData = function (clientParams) {
 }
 
 const generateSidBasedAuth = function (sapisid, origin) {
-    var timestamp = Math.floor(new Date().getTime() / 1000);
-    var hashInput = timestamp + " " + sapisid + " " + origin;
-    var hashDigest = crypto.createHash("sha1").update(hashInput).digest("hex");
+    const timestamp = Math.floor(new Date().getTime() / 1000);
+    const hashInput = timestamp + " " + sapisid + " " + origin;
+    const hashDigest = crypto.createHash("sha1").update(hashInput).digest("hex");
     return `SAPISIDHASH ${timestamp}_${hashDigest}`;
 }
 
 const generateApiRequestHeaders = function (credentials) {
-    var origin = "https://www.youtube.com";
+    const origin = "https://www.youtube.com";
 
     return {
         "Cookie": `SAPISID=${credentials.sapiSid}; __Secure-3PAPISID=${credentials.sapiSid}; __Secure-3PSID=${credentials.pSid};`,
@@ -96,11 +96,11 @@ const generateApiRequestHeaders = function (credentials) {
 
 const sendApiRequest = function (endpoint, clientParams, credentials, proxy) {
 
-    var url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}`;
-    var headers = generateApiRequestHeaders(credentials);
-    var data = generateApiRequestData(clientParams);
+    const url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}`;
+    const headers = generateApiRequestHeaders(credentials);
+    const data = generateApiRequestData(clientParams);
 
-    var axiosOptions = {
+    const axiosOptions = {
         method: "POST",
         url,
         headers,

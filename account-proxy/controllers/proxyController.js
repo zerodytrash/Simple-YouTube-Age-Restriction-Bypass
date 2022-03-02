@@ -7,8 +7,10 @@ const credentials = new YouTubeCredentials();
 const proxy = process.env.PROXY;
 
 async function handleProxyRequest(req, res, endpoint) {
+    const tsStart = new Date().getTime();
+
     try {
-        let clientParams = new YouTubeClientParams();
+        const clientParams = new YouTubeClientParams();
         clientParams.fromRequest(req);
         clientParams.validate();
 
@@ -20,16 +22,16 @@ async function handleProxyRequest(req, res, endpoint) {
             clientParams.clientVersion = '2.20220228.01.00';
         }
 
-        let youtubeResponse = await innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxy);
+        const youtubeResponse = await innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxy);
 
         if (typeof youtubeResponse.data !== 'object') {
             throw new Error('Invalid YouTube response received');
         }
 
-        let youtubeData = youtubeResponse.data;
-        let youtubeStatus = getYoutubeResponseStatus(youtubeResponse);
-        let youtubeGcrFlagSet = checkForGcrFlag(youtubeData);
-        let relevantData = extractAttributes(youtubeData,
+        const youtubeData = youtubeResponse.data;
+        const youtubeStatus = getYoutubeResponseStatus(youtubeResponse);
+        const youtubeGcrFlagSet = checkForGcrFlag(youtubeData);
+        const relevantData = extractAttributes(youtubeData,
             [
                 'playabilityStatus',
                 'videoDetails',
@@ -53,6 +55,10 @@ async function handleProxyRequest(req, res, endpoint) {
         console.error(endpoint, err.message);
         res.status(500).send({ errorMessage: err.message });
         stats.countResponse(endpoint, 'EXCEPTION');
+        stats.countException(endpoint, err.message);
+    } finally {
+        let latencyMs = new Date().getTime() - tsStart;
+        stats.countLatency(latencyMs);
     }
 }
 

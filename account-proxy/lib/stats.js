@@ -1,11 +1,18 @@
 const fs = require('fs');
 const statsFileName = 'stats.json';
 
+let initialized = false;
+
 let stats = {};
+
 let requestsLastMinute = 0;
 let requestsThisMinute = 0;
+
+let latencyMs = 0;
+let latencyMsSumUp = 0;
+let latencyRequestCount = 0;
+
 let playabilityHistory = [];
-let initialized = false;
 
 function init() {
     // Load stats from file
@@ -20,10 +27,16 @@ function init() {
         } catch (err) { }
     }, 10 * 60 * 1000)
 
-    // Reset request count every minute
+
     setInterval(() => {
+        // Reset request count every minute
         requestsLastMinute = requestsThisMinute;
         requestsThisMinute = 0;
+
+        // Calc latency every minute
+        latencyMs = latencyRequestCount > 0 ? (latencyMsSumUp / latencyRequestCount) : 0;
+        latencyMsSumUp = 0;
+        latencyRequestCount = 0;
     }, 60 * 1000)
 
     initialized = true;
@@ -34,7 +47,7 @@ function getTodayKey() {
 }
 
 function countDayMetric(metric, key) {
-    let day = getTodayKey();
+    const day = getTodayKey();
 
     if (!stats.days) stats.days = {};
     if (!stats.days[day]) stats.days[day] = {};
@@ -70,7 +83,7 @@ function countRequest(reason, clientName, country, origin) {
 function countResponse(endpoint, status, containsGcrFlag) {
     if (!initialized) return;
 
-    let key = `${endpoint.toUpperCase()}:${status}`;
+    const key = `${endpoint.toUpperCase()}:${status}`;
     countDayMetric('responseResults', key);
 
     if (typeof containsGcrFlag === 'boolean') {
@@ -83,6 +96,20 @@ function countResponse(endpoint, status, containsGcrFlag) {
     }
 }
 
+function countException(endpoint, message) {
+    if (!initialized) return;
+
+    const key = `${endpoint.toUpperCase()}:${message}`;
+    countDayMetric('exceptions', key);
+}
+
+function countLatency(milliSecs) {
+    if (!initialized) return;
+
+    latencyMsSumUp += milliSecs;
+    latencyRequestCount += 1;
+}
+
 function getRequestsPerMinute() {
     return requestsLastMinute;
 }
@@ -93,9 +120,10 @@ function getHistoricalStats() {
 
 function getTodayStats() {
     return {
+        latencyMs: Math.round(latencyMs),
         requestsPerMinute: getRequestsPerMinute(),
         ...(stats.days?.[getTodayKey()] || {}),
-        playerResultsHistory: playabilityHistory
+        playabilityHistory
     };
 }
 
@@ -103,6 +131,8 @@ module.exports = {
     init,
     countRequest,
     countResponse,
+    countException,
+    countLatency,
     getRequestsPerMinute,
     getHistoricalStats,
     getTodayStats
