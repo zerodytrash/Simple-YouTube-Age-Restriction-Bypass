@@ -3,7 +3,7 @@ import * as innertube from './innertubeClient';
 import * as logger from '../utils/logger';
 import * as proxy from './proxy';
 import Toast from './toast';
-import { isEmbed, createDeepCopy } from '../utils';
+import { isEmbed, createDeepCopy, getCurrentVideoStartTime } from '../utils';
 
 const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
@@ -19,7 +19,7 @@ function getPlayerUnlockStrategies(playerResponse) {
     const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = innertube.getSignatureTimestamp();
-    const startTimeSecs = new URLSearchParams(window.location.search).get('t')?.replace('s', '');
+    const startTimeSecs = getCurrentVideoStartTime(videoId);
     const hl = innertube.getYtcfgValue('HL');
 
     return [
@@ -32,7 +32,7 @@ function getPlayerUnlockStrategies(playerResponse) {
             payload: {
                 context: {
                     client: {
-                        clientName,
+                        clientName: clientName.replace('_EMBEDDED_PLAYER', ''),
                         clientVersion,
                         clientScreen: 'EMBED',
                         hl,
@@ -48,6 +48,8 @@ function getPlayerUnlockStrategies(playerResponse) {
                 },
                 videoId,
                 startTimeSecs,
+                racyCheckOk: true,
+                contentCheckOk: true,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -56,6 +58,7 @@ function getPlayerUnlockStrategies(playerResponse) {
         {
             name: 'Embedded Player',
             requiresAuth: false,
+            skip: clientName === 'WEB_EMBEDDED_PLAYER',
             payload: {
                 context: {
                     client: {
@@ -75,6 +78,8 @@ function getPlayerUnlockStrategies(playerResponse) {
                 },
                 videoId,
                 startTimeSecs,
+                racyCheckOk: true,
+                contentCheckOk: true,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -98,6 +103,8 @@ function getPlayerUnlockStrategies(playerResponse) {
                 },
                 videoId,
                 startTimeSecs,
+                racyCheckOk: true,
+                contentCheckOk: true,
             },
             getPlayer: innertube.getPlayer,
         },
@@ -173,6 +180,9 @@ function getUnlockedPlayerResponse(playerResponse) {
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
+        // Skip if flag set
+        if (strategy.skip) return true;
+
         // Skip strategy if authentication is required and the user is not logged in
         if (strategy.requiresAuth && !innertube.isUserLoggedIn()) return true;
 

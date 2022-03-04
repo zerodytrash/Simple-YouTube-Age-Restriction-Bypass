@@ -182,3 +182,20 @@ export function pageLoaded() {
 export function createDeepCopy(obj) {
     return nativeJSONParse(JSON.stringify(obj));
 }
+
+export function getCurrentVideoStartTime(currentVideoId) {
+    // Check if the URL does not corresponds to the requested video
+    // This can happen when the player gets preloaded for the next video.
+    if (document.location.href.includes(currentVideoId)) {
+        // "t"-param on youtu.be urls
+        // "start"-param on embed player
+        const urlParams = new URLSearchParams(window.location.search);
+        const startTimeString = (urlParams.get('t') || urlParams.get('start'))?.replace('s', '');
+
+        if (startTimeString && !isNaN(startTimeString)) {
+            return parseInt(startTimeString);
+        }
+    }
+
+    return 0;
+}
