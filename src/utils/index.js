@@ -2,7 +2,7 @@ import { nativeJSONParse } from './natives';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
 export const isMusic = window.location.host === 'music.youtube.com';
-export const isEmbed = location.pathname.indexOf('/embed/') === 0;
+export const isEmbed = window.location.pathname.indexOf('/embed/') === 0;
 
 export class Deferred {
     constructor() {
@@ -186,7 +186,7 @@ export function createDeepCopy(obj) {
 export function getCurrentVideoStartTime(currentVideoId) {
     // Check if the URL does not corresponds to the requested video
     // This can happen when the player gets preloaded for the next video.
-    if (document.location.href.includes(currentVideoId)) {
+    if (window.location.href.includes(currentVideoId)) {
         // "t"-param on youtu.be urls
         // "start"-param on embed player
         const urlParams = new URLSearchParams(window.location.search);
@@ -198,4 +198,31 @@ export function getCurrentVideoStartTime(currentVideoId) {
     }
 
     return 0;
+}
+
+export function setUrlParam(paramName, paramValue) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set(paramName, paramValue);
+    window.location.search = urlParams;
+}
+
+export function waitForElement(elementSelector, timeout) {
+    const deferred = new Deferred();
+
+    const checkDomInterval = setInterval(() => {
+        const elem = document.querySelector(elementSelector);
+        if (elem) {
+            clearInterval(checkDomInterval);
+            deferred.resolve(elem);
+        }
+    }, 100);
+
+    if (timeout) {
+        setTimeout(() => {
+            clearInterval(checkDomInterval);
+            deferred.reject();
+        }, timeout);
+    }
+
+    return deferred;
 }

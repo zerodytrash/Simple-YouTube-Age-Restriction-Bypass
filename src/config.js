@@ -2,6 +2,9 @@
 export const UNLOCKABLE_PLAYABILITY_STATUSES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
 export const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 
+// User needs to confirm the unlock process on embedded player?
+export const ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
+
 // Show notification?
 export const ENABLE_UNLOCK_NOTIFICATION = true;
 

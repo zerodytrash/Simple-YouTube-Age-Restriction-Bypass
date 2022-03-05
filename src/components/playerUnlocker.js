@@ -4,6 +4,7 @@ import * as logger from '../utils/logger';
 import * as proxy from './proxy';
 import Toast from './toast';
 import { isEmbed, createDeepCopy, getCurrentVideoStartTime } from '../utils';
+import { isConfirmationRequired, requestConfirmation } from './confirmation';
 
 const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
@@ -133,6 +134,12 @@ export function getLastProxiedGoogleVideoId() {
 }
 
 export function unlockPlayerResponse(playerResponse) {
+    // Check if the user has to confirm the unlock first
+    if (isConfirmationRequired()) {
+        requestConfirmation();
+        return playerResponse;
+    }
+
     const unlockedPlayerResponse = getUnlockedPlayerResponse(playerResponse);
 
     // account proxy error?
