@@ -16,7 +16,7 @@ try {
 }
 
 function processYtData(ytData) {
-    tryFeatureUnlock(() => {
+    try {
         // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
             playerUnlocker.unlockPlayerResponse(ytData);
@@ -25,9 +25,11 @@ function processYtData(ytData) {
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
             playerUnlocker.unlockPlayerResponse(ytData);
         }
-    }, 'Video unlock failed');
+    } catch (err) {
+        logger.error(err, 'Video unlock failed');
+    }
 
-    tryFeatureUnlock(() => {
+    try {
         // Unlock sidebar watch next feed (sidebar) and video description
         if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
             sidebarUnlocker.unlockNextResponse(ytData);
@@ -37,24 +39,20 @@ function processYtData(ytData) {
         if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
             sidebarUnlocker.unlockNextResponse(ytData.response);
         }
-    }, 'Sidebar unlock failed');
+    } catch (err) {
+        logger.error(err, 'Sidebar unlock failed');
+    }
 
-    tryFeatureUnlock(() => {
+    try {
         // Unlock blurry video thumbnails in search results
         if (inspector.isSearchResult(ytData)) {
             thumbnailFix.processThumbnails(ytData);
         }
-    }, 'Thumbnail unlock failed');
+    } catch (err) {
+        logger.error(err, 'Thumbnail unlock failed');
+    }
 
     return ytData;
-}
-
-function tryFeatureUnlock(fn, errorMsg) {
-    try {
-        fn();
-    } catch (err) {
-        logger.error(err, errorMsg);
-    }
 }
 
 function onXhrOpenCalled(xhr, method, url) {
