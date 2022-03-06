@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.4.3
+// @version         2.4.4
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -40,6 +40,9 @@
   const UNLOCKABLE_PLAYABILITY_STATUSES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
   const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 
+  // User needs to confirm the unlock process on embedded player?
+  const ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
+
   // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
   const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
@@ -64,7 +67,8 @@
 
   const isDesktop = window.location.host !== 'm.youtube.com';
   const isMusic = window.location.host === 'music.youtube.com';
-  const isEmbed = location.pathname.indexOf('/embed/') === 0;
+  const isEmbed = window.location.pathname.indexOf('/embed/') === 0;
+  const isConfirmed = window.location.search.includes('unlock_confirmed');
 
   class Deferred {
     constructor() {
@@ -110,6 +114,67 @@
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  function pageLoaded() {
+    if (document.readyState === 'complete') return Promise.resolve();
+
+    const deferred = new Deferred();
+
+    window.addEventListener('load', deferred.resolve, { once: true });
+
+    return deferred;
+  }
+
+  function createDeepCopy(obj) {
+    return nativeJSONParse(JSON.stringify(obj));
+  }
+
+  function getCurrentVideoStartTime(currentVideoId) {
+    // Check if the URL corresponds to the requested video
+    // This is not the case when the player gets preloaded for the next video in a playlist.
+    if (window.location.href.includes(currentVideoId)) {var _ref;
+      // "t"-param on youtu.be urls
+      // "start"-param on embed player
+      // "time_continue" when clicking "watch on youtube" on embedded player
+      const urlParams = new URLSearchParams(window.location.search);
+      const startTimeString = (_ref = urlParams.get('t') || urlParams.get('start') || urlParams.get('time_continue')) === null || _ref === void 0 ? void 0 : _ref.replace('s', '');
+
+      if (startTimeString && !isNaN(startTimeString)) {
+        return parseInt(startTimeString);
+      }
+    }
+
+    return 0;
+  }
+
+  function setUrlParams(params) {
+    const urlParams = new URLSearchParams(window.location.search);
+    for (paramName in params) {
+      urlParams.set(paramName, params[paramName]);
+    }
+    window.location.search = urlParams;
+  }
+
+  function waitForElement(elementSelector, timeout) {
+    const deferred = new Deferred();
+
+    const checkDomInterval = setInterval(() => {
+      const elem = document.querySelector(elementSelector);
+      if (elem) {
+        clearInterval(checkDomInterval);
+        deferred.resolve(elem);
+      }
+    }, 100);
+
+    if (timeout) {
+      setTimeout(() => {
+        clearInterval(checkDomInterval);
+        deferred.reject();
+      }, timeout);
+    }
+
+    return deferred;
   }
 
   // Source: https://coursesweb.net/javascript/sha1-encrypt-data_cs
@@ -231,22 +296,8 @@
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
   }
 
-  function pageLoaded() {
-    if (document.readyState === 'complete') return Promise.resolve();
-
-    const deferred = new Deferred();
-
-    window.addEventListener('load', deferred.resolve, { once: true });
-
-    return deferred;
-  }
-
-  function createDeepCopy(obj) {
-    return nativeJSONParse(JSON.stringify(obj));
-  }
-
-  function getYtcfgValue(value) {var _window$ytcfg;
-    return (_window$ytcfg = window.ytcfg) === null || _window$ytcfg === void 0 ? void 0 : _window$ytcfg.get(value);
+  function getYtcfgValue(name) {var _window$ytcfg;
+    return (_window$ytcfg = window.ytcfg) === null || _window$ytcfg === void 0 ? void 0 : _window$ytcfg.get(name);
   }
 
   function isUserLoggedIn() {
@@ -335,20 +386,32 @@
     }
   }
 
-  function interceptObject(proto, prop, onSet) {
-    Object.defineProperty(proto, prop, {
-      set: function (value) {
-        this['__' + prop] = isObject(value) ? onSet(this, value) : value;
+  function interceptObjectProperty(prop, onSet) {var _Object$getOwnPropert;
+    // Allow other userscripts to decorate this descriptor, if they do something similar
+    const dataKey = '__SYARB_' + prop;
+    const { get: getter, set: setter } = (_Object$getOwnPropert = Object.getOwnPropertyDescriptor(Object.prototype, prop)) !== null && _Object$getOwnPropert !== void 0 ? _Object$getOwnPropert : {
+      set(value) {
+        this[dataKey] = value;
       },
-      get: function () {
-        return this['__' + prop];
+      get() {
+        return this[dataKey];
+      } };
+
+
+    // Intercept the property on any object
+    Object.defineProperty(Object.prototype, prop, {
+      set(value) {
+        setter.call(this, isObject(value) ? onSet(this, value) : value);
+      },
+      get() {
+        return getter.call(this);
       },
       configurable: true });
 
   }
 
   function attachInitialDataInterceptor(onInitialData) {
-    interceptObject(Object.prototype, 'playerResponse', (obj, playerResponse) => {
+    interceptObjectProperty('playerResponse', (obj, playerResponse) => {
       info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 
       // The same object also contains the sidebar data and video description
@@ -502,6 +565,7 @@
   }
 
   async function show(message) {let duration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
+    if (isEmbed) return;
 
     await pageLoaded();
 
@@ -517,6 +581,59 @@
 
   var Toast = { show };
 
+  var buttonTemplate = "<div style=\"margin-top: 15px !important; padding: 3px 10px 3px 10px; margin: 0px auto; background-color: #4d4d4d; width: fit-content; font-size: 1.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer;\">\r\n    <div class=\"button-text\"></div>\r\n</div>";
+
+  let buttons = {};
+
+  async function addButton(id, text, backgroundColor, onClick) {
+    const errorScreenElement = await waitForElement('.ytp-error', 2000);
+    const buttonElement = createElement('div', { class: 'button-container', innerHTML: buttonTemplate });
+    buttonElement.getElementsByClassName('button-text')[0].innerText = text;
+
+    if (backgroundColor) {
+      buttonElement.querySelector(':scope > div').style['background-color'] = backgroundColor;
+    }
+
+    if (typeof onClick === 'function') {
+      buttonElement.addEventListener('click', onClick);
+    }
+
+    // Button already attached?
+    if (buttons[id] && buttons[id].isConnected) {
+      return;
+    }
+
+    buttons[id] = buttonElement;
+    errorScreenElement.append(buttonElement);
+  }
+
+  function removeButton(id) {
+    if (buttons[id] && buttons[id].isConnected) {
+      buttons[id].remove();
+    }
+  }
+
+  const confirmationButtonId = 'confirmButton';
+  const confirmationButtonText = 'Click to unlock';
+
+  function isConfirmationRequired() {
+    return !isConfirmed && isEmbed && ENABLE_UNLOCK_CONFIRMATION_EMBED;
+  }
+
+  function requestConfirmation() {
+    addButton(confirmationButtonId, confirmationButtonText, null, () => {
+      removeButton(confirmationButtonId);
+      confirm();
+    });
+  }
+
+  function confirm() {
+    setUrlParams({
+      unlock_confirmed: 1,
+      autoplay: 1 });
+
+  }
+
   const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
     fail: 'Unable to unlock this video 🙁 - More information in the developer console' };
@@ -531,6 +648,8 @@
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = getSignatureTimestamp();
+    const startTimeSecs = getCurrentVideoStartTime(videoId);
+    const hl = getYtcfgValue('HL');
 
     return [
     // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
@@ -542,9 +661,10 @@
       payload: {
         context: {
           client: {
-            clientName,
+            clientName: clientName.replace('_EMBEDDED_PLAYER', ''),
             clientVersion,
-            clientScreen: 'EMBED' },
+            clientScreen: 'EMBED',
+            hl },
 
           thirdParty: {
             embedUrl: 'https://www.youtube.com/' } },
@@ -555,7 +675,10 @@
             signatureTimestamp } },
 
 
-        videoId },
+        videoId,
+        startTimeSecs,
+        racyCheckOk: true,
+        contentCheckOk: true },
 
       getPlayer: getPlayer$1 },
 
@@ -564,12 +687,14 @@
     {
       name: 'Embedded Player',
       requiresAuth: false,
+      skip: clientName === 'WEB_EMBEDDED_PLAYER',
       payload: {
         context: {
           client: {
             clientName: 'WEB_EMBEDDED_PLAYER',
             clientVersion: '1.20220220.00.00',
-            clientScreen: 'EMBED' },
+            clientScreen: 'EMBED',
+            hl },
 
           thirdParty: {
             embedUrl: 'https://www.youtube.com/' } },
@@ -580,7 +705,10 @@
             signatureTimestamp } },
 
 
-        videoId },
+        videoId,
+        startTimeSecs,
+        racyCheckOk: true,
+        contentCheckOk: true },
 
       getPlayer: getPlayer$1 },
 
@@ -594,9 +722,7 @@
           client: {
             clientName: 'WEB_CREATOR',
             clientVersion: '1.20210909.07.00',
-            thirdParty: {
-              embedUrl: 'https://www.youtube.com/' } } },
-
+            hl } },
 
 
         playbackContext: {
@@ -604,7 +730,10 @@
             signatureTimestamp } },
 
 
-        videoId },
+        videoId,
+        startTimeSecs,
+        racyCheckOk: true,
+        contentCheckOk: true },
 
       getPlayer: getPlayer$1 },
 
@@ -619,7 +748,10 @@
         clientName,
         clientVersion,
         signatureTimestamp,
-        isEmbed: +isEmbed },
+        startTimeSecs,
+        hl,
+        isEmbed: +isEmbed,
+        isConfirmed: +isConfirmed },
 
       getPlayer: getPlayer }];
 
@@ -631,6 +763,13 @@
   }
 
   function unlockPlayerResponse(playerResponse) {var _unlockedPlayerRespon, _unlockedPlayerRespon3;
+    // Check if the user has to confirm the unlock first
+    if (isConfirmationRequired()) {
+      info('Unlock confirmation required.');
+      requestConfirmation();
+      return playerResponse;
+    }
+
     const unlockedPlayerResponse = getUnlockedPlayerResponse(playerResponse);
 
     // account proxy error?
@@ -678,6 +817,9 @@
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {var _unlockedPlayerRespon6, _unlockedPlayerRespon7;
+      // Skip if flag set
+      if (strategy.skip) return true;
+
       // Skip strategy if authentication is required and the user is not logged in
       if (strategy.requiresAuth && !isUserLoggedIn()) return true;
 
@@ -700,6 +842,7 @@
     const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+    const hl = getYtcfgValue('HL');
 
     return [
     // Strategy 1: Retrieve the sidebar and video description by using a age-gate bypass for the innertube API
@@ -711,7 +854,8 @@
           client: {
             clientName,
             clientVersion,
-            clientScreen: 'EMBED' },
+            clientScreen: 'EMBED',
+            hl },
 
           thirdParty: {
             embedUrl: 'https://www.youtube.com/' } },
@@ -729,7 +873,9 @@
         videoId,
         clientName,
         clientVersion,
-        isEmbed: +isEmbed },
+        hl,
+        isEmbed: +isEmbed,
+        isConfirmed: +isConfirmed },
 
       getNext: getNext }];
 
@@ -833,7 +979,7 @@
   }
 
   function processYtData(ytData) {
-    tryFeatureUnlock(() => {
+    try {
       // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
       if (isPlayerObject(ytData) && isAgeRestricted(ytData.playabilityStatus)) {
         unlockPlayerResponse(ytData);
@@ -842,9 +988,11 @@
       else if (isEmbeddedPlayerObject(ytData) && isAgeRestricted(ytData.previewPlayabilityStatus)) {
         unlockPlayerResponse(ytData);
       }
-    }, 'Video unlock failed');
+    } catch (err) {
+      error(err, 'Video unlock failed');
+    }
 
-    tryFeatureUnlock(() => {
+    try {
       // Unlock sidebar watch next feed (sidebar) and video description
       if (isWatchNextObject(ytData) && isWatchNextSidebarEmpty(ytData)) {
         unlockNextResponse(ytData);
@@ -854,24 +1002,20 @@
       if (isWatchNextObject(ytData.response) && isWatchNextSidebarEmpty(ytData.response)) {
         unlockNextResponse(ytData.response);
       }
-    }, 'Sidebar unlock failed');
+    } catch (err) {
+      error(err, 'Sidebar unlock failed');
+    }
 
-    tryFeatureUnlock(() => {
+    try {
       // Unlock blurry video thumbnails in search results
       if (isSearchResult(ytData)) {
         processThumbnails(ytData);
       }
-    }, 'Thumbnail unlock failed');
+    } catch (err) {
+      error(err, 'Thumbnail unlock failed');
+    }
 
     return ytData;
-  }
-
-  function tryFeatureUnlock(fn, errorMsg) {
-    try {
-      fn();
-    } catch (err) {
-      error(err, errorMsg);
-    }
   }
 
   function onXhrOpenCalled(xhr, method, url) {
