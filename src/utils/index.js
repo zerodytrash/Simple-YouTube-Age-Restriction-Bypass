@@ -71,8 +71,9 @@ export function getCurrentVideoStartTime(currentVideoId) {
     if (window.location.href.includes(currentVideoId)) {
         // "t"-param on youtu.be urls
         // "start"-param on embed player
+        // "time_continue" when clicking "watch on youtube" on embedded player
         const urlParams = new URLSearchParams(window.location.search);
-        const startTimeString = (urlParams.get('t') || urlParams.get('start'))?.replace('s', '');
+        const startTimeString = (urlParams.get('t') || urlParams.get('start') || urlParams.get('time_continue'))?.replace('s', '');
 
         if (startTimeString && !isNaN(startTimeString)) {
             return parseInt(startTimeString);
