@@ -1,14 +1,12 @@
-import { isEmbed, setUrlParam } from '../utils';
+import { isEmbed, isConfirmed, setUrlParams } from '../utils';
 import { addButton, removeButton } from './errorScreen';
 import * as Config from '../config';
 
-const confirmationParamName = 'unlock_confirmed';
 const confirmationButtonId = 'confirmButton';
 const confirmationButtonText = 'Click to unlock';
 
 export function isConfirmationRequired() {
-    if (isConfirmed()) return false;
-    return isEmbed && Config.ENABLE_UNLOCK_CONFIRMATION_EMBED;
+    return !isConfirmed && isEmbed && Config.ENABLE_UNLOCK_CONFIRMATION_EMBED;
 }
 
 export function requestConfirmation() {
@@ -18,10 +16,9 @@ export function requestConfirmation() {
     });
 }
 
-function isConfirmed() {
-    return window.location.search.includes(confirmationParamName);
-}
-
 function confirm() {
-    setUrlParam(confirmationParamName, '1');
+    setUrlParams({
+        unlock_confirmed: 1,
+        autoplay: 1,
+    });
 }
