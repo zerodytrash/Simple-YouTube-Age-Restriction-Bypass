@@ -2,19 +2,20 @@ import { isObject, createDeepCopy } from '../utils';
 import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
 import * as logger from '../utils/logger';
 
-function interceptObject(proto, prop, onSet) {
-    // Allow other userscripts to decorate this descriptor, if they do something similar to this as well
-    const symbol = Symbol.for('SYARB' + prop);
-    const { get: getter, set: setter } = Object.getOwnPropertyDescriptor(proto, prop) ?? {
+function interceptObjectProperty(prop, onSet) {
+    // Allow other userscripts to decorate this descriptor, if they do something similar
+    const dataKey = '__SYARB_' + prop;
+    const { get: getter, set: setter } = Object.getOwnPropertyDescriptor(Object.prototype, prop) ?? {
         set(value) {
-            this[symbol] = value;
+            this[dataKey] = value;
         },
         get() {
-            return this[symbol];
+            return this[dataKey];
         },
     };
 
-    Object.defineProperty(proto, prop, {
+    // Intercept the property on any object
+    Object.defineProperty(Object.prototype, prop, {
         set(value) {
             setter.call(this, isObject(value) ? onSet(this, value) : value);
         },
@@ -26,7 +27,7 @@ function interceptObject(proto, prop, onSet) {
 }
 
 export function attachInitialDataInterceptor(onInitialData) {
-    interceptObject(Object.prototype, 'playerResponse', (obj, playerResponse) => {
+    interceptObjectProperty('playerResponse', (obj, playerResponse) => {
         logger.info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 
         // The same object also contains the sidebar data and video description
