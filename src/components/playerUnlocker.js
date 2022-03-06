@@ -137,6 +137,7 @@ export function getLastProxiedGoogleVideoId() {
 export function unlockPlayerResponse(playerResponse) {
     // Check if the user has to confirm the unlock first
     if (isConfirmationRequired()) {
+        logger.info('Unlock confirmation required.');
         requestConfirmation();
         return playerResponse;
     }
