@@ -1,5 +1,6 @@
 import { nativeJSONParse } from '../utils/natives';
-import * as utils from '../utils';
+import { generateSha1Hash } from '../utils/sha1';
+import { getCookie } from '../utils';
 
 export function getYtcfgValue(name) {
     return window.ytcfg?.get(name);
@@ -54,13 +55,13 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
 }
 
 function getSidCookie() {
-    return utils.getCookie('SAPISID') || utils.getCookie('__Secure-3PAPISID');
+    return getCookie('SAPISID') || getCookie('__Secure-3PAPISID');
 }
 
 function generateSidBasedAuth() {
     const sid = getSidCookie();
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const input = timestamp + ' ' + sid + ' ' + location.origin;
-    const hash = utils.generateSha1Hash(input);
+    const hash = generateSha1Hash(input);
     return `SAPISIDHASH ${timestamp}_${hash}`;
 }
