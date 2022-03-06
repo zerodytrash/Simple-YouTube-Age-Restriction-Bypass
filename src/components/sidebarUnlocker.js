@@ -2,7 +2,7 @@ import * as innertube from './innertubeClient';
 import * as inspector from './inspector';
 import * as logger from '../utils/logger';
 import * as proxy from './proxy';
-import { isDesktop, isEmbed, createDeepCopy } from '../utils';
+import { isDesktop, isEmbed, isConfirmed, createDeepCopy } from '../utils';
 
 let cachedNextResponse = {};
 
@@ -43,6 +43,7 @@ function getNextUnlockStrategies(nextResponse) {
                 clientVersion,
                 hl,
                 isEmbed: +isEmbed,
+                isConfirmed: +isConfirmed,
             },
             getNext: proxy.getNext,
         },

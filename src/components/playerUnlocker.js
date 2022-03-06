@@ -3,7 +3,7 @@ import * as innertube from './innertubeClient';
 import * as logger from '../utils/logger';
 import * as proxy from './proxy';
 import Toast from './toast';
-import { isEmbed, createDeepCopy, getCurrentVideoStartTime } from '../utils';
+import { isEmbed, isConfirmed, createDeepCopy, getCurrentVideoStartTime } from '../utils';
 import { isConfirmationRequired, requestConfirmation } from './confirmation';
 
 const messagesMap = {
@@ -123,6 +123,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                 startTimeSecs,
                 hl,
                 isEmbed: +isEmbed,
+                isConfirmed: +isConfirmed,
             },
             getPlayer: proxy.getPlayer,
         },
