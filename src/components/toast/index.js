@@ -1,4 +1,4 @@
-import { isDesktop, isMusic, pageLoaded, createElement } from '../../utils';
+import { isDesktop, isMusic, isEmbed, pageLoaded, createElement } from '../../utils';
 import * as Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
@@ -27,6 +27,7 @@ if (!isDesktop) {
 
 async function show(message, duration = 5) {
     if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
+    if (isEmbed) return;
 
     await pageLoaded();
 
