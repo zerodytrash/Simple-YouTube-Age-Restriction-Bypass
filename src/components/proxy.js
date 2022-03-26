@@ -8,7 +8,7 @@ export function getGoogleVideoUrl(originalUrl) {
 
 export function sendRequest(endpoint, payload) {
     const queryParams = new URLSearchParams(payload);
-    const proxyUrl = `${Config.ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}`;
+    const proxyUrl = `${Config.ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}&client=js`;
 
     try {
         const xmlhttp = new XMLHttpRequest();
