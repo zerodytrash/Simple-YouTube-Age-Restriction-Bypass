@@ -158,7 +158,7 @@ function getUnlockedPlayerResponse(playerResponse) {
 
     const unlockStrategies = getPlayerUnlockStrategies(playerResponse);
 
-    let unlockedPlayerResponse;
+    let unlockedPlayerResponse = {};
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
@@ -170,7 +170,11 @@ function getUnlockedPlayerResponse(playerResponse) {
 
         logger.info(`Trying Player Unlock Method #${index + 1} (${strategy.name})`);
 
-        unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
+        try {
+            unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
+        } catch (err) {
+            logger.error(err, `Player Unlock Method ${index + 1} failed with exception`);
+        }
 
         return !Config.VALID_PLAYABILITY_STATUSES.includes(unlockedPlayerResponse?.playabilityStatus?.status);
     });

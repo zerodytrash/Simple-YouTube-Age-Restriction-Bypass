@@ -22,7 +22,7 @@ export function sendRequest(endpoint, payload) {
 
         return proxyResponse;
     } catch (err) {
-        logger.error(err);
+        logger.error(err, 'Proxy API Error');
         return { errorMessage: 'Proxy Connection failed' };
     }
 }

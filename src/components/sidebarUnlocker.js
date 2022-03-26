@@ -55,13 +55,17 @@ function getUnlockedNextResponse(nextResponse) {
 
     const unlockStrategies = getNextUnlockStrategies(nextResponse);
 
-    let unlockedNextResponse;
+    let unlockedNextResponse = {};
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
         logger.info(`Trying Sidebar Unlock Method #${index + 1} (${strategy.name})`);
 
-        unlockedNextResponse = strategy.getNext(strategy.payload);
+        try {
+            unlockedNextResponse = strategy.getNext(strategy.payload);
+        } catch (err) {
+            logger.error(err, `Sidebar Unlock Method ${index + 1} failed with exception`);
+        }
 
         return inspector.isWatchNextSidebarEmpty(unlockedNextResponse);
     });
