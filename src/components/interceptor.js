@@ -55,7 +55,7 @@ export function attachXhrOpenInterceptor(onXhrOpenCalled) {
             const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
 
             if (typeof modifiedUrl === 'string') {
-                url = modifiedUrl;
+                arguments[1] = modifiedUrl;
             }
         }
 
