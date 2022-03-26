@@ -85,7 +85,7 @@ export function getCurrentVideoStartTime(currentVideoId) {
 
 export function setUrlParams(params) {
     const urlParams = new URLSearchParams(window.location.search);
-    for (paramName in params) {
+    for (const paramName in params) {
         urlParams.set(paramName, params[paramName]);
     }
     window.location.search = urlParams;

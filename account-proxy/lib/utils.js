@@ -27,7 +27,7 @@ function validateObjectAttributes(obj) {
 function extractAttributes(obj, attributesArray) {
     let newObj = {};
 
-    for (i in attributesArray) {
+    for (let i in attributesArray) {
         let attr = attributesArray[i];
         if (obj[attr]) {
             newObj[attr] = obj[attr];
