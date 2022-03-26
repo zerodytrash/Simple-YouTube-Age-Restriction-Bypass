@@ -24,38 +24,9 @@ function getPlayerUnlockStrategies(playerResponse) {
     const hl = innertube.getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
-        // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-        // 2022-02-24: No longer works properly. Sporadic error messages. YouTube seems to fix this.
-        {
-            name: 'Client Screen Embed',
-            requiresAuth: false,
-            payload: {
-                context: {
-                    client: {
-                        clientName: clientName.replace('_EMBEDDED_PLAYER', ''),
-                        clientVersion,
-                        clientScreen: 'EMBED',
-                        hl,
-                    },
-                    thirdParty: {
-                        embedUrl: 'https://www.youtube.com/',
-                    },
-                },
-                playbackContext: {
-                    contentPlaybackContext: {
-                        signatureTimestamp,
-                    },
-                },
-                videoId,
-                startTimeSecs,
-                racyCheckOk: true,
-                contentCheckOk: true,
-            },
-            getPlayer: innertube.getPlayer,
-        },
-        // Strategy 2: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
-        // Only usable to bypass login restrictions on a handful of low restricted videos.
+        // Strategy 1: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
+        // Only usable to bypass login restrictions on a handful of low restricted videos (Tier 1).
+        // See https://github.com/yt-dlp/yt-dlp/pull/575#issuecomment-888837000
         {
             name: 'Embedded Player',
             requiresAuth: false,
@@ -84,7 +55,8 @@ function getPlayerUnlockStrategies(playerResponse) {
             },
             getPlayer: innertube.getPlayer,
         },
-        // Strategy 3: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+        // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+        // Requires that the user is logged in. Can bypass the tightened age verification in the EU.
         // See https://github.com/yt-dlp/yt-dlp/pull/600
         {
             name: 'Creator + Auth',
@@ -109,7 +81,8 @@ function getPlayerUnlockStrategies(playerResponse) {
             },
             getPlayer: innertube.getPlayer,
         },
-        // Strategy 4: Retrieve the video info from an account proxy server.
+        // Strategy 3: Retrieve the video info from an account proxy server.
+        // Session cookies of an age-verified Google account are stored on server side.
         // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
         {
             name: 'Account Proxy',

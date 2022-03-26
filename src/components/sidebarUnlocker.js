@@ -13,27 +13,8 @@ function getNextUnlockStrategies(nextResponse) {
     const hl = innertube.getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the sidebar and video description by using a age-gate bypass for the innertube API
-        // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-        {
-            name: 'Embed',
-            payload: {
-                context: {
-                    client: {
-                        clientName,
-                        clientVersion,
-                        clientScreen: 'EMBED',
-                        hl,
-                    },
-                    thirdParty: {
-                        embedUrl: 'https://www.youtube.com/',
-                    },
-                },
-                videoId,
-            },
-            getNext: innertube.getNext,
-        },
-        // Strategy 2: Retrieve the sidebar and video description from an account proxy server.
+        // Strategy 1: Retrieve the sidebar and video description from an account proxy server.
+        // Session cookies of an age-verified Google account are stored on server side.
         // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
         {
             name: 'Account Proxy',
