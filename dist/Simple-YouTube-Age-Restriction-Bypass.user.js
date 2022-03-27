@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.4.4
+// @version         2.4.5
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -150,7 +150,7 @@
 
   function setUrlParams(params) {
     const urlParams = new URLSearchParams(window.location.search);
-    for (paramName in params) {
+    for (const paramName in params) {
       urlParams.set(paramName, params[paramName]);
     }
     window.location.search = urlParams;
@@ -187,7 +187,7 @@
       var str = '';
       var i;
       var v;
-      for (i = 7; i >= 0; i--) {
+      for (var i = 7; i >= 0; i--) {
         v = val >>> i * 4 & 0x0f;
         str += v.toString(16);
       }
@@ -224,7 +224,7 @@
     msg = Utf8Encode(msg);
     var msg_len = msg.length;
     var word_array = new Array();
-    for (i = 0; i < msg_len - 3; i += 4) {
+    for (var i = 0; i < msg_len - 3; i += 4) {
       j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
       word_array.push(j);
     }
@@ -246,15 +246,15 @@
     while (word_array.length % 16 != 14) word_array.push(0);
     word_array.push(msg_len >>> 29);
     word_array.push(msg_len << 3 & 0x0ffffffff);
-    for (blockstart = 0; blockstart < word_array.length; blockstart += 16) {
-      for (i = 0; i < 16; i++) W[i] = word_array[blockstart + i];
-      for (i = 16; i <= 79; i++) W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+    for (var blockstart = 0; blockstart < word_array.length; blockstart += 16) {
+      for (var i = 0; i < 16; i++) W[i] = word_array[blockstart + i];
+      for (var i = 16; i <= 79; i++) W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
       A = H0;
       B = H1;
       C = H2;
       D = H3;
       E = H4;
-      for (i = 0; i <= 19; i++) {
+      for (var i = 0; i <= 19; i++) {
         temp = rotate_left(A, 5) + (B & C | ~B & D) + E + W[i] + 0x5a827999 & 0x0ffffffff;
         E = D;
         D = C;
@@ -262,7 +262,7 @@
         B = A;
         A = temp;
       }
-      for (i = 20; i <= 39; i++) {
+      for (var i = 20; i <= 39; i++) {
         temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ed9eba1 & 0x0ffffffff;
         E = D;
         D = C;
@@ -270,7 +270,7 @@
         B = A;
         A = temp;
       }
-      for (i = 40; i <= 59; i++) {
+      for (var i = 40; i <= 59; i++) {
         temp = rotate_left(A, 5) + (B & C | B & D | C & D) + E + W[i] + 0x8f1bbcdc & 0x0ffffffff;
         E = D;
         D = C;
@@ -278,7 +278,7 @@
         B = A;
         A = temp;
       }
-      for (i = 60; i <= 79; i++) {
+      for (var i = 60; i <= 79; i++) {
         temp = rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xca62c1d6 & 0x0ffffffff;
         E = D;
         D = C;
@@ -313,10 +313,6 @@
 
   function getPlayer$1(payload, requiresAuth) {
     return sendInnertubeRequest('v1/player', payload, requiresAuth);
-  }
-
-  function getNext$1(payload) {
-    return sendInnertubeRequest('v1/next', payload, false);
   }
 
   function getSignatureTimestamp() {
@@ -398,7 +394,8 @@
       } };
 
 
-    // Intercept the property on any object
+    // Intercept the given property on any object
+    // The assigned attribute value and the context (enclosing object) are passed to the onSet function.
     Object.defineProperty(Object.prototype, prop, {
       set(value) {
         setter.call(this, isObject(value) ? onSet(this, value) : value);
@@ -411,6 +408,12 @@
   }
 
   function attachInitialDataInterceptor(onInitialData) {
+    // And here we deal with YouTube's crappy initial data (present in page source) and the problems that occur when intercepting that data.
+    // YouTube has some protections in place that make it difficult to intercept and modify the global ytInitialPlayerResponse variable.
+    // The easiest way would be to set a descriptor on that variable to change the value directly on declaration.
+    // But some adblockers define their own descriptors on the ytInitialPlayerResponse variable, which makes it hard to register another descriptor on it.
+    // As a workaround only the relevant playerResponse property of the ytInitialPlayerResponse variable will be intercepted.
+    // This is achieved by defining a descriptor on the object prototype for that property, which affects any object with a `playerResponse` property.
     interceptObjectProperty('playerResponse', (obj, playerResponse) => {
       info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 
@@ -419,9 +422,19 @@
 
       // If the script is executed too late and the bootstrap data has already been processed,
       // a reload of the player can be forced by creating a deep copy of the object.
+      // This is especially relevant if the userscript manager does not handle the `@run-at document-start` correctly.
       playerResponse.unlocked = false;
       onInitialData(playerResponse);
       return playerResponse.unlocked ? createDeepCopy(playerResponse) : playerResponse;
+    });
+
+    // The global `ytInitialData` variable can be modified on the fly.
+    // It contains search results, sidebar data and meta information
+    // Not really important but fixes https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/127
+    window.addEventListener('DOMContentLoaded', () => {
+      if (isObject(window.ytInitialData)) {
+        onInitialData(window.ytInitialData);
+      }
     });
   }
 
@@ -439,7 +452,7 @@
         const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
 
         if (typeof modifiedUrl === 'string') {
-          url = modifiedUrl;
+          arguments[1] = modifiedUrl;
         }
       }
 
@@ -512,7 +525,7 @@
 
   function sendRequest(endpoint, payload) {
     const queryParams = new URLSearchParams(payload);
-    const proxyUrl = `${ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}`;
+    const proxyUrl = `${ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}&client=js`;
 
     try {
       const xmlhttp = new XMLHttpRequest();
@@ -526,7 +539,7 @@
 
       return proxyResponse;
     } catch (err) {
-      error(err);
+      error(err, 'Proxy API Error');
       return { errorMessage: 'Proxy Connection failed' };
     }
   }
@@ -652,38 +665,9 @@
     const hl = getYtcfgValue('HL');
 
     return [
-    // Strategy 1: Retrieve the video info by using a age-gate bypass for the innertube API
-    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-    // 2022-02-24: No longer works properly. Sporadic error messages. YouTube seems to fix this.
-    {
-      name: 'Client Screen Embed',
-      requiresAuth: false,
-      payload: {
-        context: {
-          client: {
-            clientName: clientName.replace('_EMBEDDED_PLAYER', ''),
-            clientVersion,
-            clientScreen: 'EMBED',
-            hl },
-
-          thirdParty: {
-            embedUrl: 'https://www.youtube.com/' } },
-
-
-        playbackContext: {
-          contentPlaybackContext: {
-            signatureTimestamp } },
-
-
-        videoId,
-        startTimeSecs,
-        racyCheckOk: true,
-        contentCheckOk: true },
-
-      getPlayer: getPlayer$1 },
-
-    // Strategy 2: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
-    // Only usable to bypass login restrictions on a handful of low restricted videos.
+    // Strategy 1: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
+    // Only usable to bypass login restrictions on a handful of low restricted videos (Tier 1).
+    // See https://github.com/yt-dlp/yt-dlp/pull/575#issuecomment-888837000
     {
       name: 'Embedded Player',
       requiresAuth: false,
@@ -712,7 +696,8 @@
 
       getPlayer: getPlayer$1 },
 
-    // Strategy 3: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+    // Requires that the user is logged in. Can bypass the tightened age verification in the EU.
     // See https://github.com/yt-dlp/yt-dlp/pull/600
     {
       name: 'Creator + Auth',
@@ -737,7 +722,8 @@
 
       getPlayer: getPlayer$1 },
 
-    // Strategy 4: Retrieve the video info from an account proxy server.
+    // Strategy 3: Retrieve the video info from an account proxy server.
+    // Session cookies of an age-verified Google account are stored on server side.
     // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     {
       name: 'Account Proxy',
@@ -813,7 +799,7 @@
 
     const unlockStrategies = getPlayerUnlockStrategies(playerResponse);
 
-    let unlockedPlayerResponse;
+    let unlockedPlayerResponse = {};
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {var _unlockedPlayerRespon6, _unlockedPlayerRespon7;
@@ -825,7 +811,11 @@
 
       info(`Trying Player Unlock Method #${index + 1} (${strategy.name})`);
 
-      unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
+      try {
+        unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
+      } catch (err) {
+        error(err, `Player Unlock Method ${index + 1} failed with exception`);
+      }
 
       return !VALID_PLAYABILITY_STATUSES.includes((_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0 ? void 0 : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0 ? void 0 : _unlockedPlayerRespon7.status);
     });
@@ -845,27 +835,8 @@
     const hl = getYtcfgValue('HL');
 
     return [
-    // Strategy 1: Retrieve the sidebar and video description by using a age-gate bypass for the innertube API
-    // Source: https://github.com/yt-dlp/yt-dlp/issues/574#issuecomment-887171136
-    {
-      name: 'Embed',
-      payload: {
-        context: {
-          client: {
-            clientName,
-            clientVersion,
-            clientScreen: 'EMBED',
-            hl },
-
-          thirdParty: {
-            embedUrl: 'https://www.youtube.com/' } },
-
-
-        videoId },
-
-      getNext: getNext$1 },
-
-    // Strategy 2: Retrieve the sidebar and video description from an account proxy server.
+    // Strategy 1: Retrieve the sidebar and video description from an account proxy server.
+    // Session cookies of an age-verified Google account are stored on server side.
     // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     {
       name: 'Account Proxy',
@@ -906,13 +877,17 @@
 
     const unlockStrategies = getNextUnlockStrategies(nextResponse);
 
-    let unlockedNextResponse;
+    let unlockedNextResponse = {};
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
       info(`Trying Sidebar Unlock Method #${index + 1} (${strategy.name})`);
 
-      unlockedNextResponse = strategy.getNext(strategy.payload);
+      try {
+        unlockedNextResponse = strategy.getNext(strategy.payload);
+      } catch (err) {
+        error(err, `Sidebar Unlock Method ${index + 1} failed with exception`);
+      }
 
       return isWatchNextSidebarEmpty(unlockedNextResponse);
     });
