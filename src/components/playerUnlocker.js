@@ -24,19 +24,18 @@ function getPlayerUnlockStrategies(playerResponse) {
     const hl = innertube.getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
-        // Only usable to bypass login restrictions on a handful of low restricted videos (Tier 1).
-        // See https://github.com/yt-dlp/yt-dlp/pull/575#issuecomment-888837000
+        // Strategy 1: Retrieve the video info by using the TVHTML5 Embed client
+        // This client has no age restrictions in place (2022-03-28)
+        // See https://github.com/zerodytrash/YouTube-Internal-Clients
         {
-            name: 'Embedded Player',
+            name: 'TV Embed Player',
             requiresAuth: false,
-            skip: clientName === 'WEB_EMBEDDED_PLAYER',
             payload: {
                 context: {
                     client: {
-                        clientName: 'WEB_EMBEDDED_PLAYER',
-                        clientVersion: '1.20220220.00.00',
-                        clientScreen: 'EMBED',
+                        clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+                        clientVersion: '2.0',
+                        clientScreen: 'WATCH',
                         hl,
                     },
                     thirdParty: {
