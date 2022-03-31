@@ -5,7 +5,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.4.5
+// @version         2.4.6
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -43,8 +43,9 @@
   // User needs to confirm the unlock process on embedded player?
   const ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 
-  // The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
+  // These are the proxy servers that are sometimes required to unlock videos with age restrictions.
   // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+  // To learn what information is transferred, please read: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#privacy
   const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
   const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
 
@@ -665,19 +666,18 @@
     const hl = getYtcfgValue('HL');
 
     return [
-    // Strategy 1: Retrieve the video info by using the WEB_EMBEDDED_PLAYER client
-    // Only usable to bypass login restrictions on a handful of low restricted videos (Tier 1).
-    // See https://github.com/yt-dlp/yt-dlp/pull/575#issuecomment-888837000
+    // Strategy 1: Retrieve the video info by using the TVHTML5 Embedded client
+    // This client has no age restrictions in place (2022-03-28)
+    // See https://github.com/zerodytrash/YouTube-Internal-Clients
     {
-      name: 'Embedded Player',
+      name: 'TV Embedded Player',
       requiresAuth: false,
-      skip: clientName === 'WEB_EMBEDDED_PLAYER',
       payload: {
         context: {
           client: {
-            clientName: 'WEB_EMBEDDED_PLAYER',
-            clientVersion: '1.20220220.00.00',
-            clientScreen: 'EMBED',
+            clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER',
+            clientVersion: '2.0',
+            clientScreen: 'WATCH',
             hl },
 
           thirdParty: {
