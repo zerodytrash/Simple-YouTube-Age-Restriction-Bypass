@@ -29,7 +29,7 @@
 
 ## How it works
 
-This extension uses some API tricks to retrieve age-restricted videos from YouTube anonymously. As a fallback (in case the API bypass methods does not work) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos on **YouTube** and **YouTube Music** without age verification and without the need to be signed in.
+This extension uses some API tricks to retrieve age-restricted videos from YouTube anonymously. As a fallback (in case that the API bypass methods does not work) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos on **YouTube** and **YouTube Music** without age verification and without the need to be signed in.
 
 All videos will be unlocked automatically!
 
@@ -82,7 +82,7 @@ No further actions are necessary. All age restricted videos are automatically un
 
 In order to unlock some video information, requests are handled through a proxy server. On the server side, the request will be authenticated with the credentials of an age-verified account at YouTube. The source code of the proxy server can be found [here](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy).
 
-**No credentials are sent from your YouTube account! The only info that the proxy server receives from you is the Video-ID and some non-user related information like the version of the YouTube website.** The used proxy server at `youtube-proxy.zerody.one` **does not** log IP-Adresses nor Video-IDs. If you have set a different proxy server instance, then the operator's log policies apply.
+**No credentials are sent from your YouTube account! The only info that the proxy server receives from you is the Video-ID and some non-user related information like the version of the YouTube website.** The used proxy server at `youtube-proxy.zerody.one` **does not** log IP-Adresses or Video-IDs. If you have set a different proxy server instance, then the operator's log policies apply.
 
 To have an overview of the number of requests and possible problems, anonymous usage statistics are collected. These statistics are also not user-related and can be found [here](https://youtube-proxy.zerody.one/getStats).
 
