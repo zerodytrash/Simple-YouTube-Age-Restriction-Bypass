@@ -8,8 +8,9 @@ export const ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 // Show notification?
 export const ENABLE_UNLOCK_NOTIFICATION = true;
 
-// The following proxies are currently used as fallback if the innertube age-gate bypass doesn't work...
+// These are the proxy servers that are sometimes required to unlock videos with age restrictions.
 // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+// To learn what information is transferred, please read: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#privacy
 export const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
 export const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
 
