@@ -1,15 +1,17 @@
 <h1 align="center">Simple YouTube Age Restriction Bypass</h1>
 
 <div align="center">
+    <img height="80" src="https://raw.githubusercontent.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/main/src/extension/icon/icon_128.png"></img><br>
     <a href="#getting-started">Getting started</a> |
+    <a href="#privacy">Privacy</a> |
     <a href="#development">Development</a> |
     <a href="#contributors">Contributors</a>
     <br>
     <br>
-    <img src="https://user-images.githubusercontent.com/59258980/133007022-c12253c0-036c-49fe-8fce-42b62da14e8a.png" alt="Simple YouTube Age Restriction Bypass"/>
+    <img width="800" src="https://user-images.githubusercontent.com/59258980/133007022-c12253c0-036c-49fe-8fce-42b62da14e8a.png" alt="Simple YouTube Age Restriction Bypass"/>
     <br>
     <br>
-    A very simple to use userscript to bypass YouTube's age verification.
+    A very simple to use browser extension to bypass YouTube's age verification.
     <br>
     <br>
     <a href="#getting-started">
@@ -27,7 +29,7 @@
 
 ## How it works
 
-When a YouTube video is detected as age-restricted, this userscript will retrieve the video and all other information from YouTube's unrestricted ``/youtubei/v1/player`` endpoint. As a fallback (for some non-embeddable videos) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos on YouTube and YouTube Music without age verification and without the need to be signed in.
+This extension uses some API tricks to retrieve age-restricted videos from YouTube anonymously. As a fallback (in case the API bypass methods does not work) an open source [Account Proxy Server](/account-proxy) is used. This allows you to watch all types of age-restricted videos on **YouTube** and **YouTube Music** without age verification and without the need to be signed in.
 
 All videos will be unlocked automatically!
 
@@ -54,7 +56,7 @@ The **Age Restriction Bypass for Youtube™** extension is currently available f
 
 #### Userscript
 
-1. Install a [Userscript Manager](https://en.wikipedia.org/wiki/Userscript_manager) of your choice. We recommend [Tampermonkey](https://www.tampermonkey.net/).
+1. Install a [Userscript Manager](https://en.wikipedia.org/wiki/Userscript_manager) of your choice. We recommend [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/).
     > - [Tampermonkey for Chrome](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)<br>
     > - [Tampermonkey for Firefox](https://addons.mozilla.org/en/firefox/addon/tampermonkey/)<br>
     > - [Tampermonkey for Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta/)<br>
@@ -75,6 +77,16 @@ Alternative mirrors:
 ### Usage
 
 No further actions are necessary. All age restricted videos are automatically unlocked. Make sure you reload YouTube after installation.
+
+## Privacy
+
+In order to unlock some video information, requests are handled through a proxy server. On the server side, the request will be authenticated with the credentials of an age-verified account at YouTube. The source code of the proxy server can be found [here](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy).
+
+**No credentials are sent from your YouTube account! The only info that the proxy server receives from you is the Video-ID and some non-user related information like the version of the YouTube website.** The used proxy server at `youtube-proxy.zerody.one` **does not** log IP-Adresses nor Video-IDs. If you have set a different proxy server instance, then the operator's log policies apply.
+
+To have an overview of the number of requests and possible problems, anonymous usage statistics are collected. These statistics are also not user-related and can be found [here](https://youtube-proxy.zerody.one/getStats).
+
+For some videos it is necessary to route the video data files (hosted at `googlevideo.com`) through a proxy server as well. The third-party service [4everproxy.com](https://www.4everproxy.com/) is used for this. You can read the privacy policy [here](https://www.4everproxy.com/privacy).
 
 ## Compatibility
 
