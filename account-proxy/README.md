@@ -8,7 +8,7 @@ This is the account proxy server to access age-restricted videos via an age-veri
 ### Installation
 1. Restore dependencies with `npm install`
 2. Create the `.env` configuration (see below) and paste the required cookies from your YouTube account.
-3. If your account is not age-verified and you don't have an IP from the USA, you might need to usa an http(s) proxy located in that region.
+3. If your account is not age-verified and you don't have an IP from the USA, you might need to use an http(s) proxy located in that region.
 4. Start the server with `node server.js`
 
 ``.env`` configuration:
