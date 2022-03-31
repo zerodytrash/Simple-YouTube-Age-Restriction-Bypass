@@ -24,11 +24,11 @@ function getPlayerUnlockStrategies(playerResponse) {
     const hl = innertube.getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the video info by using the TVHTML5 Embed client
+        // Strategy 1: Retrieve the video info by using the TVHTML5 Embedded client
         // This client has no age restrictions in place (2022-03-28)
         // See https://github.com/zerodytrash/YouTube-Internal-Clients
         {
-            name: 'TV Embed Player',
+            name: 'TV Embedded Player',
             requiresAuth: false,
             payload: {
                 context: {
