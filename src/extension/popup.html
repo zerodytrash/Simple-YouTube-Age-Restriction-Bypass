@@ -2,50 +2,173 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Multi Page Menu -->
+    <link rel="stylesheet" href="multi-page-menu.css">
+    <script type="module" src="multi-page-menu.js"></script>
+
+    <script defer src="popup.js"></script>
+
     <style>
-        body, a {
-            color: #e8eaed;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
         }
 
         body {
-            width: 270px;
-            text-align: center;
             background-color: #202124;
+            font-family: Segoe UI, system-ui, -apple-system, sans-serif;
+            font-size: 0.8em;
+            color: #e8eaed;
+            margin: 0;
         }
 
-        /* Firefox does not use the default UI font for extension popups */
-        @-moz-document url-prefix() { 
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                font-size: 0.8em;
-            }
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
-        .logo {
-            height: 55px;
+        button {
+            user-select: none;
+            background: none;
+            border: none;
+            font-family: inherit;
+            color: inherit;
+            cursor: pointer;
         }
 
-        h1 {
+        svg {
+            fill: currentColor;
+        }
+
+        #header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            margin: 0 -4px 12px -4px;
+            text-align: center;
+        }
+
+        #header #logo {
+            background-image: url(./icon_128.png);
+            background-size: 100%;
+            height: 28px;
+            aspect-ratio: 1;
+            margin-right: 8px;
+        }
+
+        #header #title {
+            font-size: 1rem;
+            font-weight: 600;
             margin-top: 5px;
             margin-bottom: 10px;
         }
 
-        .footer {
-            margin-top: 10px;
-            margin-bottom: 20px;
+        #header #meta {
+            color: #b1b1b1;
+        }
+
+        .switch {
+            --height: 26px;
+            --width: 50px;
+            --padding: 3px;
+            position: relative;
+            display: inline-block;
+            height: var(--height);
+            width: var(--width);
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .switch .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            padding: var(--padding);
+            background-color: #cacad0;
+            border-radius: 99rem;
+            transition: background .4s;
+        }
+
+        .switch .slider:before {
+            content: "";
+            display: block;
+            height: 100%;
+            aspect-ratio: 1;
+            background-color: #fff;
+            border-radius: 50%;
+            transition: transform .4s;
+        }
+
+        .switch input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(calc(var(--width) - var(--height)));
         }
     </style>
 </head>
 <body>
-    <img src="./icon_128.png" class="logo" />
-    <h1>Age Restriction Bypass for YouTube™</h1>
-    <div>Version %version%</div>
-
-    <div class="footer">
-        <a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/" target="_blank">Visit project on GitHub</a>
-    </div>  
+    <div id="multi-page-menu">
+        <div class="page" data-id="main" active>
+            <div id="header">
+                <div id="logo"></div>
+                <h1 id="title">Age Restriction Bypass for YouTube™</h1>
+                <div id="meta">Version %version%</div>
+            </div>
+            <button class="menu-item button" data-link="settings">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><rect fill="none" height="24" width="24"/><path d="M19.5,12c0-0.23-0.01-0.45-0.03-0.68l1.86-1.41c0.4-0.3,0.51-0.86,0.26-1.3l-1.87-3.23c-0.25-0.44-0.79-0.62-1.25-0.42 l-2.15,0.91c-0.37-0.26-0.76-0.49-1.17-0.68l-0.29-2.31C14.8,2.38,14.37,2,13.87,2h-3.73C9.63,2,9.2,2.38,9.14,2.88L8.85,5.19 c-0.41,0.19-0.8,0.42-1.17,0.68L5.53,4.96c-0.46-0.2-1-0.02-1.25,0.42L2.41,8.62c-0.25,0.44-0.14,0.99,0.26,1.3l1.86,1.41 C4.51,11.55,4.5,11.77,4.5,12s0.01,0.45,0.03,0.68l-1.86,1.41c-0.4,0.3-0.51,0.86-0.26,1.3l1.87,3.23c0.25,0.44,0.79,0.62,1.25,0.42 l2.15-0.91c0.37,0.26,0.76,0.49,1.17,0.68l0.29,2.31C9.2,21.62,9.63,22,10.13,22h3.73c0.5,0,0.93-0.38,0.99-0.88l0.29-2.31 c0.41-0.19,0.8-0.42,1.17-0.68l2.15,0.91c0.46,0.2,1,0.02,1.25-0.42l1.87-3.23c0.25-0.44,0.14-0.99-0.26-1.3l-1.86-1.41 C19.49,12.45,19.5,12.23,19.5,12z M12.04,15.5c-1.93,0-3.5-1.57-3.5-3.5s1.57-3.5,3.5-3.5s3.5,1.57,3.5,3.5S13.97,15.5,12.04,15.5z"/></svg>
+                </div>
+                <span>Settings</span>
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9.29 6.71c-.39.39-.39 1.02 0 1.41L13.17 12l-3.88 3.88c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l4.59-4.59c.39-.39.39-1.02 0-1.41L10.7 6.7c-.38-.38-1.02-.38-1.41.01z"/></svg>
+                </div>
+            </button>
+            <a class="menu-item button" href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/" target="_blank">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                </div>
+                <span>GitHub</span>
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M18 19H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h5c.55 0 1-.45 1-1s-.45-1-1-1H5c-1.11 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-6c0-.55-.45-1-1-1s-1 .45-1 1v5c0 .55-.45 1-1 1zM14 4c0 .55.45 1 1 1h2.59l-9.13 9.13c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L19 6.41V9c0 .55.45 1 1 1s1-.45 1-1V4c0-.55-.45-1-1-1h-5c-.55 0-1 .45-1 1z"/></svg>
+                </div>
+            </a>
+        </div>
+        <div class="page" data-id="settings">
+            <div class="header menu-item">
+                <button class="icon" data-link="main">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg>
+                </button>
+                <span>Settings</span>
+            </div>
+            <label class="menu-item button">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29c-.63.63-.19 1.71.7 1.71h13.17c.89 0 1.34-1.08.71-1.71L18 16z"/></svg>
+                </div>
+                <span>Unlock Notification</span>
+                <label class="switch">
+                    <input type="checkbox" name="unlockNotification">
+                    <span class="slider"></span>
+                </label>
+            </label>
+            <label class="menu-item button">
+                <span>Unlock Confirmation (embed)</span>
+                <label class="switch">
+                    <input type="checkbox" name="unlockConfirmation">
+                    <span class="slider"></span>
+                </label>
+            </label>
+            <button id="reset" class="menu-item button danger">
+                <span>Reset to defaults</span>
+            </button>
+        </div>
+    </div>
 </body>
 </html>

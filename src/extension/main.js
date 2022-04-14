@@ -6,4 +6,29 @@ function injectScript() {
     nScript.remove();
 }
 
+function initStorage() {
+    window.addEventListener(
+        'SYARB_INIT',
+        () => {
+            chrome.storage.sync.get('options', ({ options }) => {
+                window.dispatchEvent(
+                    new CustomEvent('SYARB_CONFIG_INIT', {
+                        detail: options,
+                    })
+                );
+            });
+        },
+        { once: true }
+    );
+
+    chrome.storage.onChanged.addListener((changes) => {
+        window.dispatchEvent(
+            new CustomEvent('SYARB_CONFIG_CHANGE', {
+                detail: changes.options.newValue,
+            })
+        );
+    });
+}
+
+initStorage();
 injectScript();

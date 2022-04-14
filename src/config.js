@@ -2,12 +2,6 @@
 export const UNLOCKABLE_PLAYABILITY_STATUSES = ['AGE_VERIFICATION_REQUIRED', 'AGE_CHECK_REQUIRED', 'LOGIN_REQUIRED'];
 export const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 
-// User needs to confirm the unlock process on embedded player?
-export const ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
-
-// Show notification?
-export const ENABLE_UNLOCK_NOTIFICATION = true;
-
 // These are the proxy servers that are sometimes required to unlock videos with age restrictions.
 // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
 // To learn what information is transferred, please read: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#privacy
@@ -26,3 +20,27 @@ export const THUMBNAIL_BLURRED_SQPS = [
     '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile 320x180
     '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
 ];
+
+// User needs to confirm the unlock process on embedded player?
+export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
+
+// Show notification?
+export let ENABLE_UNLOCK_NOTIFICATION = true;
+
+function applyConfig({ detail: options }) {
+    for (const option in options) {
+        switch (option) {
+            case 'unlockNotification':
+                ENABLE_UNLOCK_NOTIFICATION = options[option];
+                break;
+            case 'unlockConfirmation':
+                ENABLE_UNLOCK_CONFIRMATION_EMBED = options[option];
+                break;
+        }
+    }
+}
+
+window.addEventListener('SYARB_CONFIG_INIT', applyConfig, { once: true });
+window.addEventListener('SYARB_CONFIG_CHANGE', applyConfig);
+
+window.dispatchEvent(new CustomEvent('SYARB_INIT'));
