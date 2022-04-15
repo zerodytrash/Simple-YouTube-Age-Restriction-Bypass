@@ -2,33 +2,30 @@ import { createElement } from '../utils/index.js';
 
 function injectScript() {
     const nScript = createElement('script', { src: chrome.runtime.getURL('injected.js') });
-    document.documentElement.append(nScript);
-    nScript.remove();
-}
 
-function initStorage() {
-    window.addEventListener(
-        'SYARB_INIT',
-        () => {
-            chrome.storage.sync.get('options', ({ options }) => {
-                window.dispatchEvent(
-                    new CustomEvent('SYARB_CONFIG_INIT', {
-                        detail: options,
-                    })
-                );
-            });
-        },
-        { once: true }
-    );
+    chrome.storage.sync.get('options', ({ options }) => {
+        nScript.setAttribute('isExtension', true);
+        nScript.setAttribute('initialConfig', JSON.stringify(options || {}));
 
-    chrome.storage.onChanged.addListener((changes) => {
-        window.dispatchEvent(
-            new CustomEvent('SYARB_CONFIG_CHANGE', {
-                detail: changes.options.newValue,
-            })
-        );
+        document.documentElement.append(nScript);
+        nScript.remove();
     });
 }
 
-initStorage();
+function updateConfig(changes) {
+    // Firefox specific
+    if (typeof cloneInto === 'function') {
+        changes = cloneInto(changes, document.defaultView);
+    }
+
+    // Tell the script the new configuration
+    window.dispatchEvent(
+        new CustomEvent('SYARB_CONFIG_CHANGE', {
+            detail: changes.options.newValue,
+        })
+    );
+}
+
+chrome.storage.onChanged.addListener(updateConfig);
+
 injectScript();

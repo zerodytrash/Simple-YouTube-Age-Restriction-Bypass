@@ -27,20 +27,27 @@ export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 // Show notification?
 export let ENABLE_UNLOCK_NOTIFICATION = true;
 
-function applyConfig({ detail: options }) {
-    for (const option in options) {
-        switch (option) {
-            case 'unlockNotification':
-                ENABLE_UNLOCK_NOTIFICATION = options[option];
-                break;
-            case 'unlockConfirmation':
-                ENABLE_UNLOCK_CONFIRMATION_EMBED = options[option];
-                break;
+// If the injection is done through the browser extension, this flag is set.
+// This allows the extension to override the settings that can be set via the extension popup.
+export const IS_EXTENSION = !!document.currentScript?.getAttribute('isExtension');
+
+if (IS_EXTENSION) {
+    function applyConfig(options) {
+        for (const option in options) {
+            switch (option) {
+                case 'unlockNotification':
+                    ENABLE_UNLOCK_NOTIFICATION = options[option];
+                    break;
+                case 'unlockConfirmation':
+                    ENABLE_UNLOCK_CONFIRMATION_EMBED = options[option];
+                    break;
+            }
         }
     }
+
+    // The initial extension configuration is located in an attribute of the script element
+    applyConfig(JSON.parse(document.currentScript?.getAttribute('initialConfig') || '{}'));
+
+    // Listen for config changes
+    window.addEventListener('SYARB_CONFIG_CHANGE', (e) => applyConfig(e.detail));
 }
-
-window.addEventListener('SYARB_CONFIG_INIT', applyConfig, { once: true });
-window.addEventListener('SYARB_CONFIG_CHANGE', applyConfig);
-
-window.dispatchEvent(new CustomEvent('SYARB_INIT'));
