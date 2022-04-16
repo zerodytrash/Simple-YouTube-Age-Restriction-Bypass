@@ -16,17 +16,21 @@
         }
     ],
     "web_accessible_resources": ["injected.js"],
-    "icons": { 
+    "icons": {
         "16": "icon_16.png",
         "48": "icon_48.png",
-       "128": "icon_128.png" 
+       "128": "icon_128.png"
     },
     "browser_action": {
         "default_popup": "popup.html"
     },
     "browser_specific_settings": {
         "gecko": {
-            "id": "simple-youtube-age-restriction-bypass@zerody.one"
+            "id": "simple-youtube-age-restriction-bypass@zerody.one",
+            "strict_min_version": "89.0"
         }
-    }
+    },
+    "permissions": [
+        "storage"
+    ]
 }
