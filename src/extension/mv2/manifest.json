@@ -26,7 +26,8 @@
     },
     "browser_specific_settings": {
         "gecko": {
-            "id": "simple-youtube-age-restriction-bypass@zerody.one"
+            "id": "simple-youtube-age-restriction-bypass@zerody.one",
+            "strict_min_version": "89.0"
         }
     },
     "permissions": [

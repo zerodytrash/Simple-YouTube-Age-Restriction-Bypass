@@ -33,5 +33,6 @@
     },
     "permissions": [
         "storage"
-    ]
+    ],
+    "minimum_chrome_version": "88"
 }
