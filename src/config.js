@@ -8,6 +8,12 @@ export const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 export const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
 export const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
 
+// User needs to confirm the unlock process on embedded player?
+export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
+
+// Show notification?
+export let ENABLE_UNLOCK_NOTIFICATION = true;
+
 // Whether a thumbnail is blurred can be detected by the following "sqp" parameter values in the thumbnail URL.
 // Seems to be base64 encoded protobuf objects, see https://stackoverflow.com/a/51203860
 export const THUMBNAIL_BLURRED_SQPS = [
@@ -21,17 +27,9 @@ export const THUMBNAIL_BLURRED_SQPS = [
     '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
 ];
 
-// User needs to confirm the unlock process on embedded player?
-export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
-
-// Show notification?
-export let ENABLE_UNLOCK_NOTIFICATION = true;
-
-// If the injection is done through the browser extension, this flag is set.
+// If the injection is done through the browser extension, this window property is set.
 // This allows the extension to override the settings that can be set via the extension popup.
-export const IS_EXTENSION = !!document.currentScript.dataset.isExtension;
-
-if (IS_EXTENSION) {
+if (window.SYARB_CONFIG) {
     function applyConfig(options) {
         for (const option in options) {
             switch (option) {
@@ -45,8 +43,8 @@ if (IS_EXTENSION) {
         }
     }
 
-    // The initial extension configuration is located in an attribute of the script element
-    applyConfig(JSON.parse(document.currentScript.dataset.initialConfig || '{}'));
+    // Apply initial extension configuration
+    applyConfig(window.SYARB_CONFIG);
 
     // Listen for config changes
     window.addEventListener('SYARB_CONFIG_CHANGE', (e) => applyConfig(e.detail));

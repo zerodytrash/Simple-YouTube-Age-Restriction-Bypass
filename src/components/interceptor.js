@@ -69,7 +69,7 @@ export function attachJsonInterceptor(onJsonDataReceived) {
 export function attachXhrOpenInterceptor(onXhrOpenCalled) {
     XMLHttpRequest.prototype.open = function (method, url) {
         if (typeof url === 'string' && url.indexOf('https://') === 0) {
-            const modifiedUrl = onXhrOpenCalled(this, method, new URL(url));
+            const modifiedUrl = onXhrOpenCalled(this, method, new window.URL(url));
 
             if (typeof modifiedUrl === 'string') {
                 arguments[1] = modifiedUrl;
