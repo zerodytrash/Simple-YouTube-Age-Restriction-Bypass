@@ -4,8 +4,8 @@ function injectScript() {
     const nScript = createElement('script', { src: chrome.runtime.getURL('injected.js') });
 
     chrome.storage.sync.get('options', ({ options }) => {
-        nScript.setAttribute('isExtension', true);
-        nScript.setAttribute('initialConfig', JSON.stringify(options || {}));
+        nScript.dataset.isExtension = true;
+        nScript.dataset.initialConfig = JSON.stringify(options || {});
 
         document.documentElement.append(nScript);
         nScript.remove();

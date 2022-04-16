@@ -29,7 +29,7 @@ export let ENABLE_UNLOCK_NOTIFICATION = true;
 
 // If the injection is done through the browser extension, this flag is set.
 // This allows the extension to override the settings that can be set via the extension popup.
-export const IS_EXTENSION = !!document.currentScript?.getAttribute('isExtension');
+export const IS_EXTENSION = !!document.currentScript.dataset.isExtension;
 
 if (IS_EXTENSION) {
     function applyConfig(options) {
@@ -46,7 +46,7 @@ if (IS_EXTENSION) {
     }
 
     // The initial extension configuration is located in an attribute of the script element
-    applyConfig(JSON.parse(document.currentScript?.getAttribute('initialConfig') || '{}'));
+    applyConfig(JSON.parse(document.currentScript.dataset.initialConfig || '{}'));
 
     // Listen for config changes
     window.addEventListener('SYARB_CONFIG_CHANGE', (e) => applyConfig(e.detail));
