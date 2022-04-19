@@ -8,7 +8,9 @@
     },
     "content_scripts": [
         {
-            "js": ["main.js"],
+            "js": [
+                "main.js"
+            ],
             "run_at": "document_start",
             "all_frames": true,
             "matches": [
@@ -18,18 +20,22 @@
             ]
         }
     ],
-    "web_accessible_resources": [{
-        "resources": ["injected.js"],
-        "matches": [
-            "*://www.youtube.com/*",
-            "*://m.youtube.com/*",
-            "*://music.youtube.com/*"
-        ]
-    }],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "injected.js"
+            ],
+            "matches": [
+                "*://www.youtube.com/*",
+                "*://m.youtube.com/*",
+                "*://music.youtube.com/*"
+            ]
+        }
+    ],
     "icons": {
         "16": "icon_16.png",
         "48": "icon_48.png",
-       "128": "icon_128.png"
+        "128": "icon_128.png"
     },
     "action": {
         "default_popup": "popup.html",
@@ -39,8 +45,7 @@
         }
     },
     "permissions": [
-        "storage",
-        "declarativeContent"
+        "storage"
     ],
     "minimum_chrome_version": "88"
 }
