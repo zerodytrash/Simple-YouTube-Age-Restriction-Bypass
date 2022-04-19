@@ -11,7 +11,7 @@ function setTabIconActive(tabId) {
 chrome.runtime.onMessage.addListener((data, sender) => {
     switch (data.event) {
         case 'INIT':
-            setTabIconActive(sender.tab.id, true);
+            setTabIconActive(sender.tab.id);
             break;
     }
 });
