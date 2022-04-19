@@ -3,9 +3,16 @@
     "description": "Extension to bypass YouTube's age verification and watch age restricted videos without having to sign in.",
     "version": "%version%",
     "manifest_version": 2,
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
     "content_scripts": [
         {
-            "js": ["main.js"],
+            "js": [
+                "main.js"
+            ],
             "run_at": "document_start",
             "all_frames": true,
             "matches": [
@@ -15,14 +22,20 @@
             ]
         }
     ],
-    "web_accessible_resources": ["injected.js"],
+    "web_accessible_resources": [
+        "injected.js"
+    ],
     "icons": {
         "16": "icon_16.png",
         "48": "icon_48.png",
-       "128": "icon_128.png"
+        "128": "icon_128.png"
     },
     "browser_action": {
-        "default_popup": "popup.html"
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "gray_16.png",
+            "48": "gray_48.png"
+        }
     },
     "browser_specific_settings": {
         "gecko": {

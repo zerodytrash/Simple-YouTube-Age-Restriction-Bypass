@@ -58,10 +58,13 @@ function getRollupPluginsForManifestVersion(manifestVersion) {
     const outputDir = EXTENSION_OUTPUT_DIR + '/mv' + manifestVersion;
     return [
         copy({ src: `src/extension/mv${manifestVersion}/manifest.json`, dest: outputDir, transform: set_script_version }),
+        copy({ src: 'src/extension/background.js', dest: outputDir }),
         copy({ src: 'src/extension/popup.html', dest: outputDir, transform: set_script_version }),
         copy({ src: 'src/extension/popup.js', dest: outputDir }),
         copy({ src: 'src/extension/multi-page-menu.css', dest: outputDir }),
         copy({ src: 'src/extension/multi-page-menu.js', dest: outputDir }),
+        copy({ src: 'src/extension/icon/gray_16.png', dest: outputDir }),
+        copy({ src: 'src/extension/icon/gray_48.png', dest: outputDir }),
         copy({ src: 'src/extension/icon/icon_16.png', dest: outputDir }),
         copy({ src: 'src/extension/icon/icon_48.png', dest: outputDir }),
         copy({ src: 'src/extension/icon/icon_128.png', dest: outputDir }),

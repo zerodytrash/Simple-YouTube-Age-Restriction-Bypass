@@ -6,7 +6,7 @@ function getScriptContents(url) {
 }
 
 function injectScript() {
-    // Here we use some tricks to speed up the execution of the script
+    // Here we use some tricks to speed up the injection of the script
     // This seems to reduce the later access time if the settings are not in memory
     chrome.storage.sync.get('options', () => {});
 
@@ -41,6 +41,14 @@ function updateConfig(changes) {
     );
 }
 
-chrome.storage.onChanged.addListener(updateConfig);
+function init() {
+    injectScript();
 
-injectScript();
+    // Listen to config changes
+    chrome.storage.onChanged.addListener(updateConfig);
+
+    // Notify background.js
+    chrome.runtime.sendMessage({ event: 'INIT' });
+}
+
+init();
