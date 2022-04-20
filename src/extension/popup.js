@@ -35,4 +35,24 @@ function initSettings() {
     }
 }
 
-initSettings();
+function setDebugLog() {
+    chrome.runtime.sendMessage({ event: 'GET_LOG_ENTRIES' }, (logEntries) => {
+        let logText = '';
+        logEntries.reverse().forEach((entry) => {
+            logText += `${new Date(entry.ts).toTimeString().split(' ')[0]} [${entry.isError ? 'ERROR' : 'INFO'}] ${entry.message}`;
+            logText += entry.isError && entry.stack ? '\n' + entry.stack : '';
+            logText += '\n\n';
+        });
+        document.querySelector('#logarea').value = logText;
+    });
+}
+
+window.addEventListener('DOMContentLoaded', initSettings);
+
+window.addEventListener('pageChange', (e) => {
+    switch (e.detail.pageId) {
+        case 'debug':
+            setDebugLog();
+            break;
+    }
+});

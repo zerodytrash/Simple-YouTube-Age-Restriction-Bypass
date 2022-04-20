@@ -6,10 +6,29 @@ const logSuffix = '\uD83D\uDC1E You can report bugs at: https://github.com/zerod
 
 export function error(err, msg) {
     console.error(logPrefix, logPrefixStyle, msg, err, getYtcfgDebugString(), '\n\n', logSuffix);
+    if (window.SYARB_CONFIG) {
+        window.dispatchEvent(
+            new CustomEvent('SYARB_LOG_ERROR', {
+                detail: {
+                    message: (msg ? msg + ' ' : '') + (err && err.message ? err.message : ''),
+                    stack: err && err.stack ? err.stack : null,
+                },
+            })
+        );
+    }
 }
 
 export function info(msg) {
     console.info(logPrefix, logPrefixStyle, msg);
+    if (window.SYARB_CONFIG) {
+        window.dispatchEvent(
+            new CustomEvent('SYARB_LOG_INFO', {
+                detail: {
+                    message: msg,
+                },
+            })
+        );
+    }
 }
 
 export function getYtcfgDebugString() {

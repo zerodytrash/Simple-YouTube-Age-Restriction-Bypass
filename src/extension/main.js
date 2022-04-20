@@ -5,6 +5,14 @@ function getScriptContents(url) {
     return xmlhttp.responseText;
 }
 
+function logInfo(message) {
+    chrome.runtime.sendMessage({ event: 'SET_LOG_ENTRY', message, isError: false });
+}
+
+function logError(message, stack) {
+    chrome.runtime.sendMessage({ event: 'SET_LOG_ENTRY', message, isError: true, stack });
+}
+
 function injectScript() {
     // Here we use some tricks to speed up the injection of the script
     // This seems to reduce the later access time if the settings are not in memory
@@ -42,13 +50,23 @@ function updateConfig(changes) {
 }
 
 function init() {
-    injectScript();
+    try {
+        // Pipe log events to background.js
+        window.addEventListener('SYARB_LOG_INFO', (e) => logInfo(e.detail.message));
+        window.addEventListener('SYARB_LOG_ERROR', (e) => logError(e.detail.message, e.detail.stack));
 
-    // Listen to config changes
-    chrome.storage.onChanged.addListener(updateConfig);
+        injectScript();
 
-    // Notify background.js
-    chrome.runtime.sendMessage({ event: 'INIT' });
+        // Listen to config changes
+        chrome.storage.onChanged.addListener(updateConfig);
+
+        // Notify background.js
+        chrome.runtime.sendMessage({ event: 'INIT' });
+
+        logInfo(`Script injected (${location.href})`);
+    } catch (err) {
+        logError(err.message, err.stack);
+    }
 }
 
 init();

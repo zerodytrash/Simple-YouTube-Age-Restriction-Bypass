@@ -53,4 +53,12 @@ function transitionTo(event) {
     });
 
     nPageActive = nPage;
+
+    window.dispatchEvent(
+        new CustomEvent('pageChange', {
+            detail: {
+                pageId: selector,
+            },
+        })
+    );
 }
