@@ -10,7 +10,7 @@ export function error(err, msg) {
         window.dispatchEvent(
             new CustomEvent('SYARB_LOG_ERROR', {
                 detail: {
-                    message: (msg ? msg + ' ' : '') + (err && err.message ? err.message : ''),
+                    message: (msg ? msg + '; ' : '') + (err && err.message ? err.message : ''),
                     stack: err && err.stack ? err.stack : null,
                 },
             })
