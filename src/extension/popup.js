@@ -1,3 +1,6 @@
+const logArea = document.querySelector('#logArea');
+const githubIssueLink = document.querySelector('#githubIssueLink');
+
 function initSettings() {
     const nSettings = document.querySelector('[data-id="settings"]');
     const nReset = document.querySelector('#reset');
@@ -35,24 +38,56 @@ function initSettings() {
     }
 }
 
-function setDebugLog() {
-    chrome.runtime.sendMessage({ event: 'GET_LOG_ENTRIES' }, (logEntries) => {
-        let logText = '';
-        logEntries.reverse().forEach((entry) => {
-            logText += `${new Date(entry.ts).toTimeString().split(' ')[0]} [${entry.isError ? 'ERROR' : 'INFO'}] ${entry.message}`;
-            logText += entry.isError && entry.stack ? '\n' + entry.stack : '';
-            logText += '\n\n';
-        });
-        document.querySelector('#logarea').value = logText;
-    });
+function getLogEntries() {
+    return new Promise((resolve) => chrome.runtime.sendMessage({ event: 'GET_LOG_ENTRIES' }, resolve));
 }
 
-window.addEventListener('DOMContentLoaded', initSettings);
+function setDebugLog(logEntries) {
+    let logText = '';
+
+    logEntries.forEach((entry) => {
+        logText += `${new Date(entry.ts).toTimeString().split(' ')[0]} [${entry.isError ? 'ERROR' : 'INFO'}] ${entry.message}`;
+        logText += entry.isError && entry.stack ? '\n' + entry.stack.split('\n').slice(1, 2).join('\n') + '\n' : '';
+        logText += '\n';
+    });
+
+    // Set Text and scroll to bottom
+    logArea.value = logText;
+    logArea.scrollTop = logArea.scrollHeight;
+}
+
+function setErrorWarning(logEntries) {
+    const errorCount = logEntries.filter((x) => x.isError).length;
+    const nLabel = document.querySelector('#debugErrorWarning');
+
+    if (errorCount > 0) {
+        nLabel.innerText = `${errorCount} Errors`;
+    } else {
+        nLabel.innerText = '';
+    }
+}
 
 window.addEventListener('pageChange', (e) => {
     switch (e.detail.pageId) {
         case 'debug':
-            setDebugLog();
+            getLogEntries().then(setDebugLog);
             break;
     }
 });
+
+// Select all log text when click
+logArea.addEventListener('click', () => {
+    logArea.focus();
+    logArea.select();
+});
+
+githubIssueLink.addEventListener('click', () => {
+    // Add the last 30 log lines to the issue body
+    const template = '# Description\n[Please explain the problem/bug/behavior]\n\n# Log\n```\n' + logArea.value.split('\n').slice(-30).join('\n') + '\n```';
+    const issueUrl = 'https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/new?body=' + encodeURIComponent(template);
+
+    open(issueUrl, '_blank');
+});
+
+initSettings();
+getLogEntries().then(setErrorWarning);

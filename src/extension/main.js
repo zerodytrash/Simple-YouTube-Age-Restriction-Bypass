@@ -32,6 +32,8 @@ function injectScript() {
         // Fire event to execute the script
         nInjector.click();
         nInjector.remove();
+
+        logInfo(`Script injected (${location.href})`);
     });
 }
 
@@ -62,8 +64,6 @@ function init() {
 
         // Notify background.js
         chrome.runtime.sendMessage({ event: 'INIT' });
-
-        logInfo(`Script injected (${location.href})`);
     } catch (err) {
         logError(err.message, err.stack);
     }
