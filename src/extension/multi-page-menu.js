@@ -54,7 +54,7 @@ function transitionTo(event) {
 
     nPageActive = nPage;
 
-    window.dispatchEvent(
+    nMultiPageMenu.dispatchEvent(
         new CustomEvent('pageChange', {
             detail: {
                 pageId: selector,

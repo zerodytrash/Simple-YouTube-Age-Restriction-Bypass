@@ -1,9 +1,35 @@
-const logArea = document.querySelector('#logArea');
-const githubIssueLink = document.querySelector('#githubIssueLink');
+const nMultiPageMenu = document.querySelector('#multi-page-menu');
+const nLogArea = nMultiPageMenu.querySelector('#logArea');
+const nGithubIssueLink = nMultiPageMenu.querySelector('#githubIssueLink');
+
+nMultiPageMenu.addEventListener('pageChange', (e) => {
+    switch (e.detail.pageId) {
+        case 'debug':
+            initDebugLog();
+            break;
+    }
+});
+
+// Select all log text when click
+nLogArea.addEventListener('click', () => {
+    nLogArea.focus();
+    nLogArea.select();
+});
+
+nGithubIssueLink.addEventListener('click', () => {
+    // Add the last 30 log lines to the issue body
+    const template = '# Description\n[Please explain the problem/bug/behavior]\n\n# Log\n```\n' + nLogArea.value.split('\n').slice(-30).join('\n') + '\n```';
+    const issueUrl = 'https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/new?body=' + encodeURIComponent(template);
+
+    open(issueUrl, '_blank');
+});
+
+initSettings();
+initErrorCount();
 
 function initSettings() {
     const nSettings = document.querySelector('[data-id="settings"]');
-    const nReset = document.querySelector('#reset');
+    const nReset = nSettings.querySelector('#reset');
 
     const defaultOptions = {
         unlockNotification: true,
@@ -42,7 +68,9 @@ function getLogEntries() {
     return new Promise((resolve) => chrome.runtime.sendMessage({ event: 'GET_LOG_ENTRIES' }, resolve));
 }
 
-function setDebugLog(logEntries) {
+async function initDebugLog() {
+    const logEntries = await getLogEntries();
+
     let logText = '';
 
     logEntries.forEach((entry) => {
@@ -52,42 +80,15 @@ function setDebugLog(logEntries) {
     });
 
     // Set Text and scroll to bottom
-    logArea.value = logText;
-    logArea.scrollTop = logArea.scrollHeight;
+    nLogArea.value = logText;
+    nLogArea.scrollTop = nLogArea.scrollHeight;
 }
 
-function setErrorWarning(logEntries) {
-    const errorCount = logEntries.filter((x) => x.isError).length;
-    const nLabel = document.querySelector('#debugErrorWarning');
+async function initErrorCount() {
+    const errorCount = (await getLogEntries()).filter((x) => x.isError).length;
 
     if (errorCount > 0) {
-        nLabel.innerText = `${errorCount} Errors`;
-    } else {
-        nLabel.innerText = '';
+        const nLabel = nMultiPageMenu.querySelector('#debugErrorWarning');
+        nLabel.innerText = `${errorCount} Issues`;
     }
 }
-
-window.addEventListener('pageChange', (e) => {
-    switch (e.detail.pageId) {
-        case 'debug':
-            getLogEntries().then(setDebugLog);
-            break;
-    }
-});
-
-// Select all log text when click
-logArea.addEventListener('click', () => {
-    logArea.focus();
-    logArea.select();
-});
-
-githubIssueLink.addEventListener('click', () => {
-    // Add the last 30 log lines to the issue body
-    const template = '# Description\n[Please explain the problem/bug/behavior]\n\n# Log\n```\n' + logArea.value.split('\n').slice(-30).join('\n') + '\n```';
-    const issueUrl = 'https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/new?body=' + encodeURIComponent(template);
-
-    open(issueUrl, '_blank');
-});
-
-initSettings();
-getLogEntries().then(setErrorWarning);

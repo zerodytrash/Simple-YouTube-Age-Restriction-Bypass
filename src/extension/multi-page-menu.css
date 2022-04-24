@@ -40,7 +40,7 @@
     background: #4a4a50;
 }
 
-#multi-page-menu .menu-item > span {
+#multi-page-menu .menu-item > span:first-of-type {
     flex: 1;
 }
 
