@@ -1,0 +1,69 @@
+name: 🐛 Bug Report
+description: Report a problem to help us improve
+labels: ['bug']
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: I encountered a bug!
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Platform
+      description: How are you using Simple YouTube Age Restriction Bypass?
+      options:
+        - Extension
+        - Userscript
+        - Other (mention above)
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Version
+      description: What version are you running?
+      placeholder: e.g. 2.4.6
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: What browser are you on?
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Edge
+        - Opera
+        - Brave
+        - Other (mention below with version)
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Browser version
+      placeholder: e.g. 100.0.4896.127
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Link to the video
+      description: Provide the link to the video, if it is crucial to the reproduction of the problem
+      placeholder: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+  - type: textarea
+    attributes:
+      label: Screenshots or Videos
+      description: If applicable, add screenshots or a video to help explain the problem
+      placeholder: Attach files by dragging & dropping, selecting or pasting them ↩
+
+  - type: checkboxes
+    attributes:
+      label: About you
+      options:
+        - label: I am a developer and/or have knowledge in programming
