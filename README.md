@@ -7,14 +7,12 @@
     <a href="#contributors">Contributors</a>
 </div>
 
+<br>
+
 <div align="center">
-    <br>
-    <br>
     <img width="800" src="https://user-images.githubusercontent.com/59258980/133007022-c12253c0-036c-49fe-8fce-42b62da14e8a.png" alt="Simple YouTube Age Restriction Bypass"/>
     <br>
-    <br>
-    A very simple to use browser extension to bypass YouTube's age verification 😎
-    <br>
+    <div>A very simple to use browser extension to bypass YouTube's age verification 😎</div>
     <br>
     <a href="#getting-started">
         <img src="https://img.shields.io/github/v/release/zerodytrash/Simple-YouTube-Age-Restriction-Bypass?style=for-the-badge&labelColor=14161f&color=3455db&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABNUlEQVR4XmNgGJTAJPS2MxAvAOKLULzANPSOA8yxJiG3GrA63CTktgBQwyEg/g/E24B4EhDPAuLzULEFIM0gNoYB5kG32YES+4H4vknoLS90BaYht1OBch+hBmEaAJTIg0q6wZ0aersAKAZ2uknonVgg+w8+A04BJfch2wwNhwTjkNuWUC8BXXjrAAhjeAGo4D0Qt2AzgKiYBmr+AsRlaAa0AsVOGoXcNkDyVgZQ7Bo2FxwDSmxElzAJuxMOFH8AjKEoSFjcnobuVbAeoGAiNIDg8Y1kqwgwFqRMQ29rAtV8AIZBHIYLjILv8QAl7wHxFaBtChguAYoB5S6B0oRx0AM2HAnpJkjRUWh8zwHSRVAMYoPSwFGTkJsYhqMYZhx6lwOosAKIz0A1gTSC2BUgOaJihK6KACxxvcsBmqZ3AAAAXXRFWHRDb3B5cmlnaHQAQ3JlYXRlZCB3aXRoIEljb25mdS5jb20gLSBEZXJpdmF0aXZlIHdvcmsgb2YgTWF0ZXJpYWwgaWNvbnMgKENvcHlyaWdodCBHb29nbGUgSW5jLinxtJO+AAAAV3RFWHRMaWNlbnNlAExpY2Vuc2VkIHVuZGVyIEFwYWNoZSBMaWNlbnNlIHYyLjAgKGh0dHA6Ly93d3cuYXBhY2hlLm9yZy9saWNlbnNlcy9MSUNFTlNFLTIuMCnj13QbAAAAAElFTkSuQmCC" alt="GitHub release"/>
@@ -98,30 +96,44 @@ The following browsers are supported:
 <table>
     <tbody>
         <tr>
+            <th scope="row"></th>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px"/>
-                <br>Chrome<br><a href="#userscript">Userscript</a>
+                <div>Chrome</div>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px"/>
-                <br>Edge<br><a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp"><b>Extension</b></a>
+                <div>Edge</div>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px"/>
-                <br>Firefox<br><a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/"><b>Extension</b></a>
+                <div>Firefox</div>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px"/>
-                <br>Safari<br><a href="#userscript">Userscript</a>
+                <div>Safari</div>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px"/>
-                <br>Opera<br><a href="#userscript">Userscript</a>
+                <div>Opera</div>
             </td>
             <td align="center">
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/brave/brave_48x48.png" alt="Brave" width="24px" height="24px"/>
-                <br>Brave<br><a href="#userscript">Userscript</a>
+                <div>Brave</div>
             </td>
+        </tr>
+        <tr>
+            <th scope="row"><a href="#browser-extension">Extension</a></th>
+            <td align="center">❌</td>
+            <td align="center">✅</td>
+            <td align="center">✅</td>
+            <td align="center">❌</td>
+            <td align="center">❌</td>
+            <td align="center">❌</td>
+        </tr>
+        <tr>
+            <th scope="row"><a href="#userscript">Userscript</a></th>
+            <td colspan="6" align="center">Full support</td>
         </tr>
     </tbody>
 </table>
