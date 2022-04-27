@@ -1,5 +1,5 @@
 <div align="center">
-    <img height="80" src="https://raw.githubusercontent.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/main/src/extension/icon/icon_128.png"></img>
+    <img height="80" src="../../raw/main/src/extension/icon/icon_128.png"></img>
     <h1>Simple YouTube Age Restriction Bypass</h1>
     <a href="#getting-started">Getting started</a> |
     <a href="#privacy">Privacy</a> |
@@ -12,7 +12,7 @@
 <div align="center">
     <img width="800" src="https://user-images.githubusercontent.com/59258980/133007022-c12253c0-036c-49fe-8fce-42b62da14e8a.png" alt="Simple YouTube Age Restriction Bypass"/>
     <br>
-    <div>A very simple to use browser extension to bypass YouTube's age verification 😎</div>
+    <p>A very simple to use browser extension to bypass YouTube's age verification 😎</p>
     <br>
     <a href="#getting-started">
         <img src="https://img.shields.io/github/v/release/zerodytrash/Simple-YouTube-Age-Restriction-Bypass?style=for-the-badge&labelColor=14161f&color=3455db&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABNUlEQVR4XmNgGJTAJPS2MxAvAOKLULzANPSOA8yxJiG3GrA63CTktgBQwyEg/g/E24B4EhDPAuLzULEFIM0gNoYB5kG32YES+4H4vknoLS90BaYht1OBch+hBmEaAJTIg0q6wZ0aersAKAZ2uknonVgg+w8+A04BJfch2wwNhwTjkNuWUC8BXXjrAAhjeAGo4D0Qt2AzgKiYBmr+AsRlaAa0AsVOGoXcNkDyVgZQ7Bo2FxwDSmxElzAJuxMOFH8AjKEoSFjcnobuVbAeoGAiNIDg8Y1kqwgwFqRMQ29rAtV8AIZBHIYLjILv8QAl7wHxFaBtChguAYoB5S6B0oRx0AM2HAnpJkjRUWh8zwHSRVAMYoPSwFGTkJsYhqMYZhx6lwOosAKIz0A1gTSC2BUgOaJihK6KACxxvcsBmqZ3AAAAXXRFWHRDb3B5cmlnaHQAQ3JlYXRlZCB3aXRoIEljb25mdS5jb20gLSBEZXJpdmF0aXZlIHdvcmsgb2YgTWF0ZXJpYWwgaWNvbnMgKENvcHlyaWdodCBHb29nbGUgSW5jLinxtJO+AAAAV3RFWHRMaWNlbnNlAExpY2Vuc2VkIHVuZGVyIEFwYWNoZSBMaWNlbnNlIHYyLjAgKGh0dHA6Ly93d3cuYXBhY2hlLm9yZy9saWNlbnNlcy9MSUNFTlNFLTIuMCnj13QbAAAAAElFTkSuQmCC" alt="GitHub release"/>
@@ -63,7 +63,7 @@ The **Age Restriction Bypass for Youtube™** extension is currently available f
     > - [Tampermonkey for Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd)<br>
     > - [Userscripts for Safari (MacOS/iOS/iPadOS)](https://apps.apple.com/us/app/userscripts/id1463298887)<br>
 
-2. Install **Simple YouTube Age Restriction Bypass** by clicking **[this link](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js)**.
+2. Install **Simple YouTube Age Restriction Bypass** by clicking **[this link](../../raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js)**.
 
 Alternative mirrors:
 
@@ -80,7 +80,7 @@ No further actions are necessary. All age restricted videos are automatically un
 
 ## Privacy
 
-In order to unlock some video information, requests are handled through a proxy server. On the server side, the request will be authenticated with the credentials of an age-verified account at YouTube. The source code of the proxy server can be found [here](https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy).
+In order to unlock some video information, requests are handled through a proxy server. On the server side, the request will be authenticated with the credentials of an age-verified account at YouTube. The source code of the proxy server can be found [here](/account-proxy).
 
 **No credentials are sent from your YouTube account! The only info that the proxy server receives from you is the Video-ID and some non-user related information like the version of the YouTube website.** The used proxy server at `youtube-proxy.zerody.one` **does not** log IP-Adresses or Video-IDs. If you have set a different proxy server instance, then the operator's log policies apply.
 
@@ -133,7 +133,7 @@ The following browsers are supported:
         </tr>
         <tr>
             <th scope="row"><a href="#userscript">Userscript</a></th>
-            <td colspan="6" align="center">Full support</td>
+            <td colspan="6" align="center">✅ <strong>Full support</strong></td>
         </tr>
     </tbody>
 </table>
@@ -167,23 +167,20 @@ We use [Rollup](https://rollupjs.org) with [Babel](https://github.com/babel/babe
 ```sh
 git clone https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass.git
 ```
-**2. Install Dependencies**
+**2. Run Build Script**
 
-Run this command at the root folder to install the required dependencies:
-```sh
-npm install
-```
-**3. Run Build Script**
+Run this command at the root folder to install the required dependencies and build the userscript and extension:
 ```sh
 npm run build
 ```
 
-The userscript `Simple-YouTube-Age-Restriction-Bypass.js` should now be located in the `dist` folder.
+The userscript `Simple-YouTube-Age-Restriction-Bypass.user.js` and extension should now be located in the `dist` folder. 
+> The extension is compiled to both Manifest [V2](https://developer.chrome.com/docs/extensions/mv2) and [V3](https://developer.chrome.com/docs/extensions/mv3/intro).
 
 ## Contributors
 
-Want to contribute to this project? Feel free to open an [issue](/issues) or [pull request](/pulls).
+Want to contribute to this project? Feel free to open an [issue](../../issues) or [pull request](../../pulls).
 
-<a href="https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=zerodytrash/Simple-YouTube-Age-Restriction-Bypass"/>
+<a href="../../graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=zerodytrash/Simple-YouTube-Age-Restriction-Bypass"/>
 </a>
