@@ -1,4 +1,4 @@
-import { getYtcfgValue } from '../components/innertubeClient';
+import { getYtcfgValue } from '../utils';
 
 const logPrefix = '%cSimple-YouTube-Age-Restriction-Bypass:';
 const logPrefixStyle = 'background-color: #1e5c85; color: #fff; font-size: 1.2em;';

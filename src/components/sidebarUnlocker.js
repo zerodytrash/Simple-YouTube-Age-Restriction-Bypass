@@ -1,21 +1,33 @@
-import * as innertube from './innertubeClient';
 import * as inspector from './inspector';
 import * as logger from '../utils/logger';
-import * as proxy from './proxy';
-import { isDesktop, isEmbed, isConfirmed, createDeepCopy } from '../utils';
+import { proxy, watch } from './endpoints';
+import { isDesktop, isEmbed, isConfirmed, createDeepCopy, getYtcfgValue } from '../utils';
 
 let cachedNextResponse = {};
 
 function getNextUnlockStrategies(nextResponse) {
     const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
-    const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
-    const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
-    const hl = innertube.getYtcfgValue('HL');
+    const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+    const hl = getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the sidebar and video description from an account proxy server.
-        // Session cookies of an age-verified Google account are stored on server side.
-        // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+        /**
+         * Retrieve the video using the `/watch` endpoint
+         * This strategy is one of the simplest and only works for weak age restrictions
+         */
+        {
+            name: 'Watch Endpoint',
+            payload: {
+                session_token: getYtcfgValue('XSRF_TOKEN'),
+            },
+            endpoint: watch,
+        },
+        /**
+         * Retrieve the sidebar and video description from an account proxy server.
+         * Session cookies of an age-verified Google account are stored on server side.
+         * See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+         */
         {
             name: 'Account Proxy',
             payload: {
@@ -26,7 +38,7 @@ function getNextUnlockStrategies(nextResponse) {
                 isEmbed: +isEmbed,
                 isConfirmed: +isConfirmed,
             },
-            getNext: proxy.getNext,
+            endpoint: proxy,
         },
     ];
 }
@@ -62,7 +74,7 @@ function getUnlockedNextResponse(nextResponse) {
         logger.info(`Trying Sidebar Unlock Method #${index + 1} (${strategy.name})`);
 
         try {
-            unlockedNextResponse = strategy.getNext(strategy.payload);
+            unlockedNextResponse = strategy.endpoint.getNext(strategy.payload);
         } catch (err) {
             logger.error(err, `Sidebar Unlock Method ${index + 1} failed with exception`);
         }

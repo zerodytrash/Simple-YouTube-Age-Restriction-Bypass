@@ -1,9 +1,8 @@
 import * as Config from '../config';
-import * as innertube from './innertubeClient';
 import * as logger from '../utils/logger';
-import * as proxy from './proxy';
 import Toast from './toast';
-import { isEmbed, isConfirmed, createDeepCopy, getCurrentVideoStartTime } from '../utils';
+import { innertube, proxy, watch } from './endpoints';
+import { isEmbed, isConfirmed, createDeepCopy, getCurrentVideoStartTime, getYtcfgValue, getSignatureTimestamp, isUserLoggedIn } from '../utils';
 import { isConfirmationRequired, requestConfirmation } from './confirmation';
 
 const messagesMap = {
@@ -15,18 +14,31 @@ let lastProxiedGoogleVideoUrlParams;
 let cachedPlayerResponse = {};
 
 function getPlayerUnlockStrategies(playerResponse) {
-    const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
+    const videoId = playerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
     const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
-    const clientName = innertube.getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
-    const clientVersion = innertube.getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
-    const signatureTimestamp = innertube.getSignatureTimestamp();
+    const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+    const signatureTimestamp = getSignatureTimestamp();
     const startTimeSecs = getCurrentVideoStartTime(videoId);
-    const hl = innertube.getYtcfgValue('HL');
+    const hl = getYtcfgValue('HL');
 
     return [
-        // Strategy 1: Retrieve the video info by using the TVHTML5 Embedded client
-        // This client has no age restrictions in place (2022-03-28)
-        // See https://github.com/zerodytrash/YouTube-Internal-Clients
+        /**
+         * Retrieve the video using the `/watch` endpoint
+         * This strategy is one of the simplest and only works for weak age restrictions
+         */
+        {
+            name: 'Watch Endpoint',
+            payload: {
+                session_token: getYtcfgValue('XSRF_TOKEN'),
+            },
+            endpoint: watch,
+        },
+        /**
+         * Retrieve the video info by using the TVHTML5 Embedded client
+         * This client has no age restrictions in place (2022-03-28)
+         * See https://github.com/zerodytrash/YouTube-Internal-Clients
+         */
         {
             name: 'TV Embedded Player',
             requiresAuth: false,
@@ -52,11 +64,13 @@ function getPlayerUnlockStrategies(playerResponse) {
                 racyCheckOk: true,
                 contentCheckOk: true,
             },
-            getPlayer: innertube.getPlayer,
+            endpoint: innertube,
         },
-        // Strategy 2: Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
-        // Requires that the user is logged in. Can bypass the tightened age verification in the EU.
-        // See https://github.com/yt-dlp/yt-dlp/pull/600
+        /**
+         * Retrieve the video info by using the WEB_CREATOR client in combination with user authentication
+         * Requires that the user is logged in. Can bypass the tightened age verification in the EU.
+         * See https://github.com/yt-dlp/yt-dlp/pull/600
+         */
         {
             name: 'Creator + Auth',
             requiresAuth: true,
@@ -78,11 +92,13 @@ function getPlayerUnlockStrategies(playerResponse) {
                 racyCheckOk: true,
                 contentCheckOk: true,
             },
-            getPlayer: innertube.getPlayer,
+            endpoint: innertube,
         },
-        // Strategy 3: Retrieve the video info from an account proxy server.
-        // Session cookies of an age-verified Google account are stored on server side.
-        // See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+        /**
+         * Retrieve the video info from an account proxy server.
+         * Session cookies of an age-verified Google account are stored on server side.
+         * See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
+         */
         {
             name: 'Account Proxy',
             requiresAuth: false,
@@ -97,7 +113,7 @@ function getPlayerUnlockStrategies(playerResponse) {
                 isEmbed: +isEmbed,
                 isConfirmed: +isConfirmed,
             },
-            getPlayer: proxy.getPlayer,
+            endpoint: proxy,
         },
     ];
 }
@@ -150,7 +166,7 @@ export function unlockPlayerResponse(playerResponse) {
 }
 
 function getUnlockedPlayerResponse(playerResponse) {
-    const videoId = playerResponse.videoDetails?.videoId || innertube.getYtcfgValue('PLAYER_VARS').video_id;
+    const videoId = playerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
 
     // Check if response is cached
     if (cachedPlayerResponse.videoId === videoId) return createDeepCopy(cachedPlayerResponse);
@@ -161,16 +177,13 @@ function getUnlockedPlayerResponse(playerResponse) {
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
-        // Skip if flag set
-        if (strategy.skip) return true;
-
         // Skip strategy if authentication is required and the user is not logged in
-        if (strategy.requiresAuth && !innertube.isUserLoggedIn()) return true;
+        if (strategy.requiresAuth && !isUserLoggedIn()) return true;
 
         logger.info(`Trying Player Unlock Method #${index + 1} (${strategy.name})`);
 
         try {
-            unlockedPlayerResponse = strategy.getPlayer(strategy.payload, strategy.requiresAuth);
+            unlockedPlayerResponse = strategy.endpoint.getPlayer(strategy.payload, strategy.requiresAuth);
         } catch (err) {
             logger.error(err, `Player Unlock Method ${index + 1} failed with exception`);
         }

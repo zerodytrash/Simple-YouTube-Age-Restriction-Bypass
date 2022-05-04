@@ -1,12 +1,20 @@
-import { nativeJSONParse } from '../utils/natives';
-import * as Config from '../config';
-import * as logger from '../utils/logger';
+import { nativeJSONParse } from '../../utils/natives';
+import * as Config from '../../config';
+import * as logger from '../../utils/logger';
 
-export function getGoogleVideoUrl(originalUrl) {
+function getGoogleVideoUrl(originalUrl) {
     return Config.VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl);
 }
 
-export function sendRequest(endpoint, payload) {
+function getPlayer(payload) {
+    return sendRequest('getPlayer', payload);
+}
+
+function getNext(payload) {
+    return sendRequest('getNext', payload);
+}
+
+function sendRequest(endpoint, payload) {
     const queryParams = new URLSearchParams(payload);
     const proxyUrl = `${Config.ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}&client=js`;
 
@@ -27,10 +35,8 @@ export function sendRequest(endpoint, payload) {
     }
 }
 
-export function getPlayer(payload) {
-    return sendRequest('getPlayer', payload);
-}
-
-export function getNext(payload) {
-    return sendRequest('getNext', payload);
-}
+export default {
+    getPlayer,
+    getNext,
+    getGoogleVideoUrl,
+};

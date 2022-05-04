@@ -4,8 +4,8 @@ import * as inspector from './components/inspector';
 import * as playerUnlocker from './components/playerUnlocker';
 import * as sidebarUnlocker from './components/sidebarUnlocker';
 import * as thumbnailFix from './components/thumbnailFix';
-import * as proxy from './components/proxy';
 import * as logger from './utils/logger';
+import { proxy } from './components/endpoints';
 
 try {
     interceptor.attachInitialDataInterceptor(processYtData);
