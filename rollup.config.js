@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
+import nodeResolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import html from 'rollup-plugin-html';
 import pkg from './package.json';
@@ -81,6 +82,7 @@ export default [
         plugins: [
             html(),
             nodeResolve(),
+            commonjs(),
             add_header_file('userscript.config.js', set_script_version),
             // Manually wrap code in our custom iife
             wrap_in_iife(),
@@ -102,6 +104,7 @@ export default [
         plugins: [
             html(),
             nodeResolve(),
+            commonjs(),
         ],
     },
     {

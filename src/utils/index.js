@@ -1,5 +1,5 @@
+import sha1 from 'sha-1';
 import { nativeJSONParse } from './natives';
-import { generateSha1Hash } from './sha1';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
 export const isMusic = window.location.host === 'music.youtube.com';
@@ -96,7 +96,7 @@ export function generateSidBasedAuth() {
     const sid = getSidCookie();
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const input = timestamp + ' ' + sid + ' ' + location.origin;
-    const hash = generateSha1Hash(input);
+    const hash = sha1(input);
     return `SAPISIDHASH ${timestamp}_${hash}`;
 }
 

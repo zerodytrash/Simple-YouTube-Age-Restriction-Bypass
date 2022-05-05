@@ -27,10 +27,14 @@
   "devDependencies": {
     "@babel/preset-env": "^7.16.11",
     "@rollup/plugin-babel": "^5.3.1",
+    "@rollup/plugin-commonjs": "^22.0.0",
     "@rollup/plugin-node-resolve": "^13.2.1",
     "archiver": "^5.3.1",
     "prettier": "^2.6.2",
     "rollup": "^2.70.2",
     "rollup-plugin-html": "^0.2.1"
+  },
+  "dependencies": {
+    "sha-1": "^1.0.0"
   }
 }
