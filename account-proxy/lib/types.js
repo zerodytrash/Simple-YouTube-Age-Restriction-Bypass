@@ -20,6 +20,7 @@ class YouTubeClientParams {
         this.signatureTimestamp = 18834;
         this.hl = 'en';
         this.startTimeSecs = 0;
+        this.includeNext = false;
     }
 
     fromRequest(request) {

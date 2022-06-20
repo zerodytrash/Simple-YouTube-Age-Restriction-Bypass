@@ -104,6 +104,7 @@ const sendApiRequest = function (endpoint, clientParams, credentials, proxy) {
         method: "POST",
         url,
         headers,
+        endpoint,
         data: JSON.stringify(data),
         timeout: 5000
     }

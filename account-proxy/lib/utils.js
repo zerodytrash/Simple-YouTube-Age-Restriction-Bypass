@@ -4,10 +4,15 @@ function fillObjectFromRequest(obj, request) {
             continue;
         }
 
-        if (typeof obj[propName] === 'number') {
-            obj[propName] = parseInt(request.query[propName])
-        } else {
-            obj[propName] = request.query[propName];
+        switch(typeof obj[propName]) {
+            case 'number':
+                obj[propName] = parseInt(request.query[propName]);
+                break;
+            case 'boolean':
+                obj[propName] = request.query[propName] === '1' || request.query[propName] === 'true';
+                break;
+            default:
+                obj[propName] = request.query[propName];
         }
     }
 }

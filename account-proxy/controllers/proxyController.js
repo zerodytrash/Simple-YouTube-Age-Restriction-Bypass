@@ -6,6 +6,22 @@ const stats = require('../lib/stats');
 const credentials = new YouTubeCredentials();
 const proxy = process.env.PROXY;
 
+const relevantAttributes = [
+    'playabilityStatus',
+    'videoDetails',
+    'streamingData',
+    'contents',
+    'engagementPanels'
+]
+
+function getPlayer(req, res) {
+    handleProxyRequest(req, res, 'player');
+}
+
+function getNext(req, res) {
+    handleProxyRequest(req, res, 'next');
+}
+
 async function handleProxyRequest(req, res, endpoint) {
     const tsStart = new Date().getTime();
 
@@ -22,34 +38,18 @@ async function handleProxyRequest(req, res, endpoint) {
             clientParams.clientVersion = '2.20220228.01.00';
         }
 
-        const youtubeResponse = await innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxy);
+        let endpointList = [endpoint];
 
-        if (typeof youtubeResponse.data !== 'object') {
-            throw new Error('Invalid YouTube response received');
+        // Include /next (sidebar) if flag set
+        if (clientParams.includeNext) {
+            endpointList.push('next');
         }
 
-        const youtubeData = youtubeResponse.data;
-        const youtubeStatus = getYoutubeResponseStatus(youtubeResponse);
-        const youtubeGcrFlagSet = checkForGcrFlag(youtubeData);
-        const relevantData = extractAttributes(youtubeData,
-            [
-                'playabilityStatus',
-                'videoDetails',
-                'streamingData',
-                'contents',
-                'engagementPanels'
-            ]
-        )
+        // Wait until all requests are done
+        let youtubeResponses = await requestChunk(clientParams, endpointList);
+        let result = handleResponses(youtubeResponses, clientParams);
 
-        relevantData.proxy = {
-            clientParams,
-            youtubeGcrFlagSet,
-            youtubeStatus
-        }
-
-        res.status(200).send(relevantData);
-
-        stats.countResponse(endpoint, youtubeStatus, youtubeGcrFlagSet);
+        res.status(200).send(result);
 
     } catch (err) {
         console.error(endpoint, err.message);
@@ -62,12 +62,45 @@ async function handleProxyRequest(req, res, endpoint) {
     }
 }
 
-function getPlayer(req, res) {
-    handleProxyRequest(req, res, 'player');
+function requestChunk(clientParams, endpointList) {
+    let pendingRequests = [];
+
+    endpointList.forEach(endpoint => {
+        pendingRequests.push(innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxy));
+    });
+
+    return Promise.all(pendingRequests);
 }
 
-function getNext(req, res) {
-    handleProxyRequest(req, res, 'next');
+function handleResponses(youtubeResponses, clientParams) {
+    let responseData = {};
+
+    youtubeResponses.forEach((response, index) => {
+        if (response.data === null || typeof response.data !== 'object') {
+            throw new Error(`Invalid YouTube response received for endpoint /${response.config.endpoint}`);
+        }
+
+        const youtubeData = response.data;
+        const youtubeStatus = getYoutubeResponseStatus(response);
+        const youtubeGcrFlagSet = checkForGcrFlag(youtubeData);
+        const relevantData = extractAttributes(youtubeData, relevantAttributes);
+
+        stats.countResponse(response.config.endpoint, youtubeStatus, youtubeGcrFlagSet);
+
+        if (index === 0) {
+            responseData = relevantData;
+
+            responseData.proxy = {
+                clientParams,
+                youtubeGcrFlagSet,
+                youtubeStatus
+            };
+        } else {
+            responseData[response.config.endpoint + 'Response'] = relevantData;
+        }
+    });
+
+    return responseData;
 }
 
 module.exports = {
