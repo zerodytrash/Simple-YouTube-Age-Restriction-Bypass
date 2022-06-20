@@ -1,4 +1,3 @@
-import sha1 from 'sha-1';
 import { nativeJSONParse } from './natives';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
@@ -88,22 +87,7 @@ export function getSignatureTimestamp() {
     );
 }
 
-export function getSidCookie() {
-    return getCookie('SAPISID') || getCookie('__Secure-3PAPISID');
-}
-
-export function generateSidBasedAuth() {
-    const sid = getSidCookie();
-    const timestamp = Math.floor(new Date().getTime() / 1000);
-    const input = timestamp + ' ' + sid + ' ' + location.origin;
-    const hash = sha1(input);
-    return `SAPISIDHASH ${timestamp}_${hash}`;
-}
-
 export function isUserLoggedIn() {
-    // Session Cookie exists?
-    if (!getSidCookie()) return false;
-
     // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
     if (typeof getYtcfgValue('LOGGED_IN') === 'boolean') return getYtcfgValue('LOGGED_IN');
     if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === 'string') return true;
@@ -156,4 +140,20 @@ export function waitForElement(elementSelector, timeout) {
     }
 
     return deferred;
+}
+
+export function parseRelativeUrl(url) {
+    if (typeof url !== 'string') {
+        return null;
+    }
+
+    if (url.indexOf('/') === 0) {
+        url = window.location.origin + url;
+    }
+
+    try {
+        return url.indexOf('https://') === 0 ? new URL(url) : null;
+    } catch {
+        return null;
+    }
 }

@@ -44,8 +44,8 @@ export function isWatchNextSidebarEmpty(parsedData) {
     return typeof result !== 'object';
 }
 
-export function isGoogleVideo(method, url) {
-    return method === 'GET' && url.host.includes('.googlevideo.com');
+export function isGoogleVideoUrl(url) {
+    return url.host.includes('.googlevideo.com');
 }
 
 export function isGoogleVideoUnlockRequired(googleVideoUrl, lastProxiedGoogleVideoId) {

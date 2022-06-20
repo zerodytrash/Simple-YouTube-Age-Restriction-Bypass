@@ -1,5 +1,5 @@
-import { isObject, createDeepCopy } from '../utils';
-import { nativeJSONParse, nativeXMLHttpRequestOpen } from '../utils/natives';
+import { isObject, createDeepCopy, parseRelativeUrl } from '../utils';
+import { nativeJSONParse, nativeRequest } from '../utils/natives';
 import * as logger from '../utils/logger';
 
 function interceptObjectProperty(prop, onSet) {
@@ -66,16 +66,23 @@ export function attachJsonInterceptor(onJsonDataReceived) {
     };
 }
 
-export function attachXhrOpenInterceptor(onXhrOpenCalled) {
-    XMLHttpRequest.prototype.open = function (method, url) {
-        if (typeof url === 'string' && url.indexOf('https://') === 0) {
-            const modifiedUrl = onXhrOpenCalled(this, method, new window.URL(url));
+export function attachRequestInterceptor(onRequestCreate) {
+    if (typeof window.Request !== 'function') {
+        return;
+    }
 
-            if (typeof modifiedUrl === 'string') {
-                arguments[1] = modifiedUrl;
+    window.Request = function (url, options) {
+        try {
+            let parsedUrl = parseRelativeUrl(url);
+            let modifiedUrl = onRequestCreate(parsedUrl, options);
+
+            if (modifiedUrl) {
+                arguments[0] = modifiedUrl.toString();
             }
+        } catch (err) {
+            logger.error(err, `Failed to intercept Request()`);
         }
 
-        nativeXMLHttpRequestOpen.apply(this, arguments);
+        return new nativeRequest(...arguments);
     };
 }

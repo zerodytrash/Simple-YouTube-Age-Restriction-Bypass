@@ -1,16 +1,29 @@
+import { isDesktop, isMusic, isEmbed } from '../../utils';
 import { nativeJSONParse } from '../../utils/natives';
 import * as Config from '../../config';
 import * as logger from '../../utils/logger';
 
+let nextResponseCache = {};
+
 function getGoogleVideoUrl(originalUrl) {
-    return Config.VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl);
+    return Config.VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl.toString());
 }
 
 function getPlayer(payload) {
+    // Also request the /next response if a later /next request is likely.
+    if (!nextResponseCache[payload.videoId] && !isMusic && !isEmbed) {
+        payload.includeNext = true;
+    }
+
     return sendRequest('getPlayer', payload);
 }
 
 function getNext(payload) {
+    // Next response already cached? => Return cached content
+    if (nextResponseCache[payload.videoId]) {
+        return nextResponseCache[payload.videoId];
+    }
+
     return sendRequest('getNext', payload);
 }
 
@@ -25,8 +38,14 @@ function sendRequest(endpoint, payload) {
 
         const proxyResponse = nativeJSONParse(xmlhttp.responseText);
 
-        // mark request as 'proxied'
+        // Mark request as 'proxied'
         proxyResponse.proxied = true;
+
+        // Put included /next response in the cache
+        if (proxyResponse.nextResponse) {
+            nextResponseCache[payload.videoId] = proxyResponse.nextResponse;
+            delete proxyResponse.nextResponse;
+        }
 
         return proxyResponse;
     } catch (err) {

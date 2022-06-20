@@ -4,13 +4,14 @@ import * as inspector from './components/inspector';
 import * as playerUnlocker from './components/playerUnlocker';
 import * as sidebarUnlocker from './components/sidebarUnlocker';
 import * as thumbnailFix from './components/thumbnailFix';
+import * as authStorage from './components/authStorage';
 import * as logger from './utils/logger';
 import { proxy } from './components/endpoints';
 
 try {
     interceptor.attachInitialDataInterceptor(processYtData);
     interceptor.attachJsonInterceptor(processYtData);
-    interceptor.attachXhrOpenInterceptor(onXhrOpenCalled);
+    interceptor.attachRequestInterceptor(onRequestCreate);
 } catch (err) {
     logger.error(err, 'Error while attaching data interceptors');
 }
@@ -55,21 +56,28 @@ function processYtData(ytData) {
     return ytData;
 }
 
-function onXhrOpenCalled(xhr, method, url) {
-    if (!Config.VIDEO_PROXY_SERVER_HOST || !inspector.isGoogleVideo(method, url)) return;
+function onRequestCreate(url, requestOptions) {
+    // If the account proxy was used to retrieve the video info, the following applies:
+    // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
+    // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
+    // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
+    if (Config.VIDEO_PROXY_SERVER_HOST && inspector.isGoogleVideoUrl(url)) {
+        if (inspector.isGoogleVideoUnlockRequired(url, playerUnlocker.getLastProxiedGoogleVideoId())) {
+            requestOptions.credentials = 'omit';
+            return proxy.getGoogleVideoUrl(url);
+        }
+    }
 
-    if (inspector.isGoogleVideoUnlockRequired(url, playerUnlocker.getLastProxiedGoogleVideoId())) {
-        // If the account proxy was used to retrieve the video info, the following applies:
-        // some video files (mostly music videos) can only be accessed from IPs in the same country as the innertube api request (/youtubei/v1/player) was made.
-        // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
-        // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
+    // Add content check flags to player and next request
+    if (['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+        let parsedBody = JSON.parse(requestOptions.body);
+        parsedBody.contentCheckOk = true;
+        parsedBody.racyCheckOk = true;
+        requestOptions.body = JSON.stringify(parsedBody);
+    }
 
-        // solve CORS errors by preventing YouTube from enabling the "withCredentials" option (required for the proxy)
-        Object.defineProperty(xhr, 'withCredentials', {
-            set: () => {},
-            get: () => false,
-        });
-
-        return proxy.getGoogleVideoUrl(url.toString());
+    // Store auth headers in authStorage for further usage.
+    if (requestOptions.headers?.Authorization) {
+        authStorage.set(requestOptions.headers.Authorization, requestOptions.headers['X-Goog-AuthUser']);
     }
 }

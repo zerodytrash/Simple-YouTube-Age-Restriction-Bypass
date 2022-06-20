@@ -1,7 +1,8 @@
 import * as inspector from './inspector';
 import * as logger from '../utils/logger';
-import { proxy, watch } from './endpoints';
+import { proxy, innertube } from './endpoints';
 import { isDesktop, isEmbed, isConfirmed, createDeepCopy, getYtcfgValue } from '../utils';
+import { lastPlayerUnlockReason } from './playerUnlocker';
 
 let cachedNextResponse = {};
 
@@ -13,15 +14,26 @@ function getNextUnlockStrategies(nextResponse) {
 
     return [
         /**
-         * Retrieve the video using the `/watch` endpoint
-         * This strategy is one of the simplest and only works for weak age restrictions
+         * Retrieve the sidebar and video description by just adding `racyCheckOk` and `contentCheckOk` params
+         * This strategy can be used to bypass content warnings
          */
         {
-            name: 'Watch Endpoint',
+            name: 'Content Warning Bypass',
+            skip: lastPlayerUnlockReason && !lastPlayerUnlockReason.includes('CHECK_REQUIRED'),
+            optionalAuth: true,
             payload: {
-                session_token: getYtcfgValue('XSRF_TOKEN'),
+                context: {
+                    client: {
+                        clientName: clientName,
+                        clientVersion: clientVersion,
+                        hl,
+                    },
+                },
+                videoId,
+                racyCheckOk: true,
+                contentCheckOk: true,
             },
-            endpoint: watch,
+            endpoint: innertube,
         },
         /**
          * Retrieve the sidebar and video description from an account proxy server.
@@ -71,10 +83,12 @@ function getUnlockedNextResponse(nextResponse) {
 
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
+        if (strategy.skip) return true;
+
         logger.info(`Trying Sidebar Unlock Method #${index + 1} (${strategy.name})`);
 
         try {
-            unlockedNextResponse = strategy.endpoint.getNext(strategy.payload);
+            unlockedNextResponse = strategy.endpoint.getNext(strategy.payload, strategy.optionalAuth);
         } catch (err) {
             logger.error(err, `Sidebar Unlock Method ${index + 1} failed with exception`);
         }

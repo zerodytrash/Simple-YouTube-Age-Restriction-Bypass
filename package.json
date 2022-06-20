@@ -33,8 +33,5 @@
     "prettier": "^2.6.2",
     "rollup": "^2.70.2",
     "rollup-plugin-html": "^0.2.1"
-  },
-  "dependencies": {
-    "sha-1": "^1.0.0"
   }
 }

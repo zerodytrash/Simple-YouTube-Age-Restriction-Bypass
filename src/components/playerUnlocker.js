@@ -1,7 +1,7 @@
 import * as Config from '../config';
 import * as logger from '../utils/logger';
 import Toast from './toast';
-import { innertube, proxy, watch } from './endpoints';
+import { innertube, proxy } from './endpoints';
 import { isEmbed, isConfirmed, createDeepCopy, getCurrentVideoStartTime, getYtcfgValue, getSignatureTimestamp, isUserLoggedIn } from '../utils';
 import { isConfirmationRequired, requestConfirmation } from './confirmation';
 
@@ -9,6 +9,8 @@ const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',
     fail: 'Unable to unlock this video 🙁 - More information in the developer console',
 };
+
+export let lastPlayerUnlockReason = null;
 
 let lastProxiedGoogleVideoUrlParams;
 let cachedPlayerResponse = {};
@@ -22,17 +24,36 @@ function getPlayerUnlockStrategies(playerResponse) {
     const startTimeSecs = getCurrentVideoStartTime(videoId);
     const hl = getYtcfgValue('HL');
 
+    lastPlayerUnlockReason = reason;
+
     return [
         /**
-         * Retrieve the video using the `/watch` endpoint
-         * This strategy is one of the simplest and only works for weak age restrictions
+         * Retrieve the video info by just adding `racyCheckOk` and `contentCheckOk` params
+         * This strategy can be used to bypass content warnings
          */
         {
-            name: 'Watch Endpoint',
+            name: 'Content Warning Bypass',
+            skip: reason && !reason.includes('CHECK_REQUIRED'),
+            optionalAuth: true,
             payload: {
-                session_token: getYtcfgValue('XSRF_TOKEN'),
+                context: {
+                    client: {
+                        clientName: clientName,
+                        clientVersion: clientVersion,
+                        hl,
+                    },
+                },
+                playbackContext: {
+                    contentPlaybackContext: {
+                        signatureTimestamp,
+                    },
+                },
+                videoId,
+                startTimeSecs,
+                racyCheckOk: true,
+                contentCheckOk: true,
             },
-            endpoint: watch,
+            endpoint: innertube,
         },
         /**
          * Retrieve the video info by using the TVHTML5 Embedded client
@@ -101,7 +122,6 @@ function getPlayerUnlockStrategies(playerResponse) {
          */
         {
             name: 'Account Proxy',
-            requiresAuth: false,
             payload: {
                 videoId,
                 reason,
@@ -178,12 +198,12 @@ function getUnlockedPlayerResponse(playerResponse) {
     // Try every strategy until one of them works
     unlockStrategies.every((strategy, index) => {
         // Skip strategy if authentication is required and the user is not logged in
-        if (strategy.requiresAuth && !isUserLoggedIn()) return true;
+        if (strategy.skip || (strategy.requiresAuth && !isUserLoggedIn())) return true;
 
         logger.info(`Trying Player Unlock Method #${index + 1} (${strategy.name})`);
 
         try {
-            unlockedPlayerResponse = strategy.endpoint.getPlayer(strategy.payload, strategy.requiresAuth);
+            unlockedPlayerResponse = strategy.endpoint.getPlayer(strategy.payload, strategy.requiresAuth || strategy.optionalAuth);
         } catch (err) {
             logger.error(err, `Player Unlock Method ${index + 1} failed with exception`);
         }
