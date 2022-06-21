@@ -1,33 +1,8 @@
-import { isObject, createDeepCopy, parseRelativeUrl } from '../utils';
-import { nativeJSONParse, nativeRequest } from '../utils/natives';
-import * as logger from '../utils/logger';
+import { createDeepCopy } from '../../utils';
+import { isObject } from '../../utils';
+import * as logger from '../../utils/logger';
 
-function interceptObjectProperty(prop, onSet) {
-    // Allow other userscripts to decorate this descriptor, if they do something similar
-    const dataKey = '__SYARB_' + prop;
-    const { get: getter, set: setter } = Object.getOwnPropertyDescriptor(Object.prototype, prop) ?? {
-        set(value) {
-            this[dataKey] = value;
-        },
-        get() {
-            return this[dataKey];
-        },
-    };
-
-    // Intercept the given property on any object
-    // The assigned attribute value and the context (enclosing object) are passed to the onSet function.
-    Object.defineProperty(Object.prototype, prop, {
-        set(value) {
-            setter.call(this, isObject(value) ? onSet(this, value) : value);
-        },
-        get() {
-            return getter.call(this);
-        },
-        configurable: true,
-    });
-}
-
-export function attachInitialDataInterceptor(onInitialData) {
+export default function attach(onInitialData) {
     // And here we deal with YouTube's crappy initial data (present in page source) and the problems that occur when intercepting that data.
     // YouTube has some protections in place that make it difficult to intercept and modify the global ytInitialPlayerResponse variable.
     // The easiest way would be to set a descriptor on that variable to change the value directly on declaration.
@@ -58,31 +33,27 @@ export function attachInitialDataInterceptor(onInitialData) {
     });
 }
 
-// Intercept, inspect and modify JSON-based communication to unlock player responses by hijacking the JSON.parse function
-export function attachJsonInterceptor(onJsonDataReceived) {
-    window.JSON.parse = function () {
-        const data = nativeJSONParse.apply(this, arguments);
-        return isObject(data) ? onJsonDataReceived(data) : data;
+function interceptObjectProperty(prop, onSet) {
+    // Allow other userscripts to decorate this descriptor, if they do something similar
+    const dataKey = '__SYARB_' + prop;
+    const { get: getter, set: setter } = Object.getOwnPropertyDescriptor(Object.prototype, prop) ?? {
+        set(value) {
+            this[dataKey] = value;
+        },
+        get() {
+            return this[dataKey];
+        },
     };
-}
 
-export function attachRequestInterceptor(onRequestCreate) {
-    if (typeof window.Request !== 'function') {
-        return;
-    }
-
-    window.Request = function (url, options) {
-        try {
-            let parsedUrl = parseRelativeUrl(url);
-            let modifiedUrl = onRequestCreate(parsedUrl, options);
-
-            if (modifiedUrl) {
-                arguments[0] = modifiedUrl.toString();
-            }
-        } catch (err) {
-            logger.error(err, `Failed to intercept Request()`);
-        }
-
-        return new nativeRequest(...arguments);
-    };
+    // Intercept the given property on any object
+    // The assigned attribute value and the context (enclosing object) are passed to the onSet function.
+    Object.defineProperty(Object.prototype, prop, {
+        set(value) {
+            setter.call(this, isObject(value) ? onSet(this, value) : value);
+        },
+        get() {
+            return getter.call(this);
+        },
+        configurable: true,
+    });
 }

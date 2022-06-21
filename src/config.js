@@ -14,6 +14,8 @@ export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 // Show notification?
 export let ENABLE_UNLOCK_NOTIFICATION = true;
 
+export const GOOGLE_AUTH_HEADER_NAMES = ['Authorization', 'X-Goog-AuthUser'];
+
 // Whether a thumbnail is blurred can be detected by the following "sqp" parameter values in the thumbnail URL.
 // Seems to be base64 encoded protobuf objects, see https://stackoverflow.com/a/51203860
 export const THUMBNAIL_BLURRED_SQPS = [

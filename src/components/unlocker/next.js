@@ -1,5 +1,5 @@
-import * as inspector from '../inspector';
 import * as logger from '../../utils/logger';
+import { next as nextInspector } from '../inspectors';
 import { getNextUnlockStrategies } from '../strategies';
 import { isDesktop, createDeepCopy } from '../../utils';
 import { lastPlayerUnlockReason } from './player';
@@ -10,7 +10,7 @@ export default function unlockResponse(originalNextResponse) {
     const unlockedNextResponse = getUnlockedNextResponse(originalNextResponse);
 
     // check if the sidebar of the unlocked response is still empty
-    if (inspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
+    if (nextInspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
         throw new Error(`Sidebar Unlock Failed`);
     }
 
@@ -44,7 +44,7 @@ function getUnlockedNextResponse(nextResponse) {
             logger.error(err, `Next Unlock Method ${index + 1} failed with exception`);
         }
 
-        return inspector.isWatchNextSidebarEmpty(unlockedNextResponse);
+        return nextInspector.isWatchNextSidebarEmpty(unlockedNextResponse);
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.

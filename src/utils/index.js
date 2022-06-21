@@ -1,4 +1,4 @@
-import { nativeJSONParse } from './natives';
+import { nativeJSONParse } from '../components/interceptors/natives';
 
 export const isDesktop = window.location.host !== 'm.youtube.com';
 export const isMusic = window.location.host === 'music.youtube.com';

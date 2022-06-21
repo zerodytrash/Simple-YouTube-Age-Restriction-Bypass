@@ -1,5 +1,5 @@
-import { isDesktop, isMusic, isEmbed } from '../../utils';
-import { nativeJSONParse } from '../../utils/natives';
+import { isMusic, isEmbed } from '../../utils';
+import { nativeJSONParse } from '../interceptors/natives';
 import * as Config from '../../config';
 import * as logger from '../../utils/logger';
 
