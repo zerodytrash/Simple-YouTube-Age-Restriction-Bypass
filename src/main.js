@@ -1,8 +1,7 @@
 import * as Config from './config';
 import * as interceptor from './components/interceptor';
 import * as inspector from './components/inspector';
-import * as playerUnlocker from './components/playerUnlocker';
-import * as sidebarUnlocker from './components/sidebarUnlocker';
+import * as unlocker from './components/unlocker';
 import * as thumbnailFix from './components/thumbnailFix';
 import * as authStorage from './components/authStorage';
 import * as logger from './utils/logger';
@@ -20,11 +19,11 @@ function processYtData(ytData) {
     try {
         // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
         if (inspector.isPlayerObject(ytData) && inspector.isAgeRestricted(ytData.playabilityStatus)) {
-            playerUnlocker.unlockPlayerResponse(ytData);
+            unlocker.unlockPlayerResponse(ytData);
         }
         // Player Unlock #2: Embedded Player inital data structure
         else if (inspector.isEmbeddedPlayerObject(ytData) && inspector.isAgeRestricted(ytData.previewPlayabilityStatus)) {
-            playerUnlocker.unlockPlayerResponse(ytData);
+            unlocker.unlockPlayerResponse(ytData);
         }
     } catch (err) {
         logger.error(err, 'Video unlock failed');
@@ -33,12 +32,12 @@ function processYtData(ytData) {
     try {
         // Unlock sidebar watch next feed (sidebar) and video description
         if (inspector.isWatchNextObject(ytData) && inspector.isWatchNextSidebarEmpty(ytData)) {
-            sidebarUnlocker.unlockNextResponse(ytData);
+            unlocker.unlockNextResponse(ytData);
         }
 
         // Mobile version
         if (inspector.isWatchNextObject(ytData.response) && inspector.isWatchNextSidebarEmpty(ytData.response)) {
-            sidebarUnlocker.unlockNextResponse(ytData.response);
+            unlocker.unlockNextResponse(ytData.response);
         }
     } catch (err) {
         logger.error(err, 'Sidebar unlock failed');
@@ -62,18 +61,20 @@ function onRequestCreate(url, requestOptions) {
     // to get around this, the googlevideo URL will be replaced with a web-proxy URL in the same country (US).
     // this is only required if the "gcr=[countrycode]" flag is set in the googlevideo-url...
     if (Config.VIDEO_PROXY_SERVER_HOST && inspector.isGoogleVideoUrl(url)) {
-        if (inspector.isGoogleVideoUnlockRequired(url, playerUnlocker.getLastProxiedGoogleVideoId())) {
+        if (inspector.isGoogleVideoUnlockRequired(url, unlocker.getLastProxiedGoogleVideoId())) {
             requestOptions.credentials = 'omit';
             return proxy.getGoogleVideoUrl(url);
         }
     }
 
-    // Add content check flags to player and next request
+    // Add content check flags to player and next request (this will skip content warnings)
     if (['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
         let parsedBody = JSON.parse(requestOptions.body);
-        parsedBody.contentCheckOk = true;
-        parsedBody.racyCheckOk = true;
-        requestOptions.body = JSON.stringify(parsedBody);
+        if (parsedBody.videoId) {
+            parsedBody.contentCheckOk = true;
+            parsedBody.racyCheckOk = true;
+            requestOptions.body = JSON.stringify(parsedBody);
+        }
     }
 
     // Store auth headers in authStorage for further usage.
