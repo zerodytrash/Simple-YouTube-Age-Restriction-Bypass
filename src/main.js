@@ -3,7 +3,7 @@ import * as interceptor from './components/interceptor';
 import * as inspector from './components/inspector';
 import * as unlocker from './components/unlocker';
 import * as thumbnailFix from './components/thumbnailFix';
-import * as authStorage from './components/authStorage';
+import * as storage from './components/storage';
 import * as logger from './utils/logger';
 import { proxy } from './components/endpoints';
 
@@ -78,7 +78,8 @@ function onRequestCreate(url, requestOptions) {
     }
 
     // Store auth headers in authStorage for further usage.
-    if (requestOptions.headers?.Authorization) {
-        authStorage.set(requestOptions.headers.Authorization, requestOptions.headers['X-Goog-AuthUser']);
+    if (requestOptions.headers?.['Authorization']) {
+        storage.set('Authorization', requestOptions.headers['Authorization']);
+        storage.set('X-Goog-AuthUser', requestOptions.headers['X-Goog-AuthUser']);
     }
 }
