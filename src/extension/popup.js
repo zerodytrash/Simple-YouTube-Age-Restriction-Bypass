@@ -86,9 +86,12 @@ async function initDebugLog() {
 
 async function initErrorCount() {
     const errorCount = (await getLogEntries()).filter((x) => x.isError).length;
+    const nLabel = nMultiPageMenu.querySelector('#debugErrorWarning');
 
     if (errorCount > 0) {
-        const nLabel = nMultiPageMenu.querySelector('#debugErrorWarning');
         nLabel.innerText = `${errorCount} Issues`;
+        nLabel.style.display = 'initial';
+    } else {
+        nLabel.style.display = 'none';
     }
 }
