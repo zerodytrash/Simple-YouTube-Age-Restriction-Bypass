@@ -15,7 +15,7 @@ export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 export let ENABLE_UNLOCK_NOTIFICATION = true;
 
 // Disable content warnings?
-export let SKIP_CONTENT_WARNINGS = false;
+export let SKIP_CONTENT_WARNINGS = true;
 
 // Some Innertube bypass methods require the following authentication headers of the currently logged in user.
 export const GOOGLE_AUTH_HEADER_NAMES = ['Authorization', 'X-Goog-AuthUser'];
@@ -44,6 +44,9 @@ if (window.SYARB_CONFIG) {
                     break;
                 case 'unlockConfirmation':
                     ENABLE_UNLOCK_CONFIRMATION_EMBED = options[option];
+                    break;
+                case 'skipContentWarnings':
+                    SKIP_CONTENT_WARNINGS = options[option];
                     break;
             }
         }

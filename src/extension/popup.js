@@ -32,6 +32,7 @@ function initSettings() {
     const nReset = nSettings.querySelector('#reset');
 
     const defaultOptions = {
+        skipContentWarnings: true,
         unlockNotification: true,
         unlockConfirmation: true,
     };
