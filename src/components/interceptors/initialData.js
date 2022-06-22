@@ -2,13 +2,15 @@ import { createDeepCopy } from '../../utils';
 import { isObject } from '../../utils';
 import * as logger from '../../utils/logger';
 
+/**
+ * And here we deal with YouTube's crappy initial data (present in page source) and the problems that occur when intercepting that data.
+ * YouTube has some protections in place that make it difficult to intercept and modify the global ytInitialPlayerResponse variable.
+ * The easiest way would be to set a descriptor on that variable to change the value directly on declaration.
+ * But some adblockers define their own descriptors on the ytInitialPlayerResponse variable, which makes it hard to register another descriptor on it.
+ * As a workaround only the relevant playerResponse property of the ytInitialPlayerResponse variable will be intercepted.
+ * This is achieved by defining a descriptor on the object prototype for that property, which affects any object with a `playerResponse` property.
+ */
 export default function attach(onInitialData) {
-    // And here we deal with YouTube's crappy initial data (present in page source) and the problems that occur when intercepting that data.
-    // YouTube has some protections in place that make it difficult to intercept and modify the global ytInitialPlayerResponse variable.
-    // The easiest way would be to set a descriptor on that variable to change the value directly on declaration.
-    // But some adblockers define their own descriptors on the ytInitialPlayerResponse variable, which makes it hard to register another descriptor on it.
-    // As a workaround only the relevant playerResponse property of the ytInitialPlayerResponse variable will be intercepted.
-    // This is achieved by defining a descriptor on the object prototype for that property, which affects any object with a `playerResponse` property.
     interceptObjectProperty('playerResponse', (obj, playerResponse) => {
         logger.info(`playerResponse property set, contains sidebar: ${!!obj.response}`);
 

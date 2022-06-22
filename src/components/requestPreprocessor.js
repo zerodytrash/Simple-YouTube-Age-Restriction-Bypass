@@ -100,8 +100,6 @@ function setContentCheckOk(bodyJson) {
             parsedBody.racyCheckOk = true;
             return JSON.stringify(parsedBody);
         }
-        return bodyJson;
-    } catch {
-        return bodyJson;
-    }
+    } catch {}
+    return bodyJson;
 }

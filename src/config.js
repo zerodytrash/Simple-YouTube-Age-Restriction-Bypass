@@ -14,6 +14,7 @@ export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 // Show notification?
 export let ENABLE_UNLOCK_NOTIFICATION = true;
 
+// Some Innertube bypass methods require the following authentication headers of the currently logged in user.
 export const GOOGLE_AUTH_HEADER_NAMES = ['Authorization', 'X-Goog-AuthUser'];
 
 // Whether a thumbnail is blurred can be detected by the following "sqp" parameter values in the thumbnail URL.
