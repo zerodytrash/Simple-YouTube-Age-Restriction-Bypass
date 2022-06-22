@@ -1,3 +1,4 @@
+import * as Config from './config';
 import * as interceptors from './components/interceptors';
 import * as inspectors from './components/inspectors';
 import * as unlocker from './components/unlocker';
