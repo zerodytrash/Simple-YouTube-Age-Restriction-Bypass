@@ -153,7 +153,7 @@ export function parseRelativeUrl(url) {
     }
 
     try {
-        return url.indexOf('https://') === 0 ? new URL(url) : null;
+        return url.indexOf('https://') === 0 ? new window.URL(url) : null;
     } catch {
         return null;
     }
