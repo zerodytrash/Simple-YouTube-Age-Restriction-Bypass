@@ -88,9 +88,10 @@ export function getSignatureTimestamp() {
 }
 
 export function isUserLoggedIn() {
-    // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID as fallback
+    // LOGGED_IN doesn't exist on embedded page, use DELEGATED_SESSION_ID or SESSION_INDEX as fallback
     if (typeof getYtcfgValue('LOGGED_IN') === 'boolean') return getYtcfgValue('LOGGED_IN');
     if (typeof getYtcfgValue('DELEGATED_SESSION_ID') === 'string') return true;
+    if (parseInt(getYtcfgValue('SESSION_INDEX')) >= 0) return true;
 
     return false;
 }
