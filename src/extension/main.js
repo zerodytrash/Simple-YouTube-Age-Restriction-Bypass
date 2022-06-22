@@ -24,29 +24,52 @@ function injectScript() {
 
     // Retrieve the extension settings
     chrome.storage.sync.get('options', ({ options }) => {
-        const nInjector = document.createElement('injector');
-        document.documentElement.append(nInjector);
+        // Extension disabled?
+        if (options && options.extensionEnabled === false) {
+            return;
+        }
 
-        nInjector.setAttribute('onclick', `window.SYARB_CONFIG = ${JSON.stringify(options || {})}; ${scriptContents}`);
+        try {
+            const nInjector = document.createElement('injector');
+            document.documentElement.append(nInjector);
 
-        // Fire event to execute the script
-        nInjector.click();
-        nInjector.remove();
+            nInjector.setAttribute('onclick', `window.SYARB_CONFIG = ${JSON.stringify(options || {})}; ${scriptContents}`);
 
-        logInfo(`Script injected (${location.href})`);
+            // Fire event to execute the script
+            nInjector.click();
+            nInjector.remove();
+
+            logInfo(`Script injected (${location.href})`);
+
+            // Notify background.js
+            chrome.runtime.sendMessage({ event: 'INIT' });
+        } catch (err) {
+            logError(err.message, err.stack);
+        }
     });
 }
 
 function updateConfig(changes) {
+    // Extension switched on/off? => Reload website
+    let { newValue, oldValue } = changes.options;
+
+    let extensionEnabledOld = oldValue ? oldValue.extensionEnabled : true;
+    let extensionEnabledNew = newValue ? newValue.extensionEnabled : true;
+
+    if (extensionEnabledOld !== extensionEnabledNew && !document.hidden) {
+        window.location.reload();
+        return;
+    }
+
     // Firefox specific
     if (typeof cloneInto === 'function') {
-        changes = cloneInto(changes, document.defaultView);
+        newValue = cloneInto(newValue, document.defaultView);
     }
 
     // Tell the script the new configuration
     window.dispatchEvent(
         new CustomEvent('SYARB_CONFIG_CHANGE', {
-            detail: changes.options.newValue,
+            detail: newValue,
         })
     );
 }
@@ -61,9 +84,6 @@ function init() {
 
         // Listen to config changes
         chrome.storage.onChanged.addListener(updateConfig);
-
-        // Notify background.js
-        chrome.runtime.sendMessage({ event: 'INIT' });
     } catch (err) {
         logError(err.message, err.stack);
     }

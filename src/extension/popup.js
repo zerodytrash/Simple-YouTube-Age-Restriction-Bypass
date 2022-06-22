@@ -28,10 +28,11 @@ initSettings();
 initErrorCount();
 
 function initSettings() {
-    const nSettings = document.querySelector('[data-id="settings"]');
-    const nReset = nSettings.querySelector('#reset');
+    const nSettingsContainer = document.querySelector('#multi-page-menu');
+    const nReset = nSettingsContainer.querySelector('#reset');
 
     const defaultOptions = {
+        extensionEnabled: true,
         skipContentWarnings: true,
         unlockNotification: true,
         unlockConfirmation: true,
@@ -39,9 +40,11 @@ function initSettings() {
 
     const options = { ...defaultOptions };
 
-    nSettings.addEventListener('change', ({ target }) => {
-        options[target.name] = target.checked;
-        chrome.storage.sync.set({ options });
+    nSettingsContainer.addEventListener('change', ({ target }) => {
+        if (typeof options[target.name] !== 'undefined') {
+            options[target.name] = target.checked;
+            chrome.storage.sync.set({ options });
+        }
     });
 
     nReset.addEventListener('click', () => {
@@ -57,7 +60,7 @@ function initSettings() {
 
     function resetSettings() {
         for (const option in options) {
-            const nSetting = nSettings.querySelector(`[name=${option}]`);
+            const nSetting = nSettingsContainer.querySelector(`[name=${option}]`);
             if (nSetting) {
                 nSetting.checked = options[option];
             }
