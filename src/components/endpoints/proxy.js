@@ -12,7 +12,7 @@ function getGoogleVideoUrl(originalUrl) {
 function getPlayer(payload) {
     // Also request the /next response if a later /next request is likely.
     if (!nextResponseCache[payload.videoId] && !isMusic && !isEmbed) {
-        payload.includeNext = true;
+        payload.includeNext = 1;
     }
 
     return sendRequest('getPlayer', payload);
