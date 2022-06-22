@@ -1,8 +1,7 @@
 import { proxy, innertube } from '../endpoints';
 import { isEmbed, isConfirmed, getYtcfgValue } from '../../utils';
 
-export default function getUnlockStrategies(originalNextResponse, lastPlayerUnlockReason) {
-    const videoId = originalNextResponse.currentVideoEndpoint.watchEndpoint.videoId;
+export default function getUnlockStrategies(videoId, lastPlayerUnlockReason) {
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const hl = getYtcfgValue('HL');

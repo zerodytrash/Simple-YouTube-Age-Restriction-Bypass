@@ -25,7 +25,7 @@ export default function unlockResponse(playerResponse) {
     if (isConfirmationRequired()) {
         logger.info('Unlock confirmation required.');
         requestConfirmation();
-        return playerResponse;
+        return;
     }
 
     const videoId = playerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
@@ -33,7 +33,7 @@ export default function unlockResponse(playerResponse) {
 
     if (!Config.SKIP_CONTENT_WARNINGS && reason.includes('CHECK_REQUIRED')) {
         logger.info(`SKIP_CONTENT_WARNINGS disabled and ${reason} status detected.`);
-        return playerResponse;
+        return;
     }
 
     lastPlayerUnlockVideoId = videoId;

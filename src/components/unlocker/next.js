@@ -2,12 +2,23 @@ import * as logger from '../../utils/logger';
 import { next as nextInspector } from '../inspectors';
 import { getNextUnlockStrategies } from '../strategies';
 import { isDesktop, createDeepCopy } from '../../utils';
-import { lastPlayerUnlockReason } from './player';
+import { lastPlayerUnlockReason, lastPlayerUnlockVideoId } from './player';
 
 let cachedNextResponse = {};
 
 export default function unlockResponse(originalNextResponse) {
-    const unlockedNextResponse = getUnlockedNextResponse(originalNextResponse);
+    const videoId = originalNextResponse.currentVideoEndpoint.watchEndpoint.videoId;
+
+    if (!videoId) {
+        throw new Error(`Missing videoId in nextResponse`);
+    }
+
+    // Only unlock the /next response when the player has been unlocked as well
+    if (videoId !== lastPlayerUnlockVideoId) {
+        return;
+    }
+
+    const unlockedNextResponse = getUnlockedNextResponse(videoId);
 
     // check if the sidebar of the unlocked response is still empty
     if (nextInspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
@@ -18,17 +29,11 @@ export default function unlockResponse(originalNextResponse) {
     mergeNextResponse(originalNextResponse, unlockedNextResponse);
 }
 
-function getUnlockedNextResponse(nextResponse) {
-    const videoId = nextResponse.currentVideoEndpoint.watchEndpoint.videoId;
-
-    if (!videoId) {
-        throw new Error(`Missing videoId in nextResponse`);
-    }
-
+function getUnlockedNextResponse(videoId) {
     // Check if response is cached
     if (cachedNextResponse.videoId === videoId) return createDeepCopy(cachedNextResponse);
 
-    const unlockStrategies = getNextUnlockStrategies(nextResponse, lastPlayerUnlockReason);
+    const unlockStrategies = getNextUnlockStrategies(videoId, lastPlayerUnlockReason);
 
     let unlockedNextResponse = {};
 
