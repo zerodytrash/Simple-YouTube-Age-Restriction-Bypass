@@ -10,6 +10,7 @@ const messagesMap = {
     fail: 'Unable to unlock this video 🙁 - More information in the developer console',
 };
 
+export let lastPlayerUnlockVideoId = null;
 export let lastPlayerUnlockReason = null;
 
 let lastProxiedGoogleVideoUrlParams;
@@ -27,7 +28,18 @@ export default function unlockResponse(playerResponse) {
         return playerResponse;
     }
 
-    const unlockedPlayerResponse = getUnlockedPlayerResponse(playerResponse);
+    const videoId = playerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
+    const reason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
+
+    if (!Config.SKIP_CONTENT_WARNINGS && reason.includes('CHECK_REQUIRED')) {
+        logger.info(`SKIP_CONTENT_WARNINGS disabled and ${reason} status detected.`);
+        return playerResponse;
+    }
+
+    lastPlayerUnlockVideoId = videoId;
+    lastPlayerUnlockReason = reason;
+
+    const unlockedPlayerResponse = getUnlockedPlayerResponse(videoId, reason);
 
     // account proxy error?
     if (unlockedPlayerResponse.errorMessage) {
@@ -62,15 +74,11 @@ export default function unlockResponse(playerResponse) {
     Toast.show(messagesMap.success);
 }
 
-function getUnlockedPlayerResponse(playerResponse) {
-    const videoId = playerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
-
+function getUnlockedPlayerResponse(videoId, reason) {
     // Check if response is cached
     if (cachedPlayerResponse.videoId === videoId) return createDeepCopy(cachedPlayerResponse);
 
-    lastPlayerUnlockReason = playerResponse.playabilityStatus?.status || playerResponse.previewPlayabilityStatus?.status;
-
-    const unlockStrategies = getPlayerUnlockStrategies(playerResponse);
+    const unlockStrategies = getPlayerUnlockStrategies(videoId, reason);
 
     let unlockedPlayerResponse = {};
 

@@ -1,9 +1,7 @@
 import { innertube, proxy } from '../endpoints';
 import { isEmbed, isConfirmed, getCurrentVideoStartTime, getYtcfgValue, getSignatureTimestamp } from '../../utils';
 
-export default function getUnlockStrategies(originalPlayerResponse) {
-    const videoId = originalPlayerResponse.videoDetails?.videoId || getYtcfgValue('PLAYER_VARS').video_id;
-    const reason = originalPlayerResponse.playabilityStatus?.status || originalPlayerResponse.previewPlayabilityStatus?.status;
+export default function getUnlockStrategies(videoId, reason) {
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const signatureTimestamp = getSignatureTimestamp();

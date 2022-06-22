@@ -14,6 +14,9 @@ export let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
 // Show notification?
 export let ENABLE_UNLOCK_NOTIFICATION = true;
 
+// Disable content warnings?
+export let SKIP_CONTENT_WARNINGS = false;
+
 // Some Innertube bypass methods require the following authentication headers of the currently logged in user.
 export const GOOGLE_AUTH_HEADER_NAMES = ['Authorization', 'X-Goog-AuthUser'];
 

@@ -32,7 +32,7 @@ export function handleXhrOpen(method, url, xhr) {
         });
     }
 
-    if (method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+    if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
         // Add content check flags to player and next request (this will skip content warnings)
         interceptors.attachGenericInterceptor(xhr, 'send', (args) => {
             if (typeof args[0] === 'string') {
@@ -67,7 +67,7 @@ export function handleFetchRequest(url, requestOptions) {
         }
     }
 
-    if (['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+    if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
         // Add content check flags to player and next request (this will skip content warnings)
         requestOptions.body = setContentCheckOk(requestOptions.body);
     }
