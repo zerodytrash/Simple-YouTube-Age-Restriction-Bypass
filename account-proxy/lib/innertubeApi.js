@@ -96,7 +96,7 @@ const generateApiRequestHeaders = function (credentials) {
 
 const sendApiRequest = function (endpoint, clientParams, credentials, proxy) {
 
-    const url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}`;
+    const url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}&prettyPrint=false`;
     const headers = generateApiRequestHeaders(credentials);
     const data = generateApiRequestData(clientParams);
 
