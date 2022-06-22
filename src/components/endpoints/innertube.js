@@ -1,5 +1,6 @@
 import { getYtcfgValue, isUserLoggedIn } from '../../utils';
 import { nativeJSONParse } from '../interceptors/natives';
+import * as Config from '../../config';
 import * as storage from '../storage';
 
 function getPlayer(payload, useAuth) {
@@ -16,8 +17,9 @@ function sendInnertubeRequest(endpoint, payload, useAuth) {
 
     if (useAuth && isUserLoggedIn()) {
         xmlhttp.withCredentials = true;
-        xmlhttp.setRequestHeader('Authorization', storage.get('Authorization'));
-        xmlhttp.setRequestHeader('X-Goog-AuthUser', storage.get('X-Goog-AuthUser'));
+        Config.GOOGLE_AUTH_HEADER_NAMES.forEach((headerName) => {
+            xmlhttp.setRequestHeader(headerName, storage.get(headerName));
+        });
     }
 
     xmlhttp.send(JSON.stringify(payload));
