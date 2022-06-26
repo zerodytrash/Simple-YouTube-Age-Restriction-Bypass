@@ -1,14 +1,15 @@
 #multi-page-menu {
     display: grid;
+    height: 360px;
     width: 350px;
     overflow: clip;
-    will-change: height;
 }
 
 #multi-page-menu > .page {
+    display: flex;
+    flex-direction: column;
     grid-column: 1 / 1;
     grid-row: 1 / 1;
-    height: max-content;
     padding: 8px 10px;
     will-change: transform;
 }
@@ -55,18 +56,6 @@
 
 #multi-page-menu .menu-item.button:hover {
     background: #525357;
-}
-
-#multi-page-menu .menu-item.button.danger {
-    margin-top: 12px;
-    text-align: center;
-    background: hsl(0deg 96% 62% / 10%);
-    color: #f54545;
-    height: 42px;
-}
-
-#multi-page-menu .menu-item.button.danger:hover {
-    background: hsl(0deg 100% 80% / 10%)
 }
 
 #multi-page-menu .header {
