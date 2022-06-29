@@ -8,7 +8,7 @@ export default function attach(onRequestCreate) {
     }
 
     window.Request = new Proxy(window.Request, {
-        construct: function(target, [url, options]) {
+        construct(target, [url, options]) {
             try {
                 let parsedUrl = parseRelativeUrl(url);
                 let modifiedUrl = onRequestCreate(parsedUrl, options);
