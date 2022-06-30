@@ -7,13 +7,14 @@ export default function attach(onRequestCreate) {
     }
 
     window.Request = new Proxy(window.Request, {
-        construct(target, [url, options]) {
+        construct(target, args) {
+            const [url, options] = args;
             try {
-                let parsedUrl = parseRelativeUrl(url);
-                let modifiedUrl = onRequestCreate(parsedUrl, options);
+                const parsedUrl = parseRelativeUrl(url);
+                const modifiedUrl = onRequestCreate(parsedUrl, options);
 
                 if (modifiedUrl) {
-                    arguments[0] = modifiedUrl.toString();
+                    args[0] = modifiedUrl.toString();
                 }
             } catch (err) {
                 logger.error(err, `Failed to intercept Request()`);
