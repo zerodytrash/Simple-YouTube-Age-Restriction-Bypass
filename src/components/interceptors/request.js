@@ -1,5 +1,4 @@
 import { parseRelativeUrl } from '../../utils';
-import { nativeRequest } from './natives';
 import * as logger from '../../utils/logger';
 
 export default function attach(onRequestCreate) {
@@ -17,7 +16,7 @@ export default function attach(onRequestCreate) {
                     arguments[0] = modifiedUrl.toString();
                 }
             } catch (err) {
-                error(err, `Failed to intercept Request()`);
+                logger.error(err, `Failed to intercept Request()`);
             }
 
             return Reflect.construct(...arguments);
