@@ -4,7 +4,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.5.1
+// @version         2.5.2
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -113,7 +113,6 @@
 
     const nativeJSONParse = window.JSON.parse;
     const nativeXMLHttpRequestOpen = window.XMLHttpRequest.prototype.open;
-    const nativeRequest = window.Request;
 
     const isDesktop = window.location.host !== 'm.youtube.com';
     const isMusic = window.location.host === 'music.youtube.com';
@@ -393,20 +392,23 @@
             return;
         }
 
-        window.Request = function (url, options) {
-            try {
-                let parsedUrl = parseRelativeUrl(url);
-                let modifiedUrl = onRequestCreate(parsedUrl, options);
+        window.Request = new Proxy(window.Request, {
+            construct(target, args) {
+                const [url, options] = args;
+                try {
+                    const parsedUrl = parseRelativeUrl(url);
+                    const modifiedUrl = onRequestCreate(parsedUrl, options);
 
-                if (modifiedUrl) {
-                    arguments[0] = modifiedUrl.toString();
+                    if (modifiedUrl) {
+                        args[0] = modifiedUrl.toString();
+                    }
+                } catch (err) {
+                    error(err, `Failed to intercept Request()`);
                 }
-            } catch (err) {
-                error(err, `Failed to intercept Request()`);
-            }
 
-            return new nativeRequest(...arguments);
-        };
+                return Reflect.construct(...arguments);
+            },
+        });
     }
 
     function attach(onXhrOpenCalled) {
