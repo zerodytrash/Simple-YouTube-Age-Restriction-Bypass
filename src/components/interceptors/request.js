@@ -20,7 +20,7 @@ export default function attach(onRequestCreate) {
                 logger.error(err, `Failed to intercept Request()`);
             }
 
-            return Reflect.construct(...arguments);
+            return Reflect.construct(target, args);
         },
     });
 }
