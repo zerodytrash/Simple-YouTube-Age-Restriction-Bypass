@@ -7,7 +7,7 @@ export function set(key, value) {
 export function get(key) {
     try {
         return JSON.parse(localStorage.getItem(localStoragePrefix + key));
-    } catch {
+    } catch (err) {
         return null;
     }
 }
