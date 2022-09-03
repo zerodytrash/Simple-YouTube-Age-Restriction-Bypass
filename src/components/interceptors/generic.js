@@ -8,7 +8,7 @@ export default function attach(obj, prop, onCall) {
     obj[prop] = function () {
         try {
             onCall(arguments);
-        } catch {}
+        } catch (err) {}
         original.apply(this, arguments);
     };
 }
