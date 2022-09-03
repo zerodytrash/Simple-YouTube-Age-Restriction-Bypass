@@ -38,7 +38,7 @@ export function findNestedObjectsByAttributeNames(object, attributeNames) {
     // Diggin' deeper for each nested object (recursive)
     Object.keys(object).forEach((key) => {
         if (object[key] && typeof object[key] === 'object') {
-            results.push(...findNestedObjectsByAttributeNames(object[key], attributeNames));
+            results = results.concat(findNestedObjectsByAttributeNames(object[key], attributeNames));
         }
     });
 
@@ -154,7 +154,7 @@ export function parseRelativeUrl(url) {
 
     try {
         return url.indexOf('https://') === 0 ? new window.URL(url) : null;
-    } catch {
+    } catch (err) {
         return null;
     }
 }
