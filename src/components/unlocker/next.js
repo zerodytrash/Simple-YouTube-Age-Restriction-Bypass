@@ -53,7 +53,7 @@ function getUnlockedNextResponse(videoId) {
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
-    cachedNextResponse = { videoId, ...createDeepCopy(unlockedNextResponse) };
+    cachedNextResponse = Object.assign({"videoId": videoId}, createDeepCopy(unlockedNextResponse));
 
     return unlockedNextResponse;
 }
