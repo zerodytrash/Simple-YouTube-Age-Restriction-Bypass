@@ -99,7 +99,7 @@ function getUnlockedPlayerResponse(videoId, reason) {
     });
 
     // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
-    cachedPlayerResponse = { videoId, ...createDeepCopy(unlockedPlayerResponse) };
+    cachedPlayerResponse = Object.assign({"videoId": videoId}, createDeepCopy(unlockedPlayerResponse));
 
     return unlockedPlayerResponse;
 }
