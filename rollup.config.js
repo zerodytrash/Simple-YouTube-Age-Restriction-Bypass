@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { getBabelOutputPlugin } from '@rollup/plugin-babel';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { getBabelOutputPlugin } from '@rollup/plugin-babel';
+import replace from '@rollup/plugin-replace';
 import html from 'rollup-plugin-html';
+
 import pkg from './package.json';
 import manifest from './src/extension/mv3/manifest.json';
 
@@ -11,65 +13,80 @@ const EXTENSION_OUTPUT_DIR = 'dist/extension';
 const EXTENSION_MAIN_SCRIPT_NAME = manifest.content_scripts[0].js[0];
 const EXTENSION_WEB_SCRIPT_NAME = manifest.web_accessible_resources[0].resources[0];
 
-function wrap_in_iife() {
-    const [banner, footer] = (() => {
-        (function iife(inject) {
-            // Trick to get around the sandbox restrictions in Greasemonkey (Firefox)
-            // Inject code into the main window if criteria match
-            if (this !== window && inject) {
-                window.eval("(" + iife.toString() + ")();");
-                return;
+const set_script_version = [
+    ['%version%', pkg.version],
+];
+
+function transformString(str, transformer) {
+    return transformer.reduce((_, x) => str.replace(...x), str);
+}
+
+function userscript(path, transformer = []) {
+    const config = transformString(fs.readFileSync(path, 'utf8'), transformer);
+
+    const iife = (() => {
+        const [top, bottom] = (() => {
+            (function iife(ranOnce) {
+                // Trick to get around the sandbox restrictions in Greasemonkey (Firefox)
+                // Inject code into the main window if criteria match
+                if (this !== window && !ranOnce) {
+                    window.eval('(' + iife.toString() + ')(true);');
+                    return;
+                }
+
+                /* END */
+            })();
+        }).toString().slice(7, -1).split('/* END */');
+
+        return { top, bottom };
+    })();
+
+    return {
+        name: 'userscript',
+        banner: config + iife.top,
+        footer: iife.bottom,
+    };
+}
+
+function copyExtensionAssets() {
+    return {
+        name: 'copyExtensionAssets',
+        writeBundle() {
+            const outputDir = `${EXTENSION_OUTPUT_DIR}/mv3`;
+            const outputDirLegacy = outputDir.replace('3', '2');
+
+            const assetPaths = [
+                'src/extension/background.js',
+                'src/extension/popup.js',
+                'src/extension/multi-page-menu.css',
+                'src/extension/multi-page-menu.js',
+                'src/extension/icon/gray_16.png',
+                'src/extension/icon/gray_48.png',
+                'src/extension/icon/icon_16.png',
+                'src/extension/icon/icon_48.png',
+                'src/extension/icon/icon_128.png',
+            ];
+
+            for (const assetPath of assetPaths) {
+                fs.cpSync(assetPath, path.join(outputDir, path.basename(assetPath)));
             }
 
-            /* == INJECTION == */
-        })(true);
-    }).toString().slice(7, -1).split('/* == INJECTION == */');
+            cpTransform('src/extension/popup.html', outputDir, set_script_version);
 
-    return {
-        name: 'wrap_in_iife',
-        banner,
-        footer,
-    };
-}
+            // copy the above constructed folder in /mv2
+            fs.cpSync(outputDir, outputDirLegacy, { recursive: true });
 
-function add_header_file(path, transform) {
-    const fileContent = fs.readFileSync(path, 'utf8');
-    return {
-        name: "add_header_file",
-        banner: transform ? transform(fileContent) : fileContent
-    }
-}
+            cpTransform('src/extension/mv3/manifest.json', outputDir, set_script_version);
 
-function set_script_version(meta) {
-    return meta.replace('%version%', pkg.version);
-}
+            cpTransform('src/extension/mv2/manifest.json', outputDirLegacy, set_script_version);
 
-function copy({ src, dest, transform }) {
-    return {
-        name: 'copy',
-        buildEnd() {
-            fs.mkdirSync(dest, { recursive: true });
-            const fileContent = transform ? transform(fs.readFileSync(src, 'utf8')) : fs.readFileSync(src);
-            fs.writeFileSync(path.join(dest, path.basename(src)), fileContent);
+            function cpTransform(src, dest, transformer) {
+                const fileContent = transformString(fs.readFileSync(src, 'utf8'), transformer);
+                fs.mkdirSync(dest, { recursive: true });
+                fs.writeFileSync(path.join(dest, path.basename(src)), fileContent);
+            }
         },
     };
-}
-
-function getRollupPluginsForManifestVersion(manifestVersion) {
-    const outputDir = EXTENSION_OUTPUT_DIR + '/mv' + manifestVersion;
-    return [
-        copy({ src: `src/extension/mv${manifestVersion}/manifest.json`, dest: outputDir, transform: set_script_version }),
-        copy({ src: 'src/extension/background.js', dest: outputDir }),
-        copy({ src: 'src/extension/popup.html', dest: outputDir, transform: set_script_version }),
-        copy({ src: 'src/extension/popup.js', dest: outputDir }),
-        copy({ src: 'src/extension/multi-page-menu.css', dest: outputDir }),
-        copy({ src: 'src/extension/multi-page-menu.js', dest: outputDir }),
-        copy({ src: 'src/extension/icon/gray_16.png', dest: outputDir }),
-        copy({ src: 'src/extension/icon/gray_48.png', dest: outputDir }),
-        copy({ src: 'src/extension/icon/icon_16.png', dest: outputDir }),
-        copy({ src: 'src/extension/icon/icon_48.png', dest: outputDir }),
-        copy({ src: 'src/extension/icon/icon_128.png', dest: outputDir }),
-    ]
 }
 
 export default [
@@ -80,28 +97,25 @@ export default [
             format: 'esm',
         },
         plugins: [
+            replace({  __BUILD_TARGET__: `'USERSCRIPT'`, preventAssignment: true }),
             html(),
             nodeResolve(),
             commonjs(),
-            add_header_file('userscript.config.js', set_script_version),
-            // Manually wrap code in our custom iife
-            wrap_in_iife(),
-            getBabelOutputPlugin({ configFile: './babel.config.js' }),
+            userscript('userscript.config.js', set_script_version),
+            getBabelOutputPlugin({
+                presets: [ ['@babel/preset-env', { modules: false }] ],
+                retainLines: true,
+            }),
         ],
     },
     {
         input: 'src/main.js',
-        output: [
-            {
-                file: `${EXTENSION_OUTPUT_DIR}/mv2/${EXTENSION_WEB_SCRIPT_NAME}`,
-                format: 'iife',
-            },
-            {
-                file: `${EXTENSION_OUTPUT_DIR}/mv3/${EXTENSION_WEB_SCRIPT_NAME}`,
-                format: 'iife',
-            }
-        ],
+        output: {
+            file: `${EXTENSION_OUTPUT_DIR}/mv3/${EXTENSION_WEB_SCRIPT_NAME}`,
+            format: 'iife',
+        },
         plugins: [
+            replace({  __BUILD_TARGET__: `'WEB_EXTENSION'`, preventAssignment: true }),
             html(),
             nodeResolve(),
             commonjs(),
@@ -109,19 +123,10 @@ export default [
     },
     {
         input: 'src/extension/main.js',
-        output: [
-            {
-                file: `${EXTENSION_OUTPUT_DIR}/mv2/${EXTENSION_MAIN_SCRIPT_NAME}`,
-                format: 'esm',
-            },
-            {
-                file: `${EXTENSION_OUTPUT_DIR}/mv3/${EXTENSION_MAIN_SCRIPT_NAME}`,
-                format: 'esm',
-            }
-        ],
-        plugins: [
-            ...getRollupPluginsForManifestVersion(2),
-            ...getRollupPluginsForManifestVersion(3),
-        ],
+        output: {
+            file: `${EXTENSION_OUTPUT_DIR}/mv3/${EXTENSION_MAIN_SCRIPT_NAME}`,
+            format: 'esm',
+        },
+        plugins: [copyExtensionAssets()],
     },
 ];

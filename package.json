@@ -18,20 +18,21 @@
     "dist/Simple-YouTube-Age-Restriction-Bypass.user.js"
   ],
   "scripts": {
-    "build": "npm install && npm run clean && rollup -c && prettier --write dist/*.user.js && npm run archive-extension",
+    "build": "npm run clean && rollup -c && prettier --write dist/*.user.js && npm run archive-extension",
     "clean": "node scripts/clean.js",
     "archive-extension": "node scripts/archive-extension.js",
     "format": "prettier --write src/**/*.js",
     "check-format": "prettier --check src/**/*.js"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-env": "^7.19.3",
     "@rollup/plugin-babel": "^5.3.1",
-    "@rollup/plugin-commonjs": "^22.0.0",
-    "@rollup/plugin-node-resolve": "^13.2.1",
+    "@rollup/plugin-commonjs": "^22.0.2",
+    "@rollup/plugin-node-resolve": "^14.1.0",
+    "@rollup/plugin-replace": "^4.0.0",
     "archiver": "^5.3.1",
-    "prettier": "^2.6.2",
-    "rollup": "^2.70.2",
+    "prettier": "^2.7.1",
+    "rollup": "^2.79.1",
     "rollup-plugin-html": "^0.2.1"
   }
 }

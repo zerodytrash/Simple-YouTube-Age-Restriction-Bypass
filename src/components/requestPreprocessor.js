@@ -1,4 +1,4 @@
-import * as Config from '../config';
+import Config from '../config';
 import * as storage from './storage';
 import * as interceptors from './interceptors';
 import * as inspectors from './inspectors';

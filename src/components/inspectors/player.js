@@ -1,5 +1,5 @@
 import { isEmbed } from '../../utils';
-import * as Config from '../../config';
+import Config from '../../config';
 
 export function isPlayerObject(parsedData) {
     return parsedData?.videoDetails && parsedData?.playabilityStatus;

@@ -1,6 +1,6 @@
 import { getYtcfgValue, isUserLoggedIn } from '../../utils';
 import { nativeJSONParse } from '../interceptors/natives';
-import * as Config from '../../config';
+import Config from '../../config';
 import * as storage from '../storage';
 
 function getPlayer(payload, useAuth) {

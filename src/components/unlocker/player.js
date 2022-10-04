@@ -1,4 +1,4 @@
-import * as Config from '../../config';
+import Config from '../../config';
 import * as logger from '../../utils/logger';
 import Toast from '../toast';
 import { getPlayerUnlockStrategies } from '../strategies';

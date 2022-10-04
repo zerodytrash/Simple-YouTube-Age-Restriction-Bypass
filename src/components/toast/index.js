@@ -1,5 +1,5 @@
 import { isDesktop, isMusic, isEmbed, pageLoaded, createElement } from '../../utils';
-import * as Config from '../../config';
+import Config from '../../config';
 
 import tDesktop from './templates/desktop.html';
 import tMobile from './templates/mobile.html';

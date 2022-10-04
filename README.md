@@ -167,14 +167,20 @@ We use [Rollup](https://rollupjs.org) with [Babel](https://github.com/babel/babe
 ```sh
 git clone https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass.git
 ```
-**2. Run Build Script**
+**2. Install Dependencies**
 
-Run this command at the root folder to install the required dependencies and build the userscript and extension:
+Run this command at the root folder to install the required dependencies:
+```sh
+npm install
+```
+**3. Run Build Script**
+
+Build the userscript and extension:
 ```sh
 npm run build
 ```
 
-The userscript `Simple-YouTube-Age-Restriction-Bypass.user.js` and extension should now be located in the `dist` folder. 
+The userscript `Simple-YouTube-Age-Restriction-Bypass.user.js` and extension should now be located in the `dist` folder.
 > The extension is compiled to both Manifest [V2](https://developer.chrome.com/docs/extensions/mv2) and [V3](https://developer.chrome.com/docs/extensions/mv3/intro).
 
 ## Contributors
