@@ -1,10 +1,10 @@
 import Config from '../config';
-import * as storage from './storage';
-import * as interceptors from './interceptors';
-import * as inspectors from './inspectors';
-import * as unlocker from './unlocker';
-import { proxy } from './endpoints';
 import { isObject } from '../utils';
+import { proxy } from './endpoints';
+import * as inspectors from './inspectors';
+import * as interceptors from './interceptors';
+import * as storage from './storage';
+import * as unlocker from './unlocker';
 
 /**
  *  Handles XMLHttpRequests and

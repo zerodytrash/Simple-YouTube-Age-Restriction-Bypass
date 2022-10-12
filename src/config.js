@@ -33,7 +33,7 @@ const THUMBNAIL_BLURRED_SQPS = [
     '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
 ];
 
- // small hack to prevent tree shaking on these exports
+// small hack to prevent tree shaking on these exports
 export default window[Symbol()] = {
     UNLOCKABLE_PLAYABILITY_STATUSES,
     VALID_PLAYABILITY_STATUSES,

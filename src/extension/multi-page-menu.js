@@ -27,7 +27,7 @@ function transitionTo(event) {
             event.currentTarget.style.display = 'none';
             animating = false;
         },
-        { once: true }
+        { once: true },
     );
 
     if (!nPage.dataset.state || nPage.dataset.state === 'cold') {
@@ -50,6 +50,6 @@ function transitionTo(event) {
             detail: {
                 pageId: selector,
             },
-        })
+        }),
     );
 }

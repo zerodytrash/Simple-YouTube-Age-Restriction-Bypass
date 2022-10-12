@@ -12,7 +12,7 @@ export class Deferred {
                 this.resolve = resolve;
                 this.reject = reject;
             }),
-            this
+            this,
         );
     }
 }
@@ -71,8 +71,8 @@ export function getYtcfgValue(name) {
 
 export function getSignatureTimestamp() {
     return (
-        getYtcfgValue('STS') ||
-        (() => {
+        getYtcfgValue('STS')
+        || (() => {
             // STS is missing on embedded player. Retrieve from player base script as fallback...
             const playerBaseJsPath = document.querySelector('script[src*="/base.js"]')?.src;
 

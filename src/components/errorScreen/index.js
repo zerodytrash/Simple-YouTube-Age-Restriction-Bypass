@@ -1,4 +1,4 @@
-import { waitForElement, createElement } from '../../utils';
+import { createElement, waitForElement } from '../../utils';
 import buttonTemplate from './templates/button.html';
 
 let buttons = {};

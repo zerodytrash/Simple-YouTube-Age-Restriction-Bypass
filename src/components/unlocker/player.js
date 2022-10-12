@@ -1,9 +1,9 @@
 import Config from '../../config';
-import * as logger from '../../utils/logger';
-import Toast from '../toast';
-import { getPlayerUnlockStrategies } from '../strategies';
 import { createDeepCopy, getYtcfgValue, isUserLoggedIn } from '../../utils';
+import * as logger from '../../utils/logger';
 import { isConfirmationRequired, requestConfirmation } from '../confirmation';
+import { getPlayerUnlockStrategies } from '../strategies';
+import Toast from '../toast';
 
 const messagesMap = {
     success: 'Age-restricted video successfully unlocked!',

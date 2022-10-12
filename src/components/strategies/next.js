@@ -1,5 +1,5 @@
-import { proxy, innertube } from '../endpoints';
-import { isEmbed, isConfirmed, getYtcfgValue } from '../../utils';
+import { getYtcfgValue, isConfirmed, isEmbed } from '../../utils';
+import { innertube, proxy } from '../endpoints';
 
 export default function getUnlockStrategies(videoId, lastPlayerUnlockReason) {
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';

@@ -70,7 +70,7 @@ function updateConfig(changes) {
     window.dispatchEvent(
         new CustomEvent('SYARB_CONFIG_CHANGE', {
             detail: newValue,
-        })
+        }),
     );
 }
 

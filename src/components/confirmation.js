@@ -1,6 +1,6 @@
-import { isEmbed, isConfirmed, setUrlParams } from '../utils';
-import { addButton, removeButton } from './errorScreen';
 import Config from '../config';
+import { isConfirmed, isEmbed, setUrlParams } from '../utils';
+import { addButton, removeButton } from './errorScreen';
 
 const confirmationButtonId = 'confirmButton';
 const confirmationButtonText = 'Click to unlock';

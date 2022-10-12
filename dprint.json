@@ -1,0 +1,10 @@
+{
+  "typescript": {
+    "lineWidth": 180,
+    "indentWidth": 4,
+    "quoteStyle": "preferSingle"
+  },
+  "plugins": [
+    "https://plugins.dprint.dev/typescript-0.74.0.wasm"
+  ]
+}
