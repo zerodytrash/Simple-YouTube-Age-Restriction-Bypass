@@ -1,18 +1,13 @@
 {
-  "name": "simple-youtube-age-restriction-bypass-server",
-  "version": "1.0.4",
-  "description": "simple-youtube-age-restriction-bypass proxy backend",
-  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "author": "zerodytrash",
-  "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
-    "express-rate-limit": "^5.3.0",
-    "https-proxy-agent": "^5.0.0"
+    "@fastify/cors": "^8.2.0",
+    "@fastify/rate-limit": "^7.5.0",
+    "dotenv": "^16.0.3",
+    "fastify": "^4.9.2",
+    "undici": "^5.12.0"
   }
 }

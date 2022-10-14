@@ -1,5 +1,5 @@
 function fillObjectFromRequest(obj, request) {
-    for (propName in obj) {
+    for (const propName in obj) {
         if (typeof request.query[propName] === 'undefined') {
             continue;
         }
@@ -18,7 +18,7 @@ function fillObjectFromRequest(obj, request) {
 }
 
 function validateObjectAttributes(obj) {
-    for (propName in obj) {
+    for (const propName in obj) {
         if (obj[propName] === null || obj[propName] === '') {
             throw new Error(`Missing value for ${propName}`);
         }
@@ -32,7 +32,7 @@ function validateObjectAttributes(obj) {
 function extractAttributes(obj, attributesArray) {
     let newObj = {};
 
-    for (let i in attributesArray) {
+    for (const i in attributesArray) {
         let attr = attributesArray[i];
         if (obj[attr]) {
             newObj[attr] = obj[attr];
@@ -56,7 +56,7 @@ function checkForGcrFlag(youtubeData) {
     return streamingDataJson.includes('gcr=') || streamingDataJson.includes('gcr%3D');
 }
 
-module.exports = {
+export {
     fillObjectFromRequest,
     validateObjectAttributes,
     extractAttributes,

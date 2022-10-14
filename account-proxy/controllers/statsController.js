@@ -1,16 +1,13 @@
-const stats = require('../lib/stats');
+import stats from '../lib/stats.js';
 
 function getStats(req, res) {
+    res.header('Cache-Control', 'no-store');
 
-    res.set('Cache-Control', 'no-store');
-
-    if(req.query.historical) {
-        res.send(stats.getHistoricalStats());
-    } else {
-        res.send(stats.getTodayStats());
-    }
+    return req.query.historical
+        ? stats.getHistoricalStats()
+        : stats.getTodayStats();
 }
 
-module.exports = {
+export default {
     getStats
 }

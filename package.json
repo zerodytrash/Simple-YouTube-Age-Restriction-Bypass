@@ -17,10 +17,12 @@
   "files": [
     "dist/Simple-YouTube-Age-Restriction-Bypass.user.js"
   ],
+  "workspaces": ["account-proxy"],
   "scripts": {
     "build": "node --no-warnings scripts/build.js",
     "format": "dprint fmt src/**/*.js",
-    "check-format": "dprint check src/**/*.js"
+    "check-format": "dprint check src/**/*.js",
+    "proxy:start": "npm start --workspaces account-proxy"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
