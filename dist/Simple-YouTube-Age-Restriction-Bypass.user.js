@@ -4,7 +4,7 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.5.2
+// @version         2.5.3
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -26,12 +26,11 @@
     This is a transpiled version to achieve a clean code base and better browser compatibility.
     You can find the nicely readable source code at https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass
 */
-
-(function iife(inject) {
+(function iife(ranOnce) {
     // Trick to get around the sandbox restrictions in Greasemonkey (Firefox)
     // Inject code into the main window if criteria match
-    if (this !== window && inject) {
-        window.eval('(' + iife.toString() + ')();');
+    if (this !== window && !ranOnce) {
+        window.eval('(' + iife.toString() + ')(true);');
         return;
     }
 
@@ -70,31 +69,18 @@
         '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
     ];
 
-    // If the injection is done through the browser extension, this window property is set.
-    // This allows the extension to override the settings that can be set via the extension popup.
-    if (window.SYARB_CONFIG) {
-        function applyConfig(options) {
-            for (const option in options) {
-                switch (option) {
-                    case 'unlockNotification':
-                        ENABLE_UNLOCK_NOTIFICATION = options[option];
-                        break;
-                    case 'unlockConfirmation':
-                        ENABLE_UNLOCK_CONFIRMATION_EMBED = options[option];
-                        break;
-                    case 'skipContentWarnings':
-                        SKIP_CONTENT_WARNINGS = options[option];
-                        break;
-                }
-            }
-        }
-
-        // Apply initial extension configuration
-        applyConfig(window.SYARB_CONFIG);
-
-        // Listen for config changes
-        window.addEventListener('SYARB_CONFIG_CHANGE', (e) => applyConfig(e.detail));
-    }
+    // small hack to prevent tree shaking on these exports
+    var Config = (window[Symbol()] = {
+        UNLOCKABLE_PLAYABILITY_STATUSES,
+        VALID_PLAYABILITY_STATUSES,
+        ACCOUNT_PROXY_SERVER_HOST,
+        VIDEO_PROXY_SERVER_HOST,
+        ENABLE_UNLOCK_CONFIRMATION_EMBED,
+        ENABLE_UNLOCK_NOTIFICATION,
+        SKIP_CONTENT_WARNINGS,
+        GOOGLE_AUTH_HEADER_NAMES,
+        THUMBNAIL_BLURRED_SQPS,
+    });
 
     function attach$4(obj, prop, onCall) {
         if (!obj || typeof obj[prop] !== 'function') {
@@ -453,7 +439,7 @@
             _playabilityStatus$er8;
         if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
         if (playabilityStatus.desktopLegacyAgeGateReason) return true;
-        if (UNLOCKABLE_PLAYABILITY_STATUSES.includes(playabilityStatus.status)) return true;
+        if (Config.UNLOCKABLE_PLAYABILITY_STATUSES.includes(playabilityStatus.status)) return true;
 
         // Fix to detect age restrictions on embed player
         // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
@@ -608,7 +594,7 @@
 
     async function show(message) {
         let duration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
-        if (!ENABLE_UNLOCK_NOTIFICATION) return;
+        if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
         if (isEmbed) return;
 
         await pageLoaded();
@@ -653,7 +639,7 @@
 
         if (useAuth && isUserLoggedIn()) {
             xmlhttp.withCredentials = true;
-            GOOGLE_AUTH_HEADER_NAMES.forEach((headerName) => {
+            Config.GOOGLE_AUTH_HEADER_NAMES.forEach((headerName) => {
                 xmlhttp.setRequestHeader(headerName, get(headerName));
             });
         }
@@ -670,7 +656,7 @@
     let nextResponseCache = {};
 
     function getGoogleVideoUrl(originalUrl) {
-        return VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl.toString());
+        return Config.VIDEO_PROXY_SERVER_HOST + '/direct/' + btoa(originalUrl.toString());
     }
 
     function getPlayer(payload) {
@@ -693,7 +679,7 @@
 
     function sendRequest(endpoint, payload) {
         const queryParams = new URLSearchParams(payload);
-        const proxyUrl = `${ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}&client=js`;
+        const proxyUrl = `${Config.ACCOUNT_PROXY_SERVER_HOST}/${endpoint}?${queryParams}&client=js`;
 
         try {
             const xmlhttp = new XMLHttpRequest();
@@ -946,7 +932,7 @@
     const confirmationButtonText = 'Click to unlock';
 
     function isConfirmationRequired() {
-        return !isConfirmed && isEmbed && ENABLE_UNLOCK_CONFIRMATION_EMBED;
+        return !isConfirmed && isEmbed && Config.ENABLE_UNLOCK_CONFIRMATION_EMBED;
     }
 
     function requestConfirmation() {
@@ -995,7 +981,7 @@
             ((_playerResponse$playa = playerResponse.playabilityStatus) === null || _playerResponse$playa === void 0 ? void 0 : _playerResponse$playa.status) ||
             ((_playerResponse$previ = playerResponse.previewPlayabilityStatus) === null || _playerResponse$previ === void 0 ? void 0 : _playerResponse$previ.status);
 
-        if (!SKIP_CONTENT_WARNINGS && reason.includes('CHECK_REQUIRED')) {
+        if (!Config.SKIP_CONTENT_WARNINGS && reason.includes('CHECK_REQUIRED')) {
             info(`SKIP_CONTENT_WARNINGS disabled and ${reason} status detected.`);
             return;
         }
@@ -1013,7 +999,7 @@
 
         // check if the unlocked response isn't playable
         if (
-            !VALID_PLAYABILITY_STATUSES.includes(
+            !Config.VALID_PLAYABILITY_STATUSES.includes(
                 (_unlockedPlayerRespon = unlockedPlayerResponse.playabilityStatus) === null || _unlockedPlayerRespon === void 0 ? void 0 : _unlockedPlayerRespon.status
             )
         ) {
@@ -1082,7 +1068,7 @@
                 error(err, `Player Unlock Method ${index + 1} failed with exception`);
             }
 
-            return !VALID_PLAYABILITY_STATUSES.includes(
+            return !Config.VALID_PLAYABILITY_STATUSES.includes(
                 (_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0
                     ? void 0
                     : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0
@@ -1165,7 +1151,10 @@
                 (x) => x.videoSecondaryInfoRenderer
             ).videoSecondaryInfoRenderer;
 
+            // TODO: Throw if description not found?
             if (unlockedVideoSecondaryInfoRenderer.description) originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+            else if (unlockedVideoSecondaryInfoRenderer.attributedDescription)
+                originalVideoSecondaryInfoRenderer.attributedDescription = unlockedVideoSecondaryInfoRenderer.attributedDescription;
 
             return;
         }
@@ -1209,7 +1198,7 @@
         const thumbnails = findNestedObjectsByAttributeNames(responseObject, ['url', 'height']).filter(
             (x) => typeof x.url === 'string' && x.url.indexOf('https://i.ytimg.com/') === 0
         );
-        const blurredThumbnails = thumbnails.filter((thumbnail) => THUMBNAIL_BLURRED_SQPS.some((sqp) => thumbnail.url.includes(sqp)));
+        const blurredThumbnails = thumbnails.filter((thumbnail) => Config.THUMBNAIL_BLURRED_SQPS.some((sqp) => thumbnail.url.includes(sqp)));
 
         // Simply remove all URL parameters to eliminate the blur effect.
         blurredThumbnails.forEach((x) => (x.url = x.url.split('?')[0]));
@@ -1239,13 +1228,13 @@
             // Store auth headers in storage for further usage.
             attach$4(xhr, 'setRequestHeader', (_ref2) => {
                 let [headerName, headerValue] = _ref2;
-                if (GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
+                if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
                     set(headerName, headerValue);
                 }
             });
         }
 
-        if (SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+        if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
             // Add content check flags to player and next request (this will skip content warnings)
             attach$4(xhr, 'send', (args) => {
                 if (typeof args[0] === 'string') {
@@ -1274,13 +1263,13 @@
         if (url.pathname.indexOf('/youtubei/') === 0 && isObject(requestOptions.headers)) {
             // Store auth headers in authStorage for further usage.
             for (let headerName in requestOptions.headers) {
-                if (GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
+                if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
                     set(headerName, requestOptions.headers[headerName]);
                 }
             }
         }
 
-        if (SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+        if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
             // Add content check flags to player and next request (this will skip content warnings)
             requestOptions.body = setContentCheckOk(requestOptions.body);
         }
@@ -1294,7 +1283,7 @@
      * @returns The rewitten url (if a proxy is required)
      */
     function unlockGoogleVideo(url) {
-        if (isGoogleVideoUrl(url)) {
+        if (Config.VIDEO_PROXY_SERVER_HOST && isGoogleVideoUrl(url)) {
             if (isGoogleVideoUnlockRequired(url, getLastProxiedGoogleVideoId())) {
                 return proxy.getGoogleVideoUrl(url);
             }
@@ -1365,4 +1354,4 @@
 
         return ytData;
     }
-})(true);
+})();
