@@ -71,7 +71,11 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
             (x) => x.videoSecondaryInfoRenderer
         ).videoSecondaryInfoRenderer;
 
-        if (unlockedVideoSecondaryInfoRenderer.description) originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+        // TODO: Throw if description not found?
+        if (unlockedVideoSecondaryInfoRenderer.description)
+            originalVideoSecondaryInfoRenderer.description = unlockedVideoSecondaryInfoRenderer.description;
+        else if (unlockedVideoSecondaryInfoRenderer.attributedDescription)
+            originalVideoSecondaryInfoRenderer.attributedDescription = unlockedVideoSecondaryInfoRenderer.attributedDescription;
 
         return;
     }
