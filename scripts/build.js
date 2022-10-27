@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 import { rollup } from 'rollup';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
@@ -14,20 +15,31 @@ import manifest from '../src/extension/mv3/manifest.json' assert { type: 'json' 
 
 const OUT_PATH = 'dist';
 
-const USERSCRIPT_OUT_PATH = OUT_PATH;
+const USERSCRIPT_OUT_DIR = OUT_PATH;
 const USERSCRIPT_OUT_NAME = 'Simple-YouTube-Age-Restriction-Bypass.user.js';
 
-const WEB_EXTENSION_OUT_PATH = `${OUT_PATH}/extension`;
+const WEB_EXTENSION_OUT_DIR = `${OUT_PATH}/extension`;
 const WEB_EXTENSION_OUT_MAIN_SCRIPT_NAME = manifest.content_scripts[0].js[0];
 const WEB_EXTENSION_OUT_WEB_SCRIPT_NAME = manifest.web_accessible_resources[0].resources[0];
 const WEB_EXTENSION_OUT_MV2_ZIP_NAME = 'extension_mv2_firefox.zip';
 const WEB_EXTENSION_OUT_MV3_ZIP_NAME = 'extension_mv3_chromium.zip';
 
 console.time('\nTotal build time');
+
+console.time('Cleaning /dist');
 cleanOutput();
+console.timeEnd('Cleaning /dist');
+
 console.log('Building...')
+
+console.time('    Userscript');
 await buildUserscript();
+console.timeEnd('    Userscript');
+
+console.time('    Web Extension');
 await buildWebExtension();
+console.timeEnd('    Web Extension');
+
 console.timeEnd('\nTotal build time');
 
 async function build(opts) {
@@ -37,16 +49,10 @@ async function build(opts) {
 }
 
 function cleanOutput() {
-    console.time('Cleaning /dist');
-
     fs.rmSync(OUT_PATH, { force: true, recursive: true });
-
-    console.timeEnd('Cleaning /dist');
 }
 
 async function buildUserscript() {
-    console.time('    Userscript');
-
     function userscript(path) {
         const config = fs.readFileSync(path, 'utf8');
 
@@ -77,7 +83,7 @@ async function buildUserscript() {
     await build({
         input: 'src/main.js',
         output: {
-            file: `${USERSCRIPT_OUT_PATH}/${USERSCRIPT_OUT_NAME}`,
+            file: `${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME}`,
             format: 'esm',
         },
         plugins: [
@@ -97,13 +103,11 @@ async function buildUserscript() {
         ],
     });
 
-    console.timeEnd('    Userscript');
+    execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME}`);
 }
 
 async function buildWebExtension() {
-    console.time('    Web Extension');
-
-    const outputPath = `${WEB_EXTENSION_OUT_PATH}/mv3`;
+    const outputPath = `${WEB_EXTENSION_OUT_DIR}/mv3`;
     const outputPathLegacy = outputPath.replace('3', '2');
 
     function archiveExtension([nameOne, pathOne], [nameTwo, pathTwo]) {
@@ -164,7 +168,7 @@ async function buildWebExtension() {
     await build({
         input: 'src/main.js',
         output: {
-            file: `${WEB_EXTENSION_OUT_PATH}/mv3/${WEB_EXTENSION_OUT_WEB_SCRIPT_NAME}`,
+            file: `${WEB_EXTENSION_OUT_DIR}/mv3/${WEB_EXTENSION_OUT_WEB_SCRIPT_NAME}`,
             format: 'iife',
         },
         plugins: [
@@ -178,7 +182,7 @@ async function buildWebExtension() {
     await build({
         input: 'src/extension/main.js',
         output: {
-            file: `${WEB_EXTENSION_OUT_PATH}/mv3/${WEB_EXTENSION_OUT_MAIN_SCRIPT_NAME}`,
+            file: `${WEB_EXTENSION_OUT_DIR}/mv3/${WEB_EXTENSION_OUT_MAIN_SCRIPT_NAME}`,
             format: 'esm',
         },
     });
@@ -189,6 +193,4 @@ async function buildWebExtension() {
         [WEB_EXTENSION_OUT_MV3_ZIP_NAME, outputPath],
         [WEB_EXTENSION_OUT_MV2_ZIP_NAME, outputPathLegacy],
     );
-
-    console.timeEnd('    Web Extension');
 }

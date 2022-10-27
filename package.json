@@ -18,7 +18,7 @@
     "dist/Simple-YouTube-Age-Restriction-Bypass.user.js"
   ],
   "scripts": {
-    "build": "node --no-warnings scripts/build.js && dprint fmt dist/*.user.js",
+    "build": "node --no-warnings scripts/build.js",
     "format": "dprint fmt src/**/*.js",
     "check-format": "dprint check src/**/*.js"
   },
