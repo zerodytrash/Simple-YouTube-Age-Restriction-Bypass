@@ -1,7 +1,7 @@
+import { createDeepCopy, isDesktop } from '../../utils';
 import * as logger from '../../utils/logger';
 import { next as nextInspector } from '../inspectors';
 import { getNextUnlockStrategies } from '../strategies';
-import { isDesktop, createDeepCopy } from '../../utils';
 import { lastPlayerUnlockReason, lastPlayerUnlockVideoId } from './player';
 
 let cachedNextResponse = {};
@@ -65,10 +65,10 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
 
         // Transfer video description to original response
         const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
-            (x) => x.videoSecondaryInfoRenderer
+            (x) => x.videoSecondaryInfoRenderer,
         ).videoSecondaryInfoRenderer;
         const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
-            (x) => x.videoSecondaryInfoRenderer
+            (x) => x.videoSecondaryInfoRenderer,
         ).videoSecondaryInfoRenderer;
 
         // TODO: Throw if description not found?
@@ -82,7 +82,7 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
 
     // Transfer WatchNextResults to original response
     const unlockedWatchNextFeed = unlockedNextResponse.contents?.singleColumnWatchNextResults?.results?.results?.contents?.find(
-        (x) => x.itemSectionRenderer?.targetId === 'watch-next-feed'
+        (x) => x.itemSectionRenderer?.targetId === 'watch-next-feed',
     );
 
     if (unlockedWatchNextFeed) originalNextResponse.contents.singleColumnWatchNextResults.results.results.contents.push(unlockedWatchNextFeed);
@@ -95,6 +95,7 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
         .find((x) => x.engagementPanelSectionListRenderer)
         .engagementPanelSectionListRenderer.content.structuredDescriptionContentRenderer.items.find((x) => x.expandableVideoDescriptionBodyRenderer);
 
-    if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer)
+    if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer) {
         originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
+    }
 }

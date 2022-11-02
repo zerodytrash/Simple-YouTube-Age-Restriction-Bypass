@@ -1,5 +1,5 @@
-import { isEmbed } from '../../utils';
 import Config from '../../config';
+import { isEmbed } from '../../utils';
 
 export function isPlayerObject(parsedData) {
     return parsedData?.videoDetails && parsedData?.playabilityStatus;
@@ -17,8 +17,8 @@ export function isAgeRestricted(playabilityStatus) {
     // Fix to detect age restrictions on embed player
     // see https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/85#issuecomment-946853553
     return (
-        isEmbed &&
-        playabilityStatus.errorScreen?.playerErrorMessageRenderer?.reason?.runs?.find((x) => x.navigationEndpoint)?.navigationEndpoint?.urlEndpoint?.url?.includes('/2802167')
+        isEmbed
+        && playabilityStatus.errorScreen?.playerErrorMessageRenderer?.reason?.runs?.find((x) => x.navigationEndpoint)?.navigationEndpoint?.urlEndpoint?.url?.includes('/2802167')
     );
 }
 

@@ -5,7 +5,7 @@ export default function attach(obj, prop, onCall) {
 
     let original = obj[prop];
 
-    obj[prop] = function () {
+    obj[prop] = function() {
         try {
             onCall(arguments);
         } catch {}

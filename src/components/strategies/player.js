@@ -1,5 +1,5 @@
+import { getCurrentVideoStartTime, getSignatureTimestamp, getYtcfgValue, isConfirmed, isEmbed } from '../../utils';
 import { innertube, proxy } from '../endpoints';
-import { isEmbed, isConfirmed, getCurrentVideoStartTime, getYtcfgValue, getSignatureTimestamp } from '../../utils';
 
 export default function getUnlockStrategies(videoId, reason) {
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';

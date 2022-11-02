@@ -1,9 +1,9 @@
 import './config';
-import * as interceptors from './components/interceptors';
 import * as inspectors from './components/inspectors';
-import * as unlocker from './components/unlocker';
-import * as thumbnailFix from './components/thumbnailFix';
+import * as interceptors from './components/interceptors';
 import * as requestPreprocessor from './components/requestPreprocessor';
+import * as thumbnailFix from './components/thumbnailFix';
+import * as unlocker from './components/unlocker';
 import * as logger from './utils/logger';
 
 try {
@@ -20,8 +20,7 @@ function processYtData(ytData) {
         // Player Unlock #1: Initial page data structure and response from `/youtubei/v1/player` XHR request
         if (inspectors.player.isPlayerObject(ytData) && inspectors.player.isAgeRestricted(ytData.playabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
-        }
-        // Player Unlock #2: Embedded Player inital data structure
+        } // Player Unlock #2: Embedded Player inital data structure
         else if (inspectors.player.isEmbeddedPlayerObject(ytData) && inspectors.player.isAgeRestricted(ytData.previewPlayabilityStatus)) {
             unlocker.unlockPlayerResponse(ytData);
         }

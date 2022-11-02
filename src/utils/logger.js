@@ -13,7 +13,7 @@ export function error(err, msg) {
                     message: (msg ? msg + '; ' : '') + (err && err.message ? err.message : ''),
                     stack: err && err.stack ? err.stack : null,
                 },
-            })
+            }),
         );
     }
 }
@@ -26,7 +26,7 @@ export function info(msg) {
                 detail: {
                     message: msg,
                 },
-            })
+            }),
         );
     }
 }
@@ -34,11 +34,11 @@ export function info(msg) {
 export function getYtcfgDebugString() {
     try {
         return (
-            `InnertubeConfig: ` +
-            `innertubeApiKey: ${getYtcfgValue('INNERTUBE_API_KEY')} ` +
-            `innertubeClientName: ${getYtcfgValue('INNERTUBE_CLIENT_NAME')} ` +
-            `innertubeClientVersion: ${getYtcfgValue('INNERTUBE_CLIENT_VERSION')} ` +
-            `loggedIn: ${getYtcfgValue('LOGGED_IN')} `
+            `InnertubeConfig: `
+            + `innertubeApiKey: ${getYtcfgValue('INNERTUBE_API_KEY')} `
+            + `innertubeClientName: ${getYtcfgValue('INNERTUBE_CLIENT_NAME')} `
+            + `innertubeClientVersion: ${getYtcfgValue('INNERTUBE_CLIENT_VERSION')} `
+            + `loggedIn: ${getYtcfgValue('LOGGED_IN')} `
         );
     } catch (err) {
         return `Failed to access config: ${err}`;

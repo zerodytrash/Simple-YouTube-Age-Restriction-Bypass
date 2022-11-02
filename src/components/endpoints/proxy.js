@@ -1,7 +1,7 @@
-import { isMusic, isEmbed } from '../../utils';
-import { nativeJSONParse } from '../interceptors/natives';
 import Config from '../../config';
+import { isEmbed, isMusic } from '../../utils';
 import * as logger from '../../utils/logger';
+import { nativeJSONParse } from '../interceptors/natives';
 
 let nextResponseCache = {};
 

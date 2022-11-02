@@ -1,9 +1,9 @@
-import { nativeXMLHttpRequestOpen } from './natives';
 import { parseRelativeUrl } from '../../utils';
 import * as logger from '../../utils/logger';
+import { nativeXMLHttpRequestOpen } from './natives';
 
 export default function attach(onXhrOpenCalled) {
-    XMLHttpRequest.prototype.open = function (method, url) {
+    XMLHttpRequest.prototype.open = function(method, url) {
         try {
             let parsedUrl = parseRelativeUrl(url);
 
