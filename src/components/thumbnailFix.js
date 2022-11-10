@@ -20,7 +20,9 @@ export function processThumbnails(responseObject) {
 function isThumbnailBlurred(thumbnail) {
     const hasSQPParam = thumbnail.url.indexOf('?sqp=') !== -1;
 
-    if (!hasSQPParam) return;
+    if (!hasSQPParam) {
+        return false;
+    }
 
     const SQPLength = new URL(thumbnail.url).searchParams.get('sqp').length;
     const isBlurred = Config.BLURRED_THUMBNAIL_SQP_LENGTHS.includes(SQPLength);
