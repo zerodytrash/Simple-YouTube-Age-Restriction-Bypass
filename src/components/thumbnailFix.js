@@ -3,11 +3,27 @@ import { findNestedObjectsByAttributeNames } from '../utils';
 import * as logger from '../utils/logger';
 
 export function processThumbnails(responseObject) {
-    const thumbnails = findNestedObjectsByAttributeNames(responseObject, ['url', 'height']).filter((x) => typeof x.url === 'string' && x.url.indexOf('https://i.ytimg.com/') === 0);
-    const blurredThumbnails = thumbnails.filter((thumbnail) => Config.THUMBNAIL_BLURRED_SQPS.some((sqp) => thumbnail.url.includes(sqp)));
+    const thumbnails = findNestedObjectsByAttributeNames(responseObject, ['url', 'height']);
 
-    // Simply remove all URL parameters to eliminate the blur effect.
-    blurredThumbnails.forEach((x) => (x.url = x.url.split('?')[0]));
+    let blurredThumbnailCount = 0;
 
-    logger.info(blurredThumbnails.length + '/' + thumbnails.length + ' thumbnails detected as blurred.');
+    for (const thumbnail of thumbnails) {
+        if (isThumbnailBlurred(thumbnail)) {
+            blurredThumbnailCount++;
+            thumbnail.url = thumbnail.url.split('?')[0];
+        }
+    }
+
+    logger.info(blurredThumbnailCount + '/' + thumbnails.length + ' thumbnails detected as blurred.');
+}
+
+function isThumbnailBlurred(thumbnail) {
+    const hasSQPParam = thumbnail.url.indexOf('?sqp=') !== -1;
+
+    if (!hasSQPParam) return;
+
+    const SQPLength = new URL(thumbnail.url).searchParams.get('sqp').length;
+    const isBlurred = Config.BLURRED_THUMBNAIL_SQP_LENGTHS.includes(SQPLength);
+
+    return isBlurred;
 }

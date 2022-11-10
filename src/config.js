@@ -20,17 +20,19 @@ let SKIP_CONTENT_WARNINGS = true;
 // Some Innertube bypass methods require the following authentication headers of the currently logged in user.
 const GOOGLE_AUTH_HEADER_NAMES = ['Authorization', 'X-Goog-AuthUser', 'X-Origin'];
 
-// Whether a thumbnail is blurred can be detected by the following "sqp" parameter values in the thumbnail URL.
-// Seems to be base64 encoded protobuf objects, see https://stackoverflow.com/a/51203860
-const THUMBNAIL_BLURRED_SQPS = [
-    '-oaymwEpCOADEI4CSFryq4qpAxsIARUAAAAAGAElAADIQj0AgKJDeAHtAZmZGUI=', // Desktop 480x270
-    '-oaymwEiCOADEI4CSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BmZkZQg==', // Desktop 480x270
-    '-oaymwEiCOgCEMoBSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmbmQQ==', // Desktop 360x202
-    '-oaymwEiCNAFEJQDSFXyq4qpAxQIARUAAIhCGAFwAcABBu0BZmZmQg==', // Desktop 720x404
-    '-oaymwEdCNAFEJQDSFryq4qpAw8IARUAAIhCGAHtAWZmZkI=', // Desktop 720x404
-    '-oaymwEdCNACELwBSFryq4qpAw8IARUAAIhCGAHtAT0K10E=', // Desktop 336x188
-    '-oaymwESCMACELQB8quKqQMG7QHMzMxB', // Mobile 320x180
-    '-oaymwESCOADEOgC8quKqQMG7QGZmRlC', // Mobile 480x360
+/**
+ * The SQP parameter length is different for blurred thumbnails.
+ * They contain much less information, than normal thumbnails.
+ * The thumbnail SQPs tend to have a long and a short version.
+ */
+const BLURRED_THUMBNAIL_SQP_LENGTHS = [
+    32, // Mobile (SHORT)
+    48, // Desktop Playlist (SHORT)
+    56, // Desktop (SHORT)
+    68, // Mobile (LONG)
+    72, // Mobile Shorts
+    84, // Desktop Playlist (LONG)
+    88, // Desktop (LONG)
 ];
 
 // small hack to prevent tree shaking on these exports
@@ -43,7 +45,7 @@ export default window[Symbol()] = {
     ENABLE_UNLOCK_NOTIFICATION,
     SKIP_CONTENT_WARNINGS,
     GOOGLE_AUTH_HEADER_NAMES,
-    THUMBNAIL_BLURRED_SQPS,
+    BLURRED_THUMBNAIL_SQP_LENGTHS,
 };
 
 if (__BUILD_TARGET__ === 'WEB_EXTENSION') {
