@@ -1,4 +1,5 @@
-const fs = require('fs');
+import fs from 'node:fs';
+
 const statsFileName = 'stats.json';
 
 let initialized = false;
@@ -127,7 +128,7 @@ function getTodayStats() {
     };
 }
 
-module.exports = {
+export default {
     init,
     countRequest,
     countResponse,

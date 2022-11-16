@@ -1,4 +1,10 @@
-const { fillObjectFromRequest, validateObjectAttributes } = require('./utils');
+import process from 'node:process';
+
+import dotenv from 'dotenv';
+
+import { fillObjectFromRequest, validateObjectAttributes } from './utils.js';
+
+dotenv.config();
 
 class YouTubeCredentials {
     constructor(apiKey, sapiSid, pSid) {
@@ -32,7 +38,7 @@ class YouTubeClientParams {
     }
 }
 
-module.exports = {
+export {
     YouTubeCredentials,
     YouTubeClientParams
 }

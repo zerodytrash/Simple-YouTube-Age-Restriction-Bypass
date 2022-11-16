@@ -1,10 +1,18 @@
-const { extractAttributes, getYoutubeResponseStatus, checkForGcrFlag } = require('../lib/utils');
-const { YouTubeCredentials, YouTubeClientParams } = require('../lib/types');
-const innertubeApi = require('../lib/innertubeApi');
-const stats = require('../lib/stats');
+import process from 'node:process';
+
+import dotenv from 'dotenv';
+import { ProxyAgent } from 'undici';
+
+import { extractAttributes, getYoutubeResponseStatus, checkForGcrFlag } from '../lib/utils.js';
+import { YouTubeCredentials, YouTubeClientParams } from '../lib/types.js';
+import innertubeApi from '../lib/innertubeApi.js';
+import stats from '../lib/stats.js';
+
+dotenv.config();
 
 const credentials = new YouTubeCredentials();
 const proxy = process.env.PROXY;
+const proxyAgent = proxy ? new ProxyAgent(proxy) : undefined;
 
 const relevantAttributes = [
     'playabilityStatus',
@@ -38,22 +46,20 @@ async function handleProxyRequest(req, res, endpoint) {
             clientParams.clientVersion = '2.20220228.01.00';
         }
 
-        let endpointList = [endpoint];
+        const pRequests = [innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxyAgent)];
 
         // Include /next (sidebar) if flag set
         if (clientParams.includeNext) {
-            endpointList.push('next');
+            pRequests.push(innertubeApi.sendApiRequest('next', clientParams, credentials, proxyAgent));
         }
 
-        // Wait until all requests are done
-        let youtubeResponses = await requestChunk(clientParams, endpointList);
-        let result = handleResponses(youtubeResponses, clientParams);
+        const youtubeResponses = await Promise.all(pRequests);
+        let result = handleResponses(youtubeResponses, clientParams, endpoint);
 
-        res.status(200).send(result);
-
+        res.code(200).send(result);
     } catch (err) {
         console.error(endpoint, err.message);
-        res.status(500).send({ errorMessage: err.message });
+        res.code(500).send({ errorMessage: err.message });
         stats.countResponse(endpoint, 'EXCEPTION');
         stats.countException(endpoint, err.message);
     } finally {
@@ -62,30 +68,21 @@ async function handleProxyRequest(req, res, endpoint) {
     }
 }
 
-function requestChunk(clientParams, endpointList) {
-    let pendingRequests = [];
-
-    endpointList.forEach(endpoint => {
-        pendingRequests.push(innertubeApi.sendApiRequest(endpoint, clientParams, credentials, proxy));
-    });
-
-    return Promise.all(pendingRequests);
-}
-
-function handleResponses(youtubeResponses, clientParams) {
+function handleResponses(youtubeResponses, clientParams, endpoint) {
     let responseData = {};
 
     youtubeResponses.forEach((response, index) => {
-        if (response.data === null || typeof response.data !== 'object') {
-            throw new Error(`Invalid YouTube response received for endpoint /${response.config.endpoint}`);
+        const currentEndpoint = ((endpoint === 'next' && index === 0) || (endpoint === 'player' && index === 1)) ? 'next' : 'player';
+
+        if (response === null || typeof response !== 'object') {
+            throw new Error(`Invalid YouTube response received for endpoint /${currentEndpoint}`);
         }
 
-        const youtubeData = response.data;
         const youtubeStatus = getYoutubeResponseStatus(response);
-        const youtubeGcrFlagSet = checkForGcrFlag(youtubeData);
-        const relevantData = extractAttributes(youtubeData, relevantAttributes);
+        const youtubeGcrFlagSet = checkForGcrFlag(response);
+        const relevantData = extractAttributes(response, relevantAttributes);
 
-        stats.countResponse(response.config.endpoint, youtubeStatus, youtubeGcrFlagSet);
+        stats.countResponse(currentEndpoint, youtubeStatus, youtubeGcrFlagSet);
 
         if (index === 0) {
             responseData = relevantData;
@@ -96,14 +93,14 @@ function handleResponses(youtubeResponses, clientParams) {
                 youtubeStatus
             };
         } else {
-            responseData[response.config.endpoint + 'Response'] = relevantData;
+            responseData[currentEndpoint + 'Response'] = relevantData;
         }
     });
 
     return responseData;
 }
 
-module.exports = {
+export default {
     getPlayer,
     getNext
 }

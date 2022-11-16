@@ -1,47 +1,49 @@
-require('dotenv').config()
+import process from 'node:process';
 
-const express = require('express');
-const rateLimit = require('express-rate-limit');
+import dotenv from 'dotenv';
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 
-const stats = require('./lib/stats');
+import proxyController from './controllers/proxyController.js';
 
-const proxyController = require('./controllers/proxyController');
-const statsController = require('./controllers/statsController');
+dotenv.config();
 
-const app = express();
+const GITHUB_URL = 'https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass';
 
 // Limit requests to 10 per 30s for a single IP
-const rateLimiter = rateLimit({
-    windowMs: 30000,
-    max: 10,
-    handler: function (req, res) {
-        stats.countResponse('ERROR', 'TOO_MANY_REQUEST');
-        res.status(429).send({ errorMessage: 'Too Many Requests' });
-    },
-})
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_TIME_WINDOW = 30000;
 
-// Enabled CORS
-app.use((req, res, next) => {
-    res.append('Access-Control-Allow-Origin', '*');
-    next();
+const app = Fastify({
+    trustProxy: process.env.ENABLE_TRUST_PROXY === '1',
 });
 
-if (process.env.ENABLE_TRUST_PROXY === '1') {
-    app.enable('trust proxy');
-}
+// Enable CORS
+app.register(cors, { origin: true });
 
-if (process.env.ENABLE_STATS === '1') {
-    stats.init();
-}
-
+// Enable rate limit
+app.register(rateLimit, {
+    max: RATE_LIMIT_MAX,
+    timeWindow: RATE_LIMIT_TIME_WINDOW,
+});
 
 // Routes
-app.get('/', (req, res) => res.redirect('https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass'));
+app.get('/', (_, res) => res.redirect(GITHUB_URL));
+app.get('/getPlayer', proxyController.getPlayer);
+app.get('/getNext', proxyController.getNext);
 
-app.get('/getPlayer', rateLimiter, proxyController.getPlayer);
-app.get('/getNext', rateLimiter, proxyController.getNext);
-app.get('/getStats', statsController.getStats);
+if (process.env.ENABLE_STATS === '1') {
+    const { default: statsController } = await import('./controllers/statsController.js');
+    const { default: stats } = await import('./lib/stats.js');
+    stats.init();
+    app.get('/getStats', statsController.getStats);
+}
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server listening at http://localhost:${process.env.PORT}`)
-})
+app.listen({ port: process.env.PORT }, (err, address) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.info(`Server listening at ${address}`);
+});

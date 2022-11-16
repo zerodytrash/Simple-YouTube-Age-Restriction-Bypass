@@ -1,6 +1,6 @@
-const crypto = require("crypto")
-const axios = require("axios");
-const httpsProxyAgent = require("https-proxy-agent");
+import crypto from 'node:crypto';
+
+import { fetch } from 'undici';
 
 const generateApiRequestData = function (clientParams) {
     return {
@@ -94,26 +94,23 @@ const generateApiRequestHeaders = function (credentials) {
     }
 }
 
-const sendApiRequest = function (endpoint, clientParams, credentials, proxy) {
+const sendApiRequest = async function (endpoint, clientParams, credentials, proxyAgent) {
 
     const url = `https://www.youtube.com/youtubei/v1/${endpoint}?key=${credentials.apiKey}&prettyPrint=false`;
     const headers = generateApiRequestHeaders(credentials);
     const data = generateApiRequestData(clientParams);
 
-    const axiosOptions = {
-        method: "POST",
-        url,
+    const res = await fetch(url, {
+        method: 'POST',
         headers,
-        endpoint,
-        data: JSON.stringify(data),
-        timeout: 5000
-    }
+        body: JSON.stringify(data),
+        dispatcher: proxyAgent,
+        signal: AbortSignal.timeout(5000),
+    });
 
-    if (proxy) axiosOptions.httpsAgent = new httpsProxyAgent(proxy);
-
-    return axios(axiosOptions);
+    return res.json();
 }
 
-module.exports = {
+export default {
     sendApiRequest
 }
