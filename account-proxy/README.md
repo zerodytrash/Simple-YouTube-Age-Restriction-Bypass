@@ -26,16 +26,17 @@ ENABLE_TRUST_PROXY=0
 ENABLE_STATS=1
 
 # YouTube Config
-# API Key is always the same
+# API Key is always the same (required)
 API_KEY=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8
 
-# Cookie value "SAPISID" or "__Secure-3PAPISID"
+# Cookie values (required)
+SID=
+HSID=
+SSID=
+APISID=
 SAPISID=
 
-# Cookie value "__Secure-3PSID"
-PSID=
-
-# Proxy (https) (optional)
+# Proxy (https)
 # PROXY=
 ````
 
