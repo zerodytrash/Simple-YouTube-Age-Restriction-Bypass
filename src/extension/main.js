@@ -32,9 +32,8 @@ function injectScript() {
 
         const mainCode = `window.SYARB_CONFIG = ${JSON.stringify(options || {})};` + scriptContents;
 
-        const injectorCode =
         // DANGER: DO NOT USE GLOBALS HERE WITHOUT `window` OBJECT!! FIREFOX BUG WITH GLOBALS.
-        `
+        const injectorCode = `
         const nScript = document.createElement('script');
         nScript.innerHTML = ${JSON.stringify(mainCode)};
         document.documentElement.append(nScript);
