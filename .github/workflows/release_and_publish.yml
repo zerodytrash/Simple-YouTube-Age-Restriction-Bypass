@@ -1,0 +1,80 @@
+name: Release and publish
+run-name: Release and publish ${{ github.event.release.tag_name }}
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency: ${{ github.workflow }}
+
+env:
+  TAG_NAME: ${{ github.event.release.tag_name }}
+  USERSCRIPT_FILE_PATH: dist/Simple-YouTube-Age-Restriction-Bypass.user.js
+
+jobs:
+  release_and_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+          fetch-depth: 0
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+
+      - name: Update package version
+        run: |
+          npm version "$TAG_NAME" --allow-same-version --git-tag-version false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit changes
+        env:
+          COMMIT_USER_NAME: github-actions[bot]
+          COMMIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
+          COMMIT_AUTHOR: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          COMMIT_MESSAGE: Release ${{ env.TAG_NAME }}
+          COMMIT_FILES: |
+            ${{ env.USERSCRIPT_FILE_PATH }}
+            *.json
+        run: |
+          git config user.name "$COMMIT_USER_NAME"
+          git config user.email "$COMMIT_USER_EMAIL"
+          git add -f $(echo "$COMMIT_FILES")
+          git commit -m "$COMMIT_MESSAGE" --author="$COMMIT_AUTHOR"
+          git push origin
+
+      - name: Update tag
+        run: |
+          git tag -f "$TAG_NAME"
+          git push -f origin "$TAG_NAME"
+
+      - name: Release on Github
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.USERSCRIPT_FILE_PATH }}
+            dist/**/*.zip
+
+      - name: Publish on GreasyFork
+        env:
+          GREASYFORK_USER_EMAIL: ${{ secrets.GREASYFORK_USER_EMAIL }}
+          GREASYFORK_USER_PASS: ${{ secrets.GREASYFORK_USER_PASS }}
+          GREASYFORK_SCRIPT_ID: "423851"
+          # public - for all to see and use.
+          # unlisted - for (semi-)private use. Available by direct access, but not linked to from anywhere on Greasy Fork.
+          # library - intended to be @require-d from other scripts and not installed directly.
+          GREASYFORK_SCRIPT_TYPE: public
+          SCRIPT_FILE_PATH: ./${{ env.USERSCRIPT_FILE_PATH }}
+        run: bash ./.github/scripts/publish_greasyfork.sh
