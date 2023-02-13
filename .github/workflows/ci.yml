@@ -3,7 +3,11 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - src/**/*.js
   pull_request:
+    paths:
+      - src/**/*.js
   workflow_dispatch:
 
 # Prevent all permissions from being set, just use the ones we need.
@@ -21,10 +25,18 @@ jobs:
     if: github.repository_owner == 'zerodytrash'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run check-format
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check code format
+        run: npm run check-format
