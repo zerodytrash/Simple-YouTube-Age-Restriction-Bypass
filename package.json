@@ -26,13 +26,17 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.20.2",
-    "@rollup/plugin-babel": "^6.0.2",
-    "@rollup/plugin-commonjs": "^23.0.2",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-replace": "^5.0.1",
+    "@rollup/plugin-replace": "^5.0.2",
     "archiver": "^5.3.1",
-    "dprint": "^0.32.2",
-    "rollup": "^3.2.5",
+    "dprint": "^0.34.5",
+    "rollup": "^3.15.0",
     "rollup-plugin-html": "^0.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=7.0.0"
   }
 }

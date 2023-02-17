@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "target": "ESNext",
+    "checkJs": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "resolveJsonModule": true,
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist",
+  ]
+}

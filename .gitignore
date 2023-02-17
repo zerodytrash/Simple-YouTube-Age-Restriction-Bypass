@@ -28,5 +28,7 @@ node_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# Extension build
-dist/extension
+dist/
+
+# Exclude userscript
+!/dist/Simple-YouTube-Age-Restriction-Bypass.user.js

@@ -5,9 +5,9 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.2.0",
-    "@fastify/rate-limit": "^7.5.0",
+    "@fastify/rate-limit": "^7.6.0",
     "dotenv": "^16.0.3",
-    "fastify": "^4.9.2",
-    "undici": "^5.12.0"
+    "fastify": "^4.13.0",
+    "undici": "^5.19.1"
   }
 }

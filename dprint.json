@@ -4,6 +4,10 @@
     "indentWidth": 4,
     "quoteStyle": "preferSingle"
   },
+  "excludes": [
+    "**/node_modules",
+    "**/dist"
+  ],
   "plugins": [
     "https://plugins.dprint.dev/typescript-0.74.0.wasm"
   ]
