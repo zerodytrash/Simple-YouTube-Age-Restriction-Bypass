@@ -41,18 +41,11 @@ You have two options depending on the browser you use. You can install the scrip
 
 #### Browser Extension
 
-The **Age Restriction Bypass for Youtube™** extension is currently available for **Firefox and Edge**.
+Unfortunately, our Firefox extension was removed from Mozilla add-ons and disabled on Edge add-ons due to a violation of their terms of service.
 
-<a href="https://addons.mozilla.org/en-US/firefox/addon/youtube-age-restriction-bypass/" target="_blank">
-    <img src="https://i.imgur.com/4ViiH7U.png" alt="Mozilla Add-ons"/>
-</a>
+As a result, we can no longer provide updates for it. However, the extension can still be installed manually.
 
-<a href="https://microsoftedge.microsoft.com/addons/detail/age-restriction-bypass-fo/nbonnacihdagjflaacjbjcdbpfoomgnp" target="_blank">
-    <img src="https://i.imgur.com/X6WxLdx.png" alt="Edge Add-ons"/>
-</a>
-<br><br>
-
-> If you use another browser (e.g. Google Chrome), install the Userscript below.
+We're looking for ways to make this process easier.
 
 #### Userscript
 
@@ -92,6 +85,8 @@ For some videos it is necessary to route the video data files (hosted at `google
 
 ### Browser support
 
+> **Warning** We are currently reevaluating the extension. See [here](#browser-extension).
+
 The following browsers are supported:
 <table>
     <tbody>
@@ -117,23 +112,18 @@ The following browsers are supported:
                 <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" width="24px" height="24px"/>
                 <div>Opera</div>
             </td>
-            <td align="center">
-                <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/brave/brave_48x48.png" alt="Brave" width="24px" height="24px"/>
-                <div>Brave</div>
-            </td>
         </tr>
         <tr>
             <th scope="row"><a href="#browser-extension">Extension</a></th>
-            <td align="center">❌</td>
-            <td align="center">✅</td>
-            <td align="center">✅</td>
-            <td align="center">❌</td>
-            <td align="center">❌</td>
-            <td align="center">❌</td>
+            <td align="center">🟠</td>
+            <td align="center">🟠</td>
+            <td align="center">🟠</td>
+            <td align="center">🟠</td>
+            <td align="center">🟠</td>
         </tr>
         <tr>
             <th scope="row"><a href="#userscript">Userscript</a></th>
-            <td colspan="6" align="center">✅ <strong>Full support</strong></td>
+            <td colspan="5" align="center">✅ <strong>Full support</strong></td>
         </tr>
     </tbody>
 </table>
