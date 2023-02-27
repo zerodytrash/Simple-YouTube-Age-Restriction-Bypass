@@ -28,7 +28,7 @@ const generateApiRequestData = function (clientParams) {
                 "screenWidthPoints": 834,
                 "screenHeightPoints": 1051,
                 "utcOffsetMinutes": 120,
-                "userInterfaceTheme": "USER_INTERFACE_THEME_DARK",
+                "userInterfaceTheme": clientParams.userInterfaceTheme,
                 "connectionType": "CONN_CELLULAR_4G",
                 "mainAppWebInfo": {
                     "graftUrl": "https://www.youtube.com/watch?v=" + clientParams.videoId,
