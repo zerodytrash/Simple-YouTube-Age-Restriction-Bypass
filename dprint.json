@@ -9,6 +9,6 @@
     "**/dist"
   ],
   "plugins": [
-    "https://plugins.dprint.dev/typescript-0.74.0.wasm"
+    "https://plugins.dprint.dev/typescript-0.84.4.wasm"
   ]
 }

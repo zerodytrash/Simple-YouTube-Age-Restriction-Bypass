@@ -4,10 +4,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@fastify/cors": "^8.2.0",
-    "@fastify/rate-limit": "^7.6.0",
+    "@fastify/cors": "^8.2.1",
+    "@fastify/rate-limit": "^8.0.0",
     "dotenv": "^16.0.3",
-    "fastify": "^4.13.0",
-    "undici": "^5.19.1"
+    "fastify": "^4.17.0",
+    "undici": "^5.22.1"
   }
 }
