@@ -48,7 +48,7 @@ LOGIN_RESPONSE="$(request \
     "$LOGIN_URL")"
 
 # Check if login was successful
-if [[ "$LOGIN_RESPONSE" != *"Sign out"* ]]; then
+if [[ "$LOGIN_RESPONSE" != *"sign-out-link"* ]]; then
     echo -e "\e[38;2;103;103;103m$LOGIN_RESPONSE\e[0m\n"
     echo -e "\e[1;31mFailed: Sign in\e[0m - Unknown reason"
     exit 1
