@@ -4,14 +4,15 @@
 // @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen :)
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge :)
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età :)
-// @version         2.5.4
+// @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
+// @version         2.5.5
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
 // @license         MIT
 // @match           https://www.youtube.com/*
-// @match           https://m.youtube.com/*
 // @match           https://www.youtube-nocookie.com/*
+// @match           https://m.youtube.com/*
 // @match           https://music.youtube.com/*
 // @grant           none
 // @run-at          document-start
@@ -653,9 +654,11 @@
     };
 
     function getUnlockStrategies$1(videoId, lastPlayerUnlockReason) {
+        const client = getYtcfgValue('INNERTUBE_CONTEXT');
         const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
         const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
         const hl = getYtcfgValue('HL');
+        const userInterfaceTheme = client.userInterfaceTheme;
 
         return [
             /**
@@ -669,9 +672,10 @@
                 payload: {
                     context: {
                         client: {
-                            clientName: clientName,
-                            clientVersion: clientVersion,
+                            clientName,
+                            clientVersion,
                             hl,
+                            userInterfaceTheme,
                         },
                     },
                     videoId,
@@ -692,6 +696,7 @@
                     clientName,
                     clientVersion,
                     hl,
+                    userInterfaceTheme,
                     isEmbed: +isEmbed,
                     isConfirmed: +isConfirmed,
                 },
@@ -820,7 +825,7 @@
     }
 
     var buttonTemplate =
-        '<div style="margin-top: 15px !important; padding: 3px 10px 3px 10px; margin: 0px auto; background-color: #4d4d4d; width: fit-content; font-size: 1.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer;">\r\n    <div class="button-text"></div>\r\n</div>';
+        '<div style="margin-top: 15px !important; padding: 3px 10px 3px 10px; margin: 0px auto; background-color: #4d4d4d; width: fit-content; font-size: 1.2em; text-transform: uppercase; border-radius: 3px; cursor: pointer;">\n    <div class="button-text"></div>\n</div>';
 
     let buttons = {};
 
@@ -1112,12 +1117,10 @@
             // Transfer video description to original response
             const originalVideoSecondaryInfoRenderer = originalNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
                 (x) => x.videoSecondaryInfoRenderer,
-            )
-                .videoSecondaryInfoRenderer;
+            ).videoSecondaryInfoRenderer;
             const unlockedVideoSecondaryInfoRenderer = unlockedNextResponse.contents.twoColumnWatchNextResults.results.results.contents.find(
                 (x) => x.videoSecondaryInfoRenderer,
-            )
-                .videoSecondaryInfoRenderer;
+            ).videoSecondaryInfoRenderer;
 
             // TODO: Throw if description not found?
             if (unlockedVideoSecondaryInfoRenderer.description) {
