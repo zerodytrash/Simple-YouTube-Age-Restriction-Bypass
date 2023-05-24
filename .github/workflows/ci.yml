@@ -20,9 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  Format:
-    # Prevent running this on forks
-    if: github.repository_owner == 'zerodytrash'
+  format:
+    # Prevent running this in forks
+    if: github.event.repository.fork == false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

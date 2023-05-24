@@ -68,6 +68,8 @@ jobs:
             dist/**/*.zip
 
       - name: Publish on GreasyFork
+        # Prevent running this in forks
+        if: github.event.repository.fork == false
         env:
           GREASYFORK_USER_EMAIL: ${{ secrets.GREASYFORK_USER_EMAIL }}
           GREASYFORK_USER_PASS: ${{ secrets.GREASYFORK_USER_PASS }}
