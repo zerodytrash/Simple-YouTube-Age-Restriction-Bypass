@@ -1,17 +1,22 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "target": "ESNext",
     "checkJs": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
+
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+
+    "strict": true,
+    "noImplicitAny": false,
+
+    "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "allowUnreachableCode": false,
-    "resolveJsonModule": true,
+
+    "moduleDetection": "force"
   },
   "exclude": [
     "**/node_modules",
