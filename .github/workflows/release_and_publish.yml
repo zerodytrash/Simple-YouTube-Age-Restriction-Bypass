@@ -39,7 +39,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Upload assets to GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ env.USERSCRIPT_FILE_PATH }}
+            dist/**/*.zip
+
       - name: Commit changes
+        # Prevent running this in forks and also if this is a prerelease
+        if: github.event.repository.fork == false && github.event.release.prerelease == false
         env:
           COMMIT_USER_NAME: github-actions[bot]
           COMMIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
@@ -54,22 +63,13 @@ jobs:
           git add -f $(echo "$COMMIT_FILES")
           git commit -m "$COMMIT_MESSAGE" --author="$COMMIT_AUTHOR"
           git push origin
-
-      - name: Update tag
-        run: |
+          # Update tag
           git tag -f "$TAG_NAME"
           git push -f origin "$TAG_NAME"
 
-      - name: Release on Github
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ${{ env.USERSCRIPT_FILE_PATH }}
-            dist/**/*.zip
-
       - name: Publish on GreasyFork
-        # Prevent running this in forks
-        if: github.event.repository.fork == false
+        # Prevent running this in forks and also if this is a prerelease
+        if: github.event.repository.fork == false && github.event.release.prerelease == false
         env:
           GREASYFORK_USER_EMAIL: ${{ secrets.GREASYFORK_USER_EMAIL }}
           GREASYFORK_USER_PASS: ${{ secrets.GREASYFORK_USER_PASS }}
