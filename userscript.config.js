@@ -16,11 +16,11 @@
 // @match           https://music.youtube.com/*
 // @grant           none
 // @run-at          document-start
-// @compatible      chrome Chrome + Tampermonkey or Violentmonkey
-// @compatible      firefox Firefox + Greasemonkey or Tampermonkey or Violentmonkey
-// @compatible      opera Opera + Tampermonkey or Violentmonkey
-// @compatible      edge Edge + Tampermonkey or Violentmonkey
-// @compatible      safari Safari + Tampermonkey or Violentmonkey
+// @compatible      chrome
+// @compatible      firefox
+// @compatible      opera
+// @compatible      edge
+// @compatible      safari
 // ==/UserScript==
 
 /*
