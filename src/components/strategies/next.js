@@ -2,11 +2,11 @@ import { getYtcfgValue, isConfirmed, isEmbed } from '../../utils';
 import { innertube, proxy } from '../endpoints';
 
 export default function getUnlockStrategies(videoId, lastPlayerUnlockReason) {
-    const client = getYtcfgValue('INNERTUBE_CONTEXT');
+    const context = getYtcfgValue('INNERTUBE_CONTEXT');
     const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const hl = getYtcfgValue('HL');
-    const userInterfaceTheme = client.userInterfaceTheme;
+    const userInterfaceTheme = context.client.userInterfaceTheme;
 
     return [
         /**
