@@ -1,6 +1,6 @@
 function fillObjectFromRequest(obj, request) {
     for (const propName in obj) {
-        if (typeof request.query[propName] === 'undefined') {
+        if (!(propName in request.query) || request.query[propName] === 'undefined') {
             continue;
         }
 
