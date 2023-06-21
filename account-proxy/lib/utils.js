@@ -43,7 +43,8 @@ function extractAttributes(obj, attributesArray) {
 }
 
 function getYoutubeResponseStatus(youtubeResponse) {
-    return youtubeResponse.data?.playabilityStatus?.status || `HTTP${youtubeResponse.status}`;
+    return youtubeResponse.playabilityStatus?.status
+        ?? (youtubeResponse.status ? `HTTP${youtubeResponse.status}` : 'unknown');
 }
 
 function checkForGcrFlag(youtubeData) {
