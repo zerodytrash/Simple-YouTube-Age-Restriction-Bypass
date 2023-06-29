@@ -28,15 +28,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 5
 
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 'lts/*'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Check code format
-        run: npm run check-format
+      - name: Check format
+        uses: dprint/check@v2.2

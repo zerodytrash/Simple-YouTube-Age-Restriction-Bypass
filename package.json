@@ -22,8 +22,8 @@
   ],
   "scripts": {
     "build": "node --no-warnings scripts/build.js",
-    "format": "dprint fmt src/**/*.js",
-    "check-format": "dprint check src/**/*.js",
+    "format": "dprint fmt",
+    "check-format": "dprint check",
     "proxy:start": "npm start --workspaces account-proxy"
   },
   "devDependencies": {
