@@ -6,7 +6,7 @@ export default function getUnlockStrategies(videoId, lastPlayerUnlockReason) {
     const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
     const hl = getYtcfgValue('HL');
     const userInterfaceTheme = getYtcfgValue('INNERTUBE_CONTEXT').client.userInterfaceTheme
-        ?? (document.documentElement.hasAttribute("dark") ? 'USER_INTERFACE_THEME_DARK' : 'USER_INTERFACE_THEME_LIGHT');
+        ?? (document.documentElement.hasAttribute('dark') ? 'USER_INTERFACE_THEME_DARK' : 'USER_INTERFACE_THEME_LIGHT');
 
     return [
         /**

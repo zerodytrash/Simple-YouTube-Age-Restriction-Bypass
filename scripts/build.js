@@ -1,13 +1,14 @@
+import child_process from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
 
-import { rollup } from 'rollup';
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
-import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
+import { rollup } from 'rollup';
 import html from 'rollup-plugin-html';
+
 import archiver from 'archiver';
 
 import pkg from '../package.json' assert { type: 'json' };
@@ -30,7 +31,7 @@ console.time('Cleaning /dist');
 cleanOutput();
 console.timeEnd('Cleaning /dist');
 
-console.log('Building...')
+console.log('Building...');
 
 console.time('    Userscript');
 await buildUserscript();
@@ -92,18 +93,18 @@ async function buildUserscript() {
             commonjs(),
             userscript('userscript.config.js'),
             replace({
-                 __BUILD_TARGET__: `'USERSCRIPT'`,
-                 __BUILD_VERSION__: pkg.version,
-                 preventAssignment: true,
+                __BUILD_TARGET__: `'USERSCRIPT'`,
+                __BUILD_VERSION__: pkg.version,
+                preventAssignment: true,
             }),
             getBabelOutputPlugin({
-                presets: [ ['@babel/preset-env', { modules: false }] ],
+                presets: [['@babel/preset-env', { modules: false }]],
                 retainLines: true,
             }),
         ],
     });
 
-    execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes **/node-modules`);
+    child_process.execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes **/node-modules`);
 }
 
 async function buildWebExtension() {
@@ -175,7 +176,7 @@ async function buildWebExtension() {
             html(),
             nodeResolve(),
             commonjs(),
-            replace({  __BUILD_TARGET__: `'WEB_EXTENSION'`, preventAssignment: true }),
+            replace({ __BUILD_TARGET__: `'WEB_EXTENSION'`, preventAssignment: true }),
         ],
     });
 
