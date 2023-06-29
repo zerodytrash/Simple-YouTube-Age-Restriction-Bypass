@@ -5,7 +5,7 @@
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
 // @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
-// @version         2.5.6
+// @version         2.5.7
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -1043,13 +1043,32 @@
                 error(err, `Player Unlock Method ${index + 1} failed with exception`);
             }
 
-            return !Config.VALID_PLAYABILITY_STATUSES.includes(
+            const isStatusValid = Config.VALID_PLAYABILITY_STATUSES.includes(
                 (_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0
                     ? void 0
                     : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0
                     ? void 0
                     : _unlockedPlayerRespon7.status,
             );
+
+            /**
+             * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
+             *
+             * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
+             * However, the `TV Embedded Player` does not include the `trackingParam` in the `responseContext`, causing the check to fail.
+             *
+             * This workaround addresses the issue by hardcoding the `trackingParams` in the `TV Embedded Player` context.
+             */
+            if (isStatusValid && strategy.name === 'TV Embedded Player') {
+                unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
+                unlockedPlayerResponse.responseContext = {
+                    mainAppWebResponseContext: {
+                        trackingParam: 'kx_fmPxhoPZRzgL8kzOwANUdQh8ZwHTREkw2UqmBAwpBYrzRgkuMsNLBwOcCE59TDtslLKPQ-SS',
+                    },
+                };
+            }
+
+            return !isStatusValid;
         });
 
         // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
