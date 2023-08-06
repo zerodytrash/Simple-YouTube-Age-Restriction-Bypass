@@ -5,7 +5,7 @@
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
 // @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
-// @version         2.5.7
+// @version         2.5.8
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -44,7 +44,7 @@
     // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
     // To learn what information is transferred, please read: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#privacy
     const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
-    const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
+    const VIDEO_PROXY_SERVER_HOST = 'https://ny.4everproxy.com';
 
     // User needs to confirm the unlock process on embedded player?
     let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
