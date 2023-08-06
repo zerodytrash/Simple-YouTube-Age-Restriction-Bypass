@@ -6,7 +6,7 @@ const VALID_PLAYABILITY_STATUSES = ['OK', 'LIVE_STREAM_OFFLINE'];
 // You can host your own account proxy instance. See https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/tree/main/account-proxy
 // To learn what information is transferred, please read: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass#privacy
 const ACCOUNT_PROXY_SERVER_HOST = 'https://youtube-proxy.zerody.one';
-const VIDEO_PROXY_SERVER_HOST = 'https://phx.4everproxy.com';
+const VIDEO_PROXY_SERVER_HOST = 'https://ny.4everproxy.com';
 
 // User needs to confirm the unlock process on embedded player?
 let ENABLE_UNLOCK_CONFIRMATION_EMBED = true;
