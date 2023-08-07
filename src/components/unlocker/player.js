@@ -97,21 +97,36 @@ function getUnlockedPlayerResponse(videoId, reason) {
 
         const isStatusValid = Config.VALID_PLAYABILITY_STATUSES.includes(unlockedPlayerResponse?.playabilityStatus?.status);
 
-        /**
-         * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
-         *
-         * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
-         * However, sometimes the response does not include the `trackingParam` in the `responseContext`, causing the check to fail.
-         *
-         * This workaround addresses the issue by hardcoding the `trackingParams` in the response context.
-         */
-        if (isStatusValid && !unlockedPlayerResponse.trackingParams || !unlockedPlayerResponse.responseContext?.mainAppWebResponseContext?.trackingParam) {
-            unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
-            unlockedPlayerResponse.responseContext = {
-                mainAppWebResponseContext: {
-                    trackingParam: 'kx_fmPxhoPZRzgL8kzOwANUdQh8ZwHTREkw2UqmBAwpBYrzRgkuMsNLBwOcCE59TDtslLKPQ-SS',
-                },
-            };
+        if (isStatusValid) {
+            /**
+             * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
+             *
+             * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
+             * However, sometimes the response does not include the `trackingParam` in the `responseContext`, causing the check to fail.
+             *
+             * This workaround addresses the issue by hardcoding the `trackingParams` in the response context.
+             */
+            if (!unlockedPlayerResponse.trackingParams || !unlockedPlayerResponse.responseContext?.mainAppWebResponseContext?.trackingParam) {
+                unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
+                unlockedPlayerResponse.responseContext = {
+                    mainAppWebResponseContext: {
+                        trackingParam: 'kx_fmPxhoPZRzgL8kzOwANUdQh8ZwHTREkw2UqmBAwpBYrzRgkuMsNLBwOcCE59TDtslLKPQ-SS',
+                    },
+                };
+            }
+
+            /**
+             * Workaround: Account proxy response currently does not include `playerConfig`
+             *
+             * Stays here until we rewrite the account proxy to only include the necessary and bare minimum response
+             */
+            if (strategy.payload.startTimeSecs && strategy.name === 'Account Proxy') {
+                unlockedPlayerResponse.playerConfig = {
+                    playbackStartConfig: {
+                        startSeconds: strategy.payload.startTimeSecs,
+                    },
+                };
+            }
         }
 
         return !isStatusValid;
