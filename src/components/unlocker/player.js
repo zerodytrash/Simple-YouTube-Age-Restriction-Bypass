@@ -98,7 +98,6 @@ function getUnlockedPlayerResponse(videoId, reason) {
         const isStatusValid = Config.VALID_PLAYABILITY_STATUSES.includes(unlockedPlayerResponse?.playabilityStatus?.status);
 
         if (isStatusValid) {
-
             /**
              * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
              *
@@ -125,8 +124,8 @@ function getUnlockedPlayerResponse(videoId, reason) {
                 unlockedPlayerResponse.playerConfig = {
                     playbackStartConfig: {
                         startSeconds: strategy.payload.startTimeSecs,
-                    }
-                }
+                    },
+                };
             }
         }
 
