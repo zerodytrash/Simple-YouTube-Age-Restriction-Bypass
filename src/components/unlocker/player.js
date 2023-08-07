@@ -101,11 +101,11 @@ function getUnlockedPlayerResponse(videoId, reason) {
          * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
          *
          * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
-         * However, the `TV Embedded Player` does not include the `trackingParam` in the `responseContext`, causing the check to fail.
+         * However, sometimes the response does not include the `trackingParam` in the `responseContext`, causing the check to fail.
          *
-         * This workaround addresses the issue by hardcoding the `trackingParams` in the `TV Embedded Player` context.
+         * This workaround addresses the issue by hardcoding the `trackingParams` in the response context.
          */
-        if (isStatusValid && strategy.name === 'TV Embedded Player') {
+        if (isStatusValid && !unlockedPlayerResponse.trackingParams || !unlockedPlayerResponse.responseContext?.mainAppWebResponseContext?.trackingParam) {
             unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
             unlockedPlayerResponse.responseContext = {
                 mainAppWebResponseContext: {
