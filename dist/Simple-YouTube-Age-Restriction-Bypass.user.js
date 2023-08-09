@@ -5,10 +5,11 @@
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
 // @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
-// @version         2.5.8
+// @version         2.5.9
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
+// @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js
 // @license         MIT
 // @match           https://www.youtube.com/*
 // @match           https://www.youtube-nocookie.com/*
@@ -262,47 +263,42 @@
     }
 
     function isWatchNextObject(parsedData) {
-        var _parsedData$currentVi, _parsedData$currentVi2;
+        var _parsedData$currentVi;
         if (
             !(parsedData !== null && parsedData !== void 0 && parsedData.contents)
             || !(parsedData !== null && parsedData !== void 0 && (_parsedData$currentVi = parsedData.currentVideoEndpoint) !== null && _parsedData$currentVi !== void 0
-                && (_parsedData$currentVi2 = _parsedData$currentVi.watchEndpoint) !== null && _parsedData$currentVi2 !== void 0 && _parsedData$currentVi2.videoId)
+                && (_parsedData$currentVi = _parsedData$currentVi.watchEndpoint) !== null && _parsedData$currentVi !== void 0 && _parsedData$currentVi.videoId)
         ) return false;
         return !!parsedData.contents.twoColumnWatchNextResults || !!parsedData.contents.singleColumnWatchNextResults;
     }
 
     function isWatchNextSidebarEmpty(parsedData) {
-        var _parsedData$contents2, _parsedData$contents3, _parsedData$contents4, _parsedData$contents5, _content$find;
+        var _parsedData$contents2, _content$find;
         if (isDesktop) {
-            var _parsedData$contents, _parsedData$contents$, _parsedData$contents$2, _parsedData$contents$3;
+            var _parsedData$contents;
             // WEB response layout
             const result = (_parsedData$contents = parsedData.contents) === null || _parsedData$contents === void 0
+                    || (_parsedData$contents = _parsedData$contents.twoColumnWatchNextResults) === null || _parsedData$contents === void 0
+                    || (_parsedData$contents = _parsedData$contents.secondaryResults) === null || _parsedData$contents === void 0
+                    || (_parsedData$contents = _parsedData$contents.secondaryResults) === null || _parsedData$contents === void 0
                 ? void 0
-                : (_parsedData$contents$ = _parsedData$contents.twoColumnWatchNextResults) === null || _parsedData$contents$ === void 0
-                ? void 0
-                : (_parsedData$contents$2 = _parsedData$contents$.secondaryResults) === null || _parsedData$contents$2 === void 0
-                ? void 0
-                : (_parsedData$contents$3 = _parsedData$contents$2.secondaryResults) === null || _parsedData$contents$3 === void 0
-                ? void 0
-                : _parsedData$contents$3.results;
+                : _parsedData$contents.results;
             return !result;
         }
 
         // MWEB response layout
         const content = (_parsedData$contents2 = parsedData.contents) === null || _parsedData$contents2 === void 0
+                || (_parsedData$contents2 = _parsedData$contents2.singleColumnWatchNextResults) === null || _parsedData$contents2 === void 0
+                || (_parsedData$contents2 = _parsedData$contents2.results) === null || _parsedData$contents2 === void 0
+                || (_parsedData$contents2 = _parsedData$contents2.results) === null || _parsedData$contents2 === void 0
             ? void 0
-            : (_parsedData$contents3 = _parsedData$contents2.singleColumnWatchNextResults) === null || _parsedData$contents3 === void 0
-            ? void 0
-            : (_parsedData$contents4 = _parsedData$contents3.results) === null || _parsedData$contents4 === void 0
-            ? void 0
-            : (_parsedData$contents5 = _parsedData$contents4.results) === null || _parsedData$contents5 === void 0
-            ? void 0
-            : _parsedData$contents5.contents;
-        const result = content === null || content === void 0 ? void 0 : (_content$find = content.find((e) => {
-                        var _e$itemSectionRendere;
-                        return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId)
-                            === 'watch-next-feed';
-                    })) === null || _content$find === void 0
+            : _parsedData$contents2.contents;
+        const result = content === null || content === void 0 || (_content$find = content.find((e) => {
+                    var _e$itemSectionRendere;
+                    return ((_e$itemSectionRendere = e.itemSectionRenderer) === null || _e$itemSectionRendere === void 0 ? void 0 : _e$itemSectionRendere.targetId)
+                        === 'watch-next-feed';
+                })) === null
+                || _content$find === void 0
             ? void 0
             : _content$find.itemSectionRenderer;
         return typeof result !== 'object';
@@ -318,14 +314,7 @@
     }
 
     function isAgeRestricted(playabilityStatus) {
-        var _playabilityStatus$er,
-            _playabilityStatus$er2,
-            _playabilityStatus$er3,
-            _playabilityStatus$er4,
-            _playabilityStatus$er5,
-            _playabilityStatus$er6,
-            _playabilityStatus$er7,
-            _playabilityStatus$er8;
+        var _playabilityStatus$er;
         if (!(playabilityStatus !== null && playabilityStatus !== void 0 && playabilityStatus.status)) return false;
         if (playabilityStatus.desktopLegacyAgeGateReason) return true;
         if (Config.UNLOCKABLE_PLAYABILITY_STATUSES.includes(playabilityStatus.status)) return true;
@@ -335,49 +324,33 @@
         return (
             isEmbed
             && ((_playabilityStatus$er = playabilityStatus.errorScreen) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.reason) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.runs) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.navigationEndpoint) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.urlEndpoint) === null || _playabilityStatus$er === void 0
+                    || (_playabilityStatus$er = _playabilityStatus$er.url) === null || _playabilityStatus$er === void 0
                 ? void 0
-                : (_playabilityStatus$er2 = _playabilityStatus$er.playerErrorMessageRenderer) === null || _playabilityStatus$er2 === void 0
-                ? void 0
-                : (_playabilityStatus$er3 = _playabilityStatus$er2.reason) === null || _playabilityStatus$er3 === void 0
-                ? void 0
-                : (_playabilityStatus$er4 = _playabilityStatus$er3.runs) === null || _playabilityStatus$er4 === void 0
-                ? void 0
-                : (_playabilityStatus$er5 = _playabilityStatus$er4.find((x) => x.navigationEndpoint)) === null || _playabilityStatus$er5 === void 0
-                ? void 0
-                : (_playabilityStatus$er6 = _playabilityStatus$er5.navigationEndpoint) === null || _playabilityStatus$er6 === void 0
-                ? void 0
-                : (_playabilityStatus$er7 = _playabilityStatus$er6.urlEndpoint) === null || _playabilityStatus$er7 === void 0
-                ? void 0
-                : (_playabilityStatus$er8 = _playabilityStatus$er7.url) === null || _playabilityStatus$er8 === void 0
-                ? void 0
-                : _playabilityStatus$er8.includes('/2802167'))
+                : _playabilityStatus$er.includes('/2802167'))
         );
     }
 
     function isSearchResult(parsedData) {
-        var _parsedData$contents6, _parsedData$contents7, _parsedData$contents8, _parsedData$onRespons, _parsedData$onRespons2, _parsedData$onRespons3;
+        var _parsedData$contents3, _parsedData$contents4, _parsedData$onRespons;
         return (
-            typeof (parsedData === null || parsedData === void 0
+            typeof (parsedData === null || parsedData === void 0 || (_parsedData$contents3 = parsedData.contents) === null || _parsedData$contents3 === void 0
                     ? void 0
-                    : (_parsedData$contents6 = parsedData.contents) === null || _parsedData$contents6 === void 0
+                    : _parsedData$contents3.twoColumnSearchResultsRenderer) === 'object' // Desktop initial results
+            || (parsedData === null || parsedData === void 0 || (_parsedData$contents4 = parsedData.contents) === null || _parsedData$contents4 === void 0
+                        || (_parsedData$contents4 = _parsedData$contents4.sectionListRenderer) === null || _parsedData$contents4 === void 0
                     ? void 0
-                    : _parsedData$contents6.twoColumnSearchResultsRenderer) === 'object' // Desktop initial results
-            || (parsedData === null || parsedData === void 0
+                    : _parsedData$contents4.targetId) === 'search-feed' // Mobile initial results
+            || (parsedData === null || parsedData === void 0 || (_parsedData$onRespons = parsedData.onResponseReceivedCommands) === null || _parsedData$onRespons === void 0
+                        || (_parsedData$onRespons = _parsedData$onRespons.find((x) => x.appendContinuationItemsAction)) === null || _parsedData$onRespons === void 0
+                        || (_parsedData$onRespons = _parsedData$onRespons.appendContinuationItemsAction) === null || _parsedData$onRespons === void 0
                     ? void 0
-                    : (_parsedData$contents7 = parsedData.contents) === null || _parsedData$contents7 === void 0
-                    ? void 0
-                    : (_parsedData$contents8 = _parsedData$contents7.sectionListRenderer) === null || _parsedData$contents8 === void 0
-                    ? void 0
-                    : _parsedData$contents8.targetId) === 'search-feed' // Mobile initial results
-            || (parsedData === null || parsedData === void 0
-                    ? void 0
-                    : (_parsedData$onRespons = parsedData.onResponseReceivedCommands) === null || _parsedData$onRespons === void 0
-                    ? void 0
-                    : (_parsedData$onRespons2 = _parsedData$onRespons.find((x) => x.appendContinuationItemsAction)) === null || _parsedData$onRespons2 === void 0
-                    ? void 0
-                    : (_parsedData$onRespons3 = _parsedData$onRespons2.appendContinuationItemsAction) === null || _parsedData$onRespons3 === void 0
-                    ? void 0
-                    : _parsedData$onRespons3.targetId) === 'search-feed' // Desktop & Mobile scroll continuation
+                    : _parsedData$onRespons.targetId) === 'search-feed' // Desktop & Mobile scroll continuation
         );
     }
 
@@ -908,8 +881,7 @@
         };
     }
 
-    async function show(message) {
-        let duration = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 5;
+    async function show(message, duration = 5) {
         if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
         if (isEmbed) return;
 
@@ -1031,7 +1003,7 @@
 
         // Try every strategy until one of them works
         unlockStrategies.every((strategy, index) => {
-            var _unlockedPlayerRespon6, _unlockedPlayerRespon7;
+            var _unlockedPlayerRespon6;
             // Skip strategy if authentication is required and the user is not logged in
             if (strategy.skip || strategy.requiresAuth && !isUserLoggedIn()) return true;
 
@@ -1045,27 +1017,47 @@
 
             const isStatusValid = Config.VALID_PLAYABILITY_STATUSES.includes(
                 (_unlockedPlayerRespon6 = unlockedPlayerResponse) === null || _unlockedPlayerRespon6 === void 0
+                    || (_unlockedPlayerRespon6 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon6 === void 0
                     ? void 0
-                    : (_unlockedPlayerRespon7 = _unlockedPlayerRespon6.playabilityStatus) === null || _unlockedPlayerRespon7 === void 0
-                    ? void 0
-                    : _unlockedPlayerRespon7.status,
+                    : _unlockedPlayerRespon6.status,
             );
 
-            /**
-             * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
-             *
-             * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
-             * However, the `TV Embedded Player` does not include the `trackingParam` in the `responseContext`, causing the check to fail.
-             *
-             * This workaround addresses the issue by hardcoding the `trackingParams` in the `TV Embedded Player` context.
-             */
-            if (isStatusValid && strategy.name === 'TV Embedded Player') {
-                unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
-                unlockedPlayerResponse.responseContext = {
-                    mainAppWebResponseContext: {
-                        trackingParam: 'kx_fmPxhoPZRzgL8kzOwANUdQh8ZwHTREkw2UqmBAwpBYrzRgkuMsNLBwOcCE59TDtslLKPQ-SS',
-                    },
-                };
+            if (isStatusValid) {
+                var _unlockedPlayerRespon7;
+                /**
+                 * Workaround: https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues/191
+                 *
+                 * YouTube checks if the `trackingParams` in the response matches the decoded `trackingParam` in `responseContext.mainAppWebResponseContext`.
+                 * However, sometimes the response does not include the `trackingParam` in the `responseContext`, causing the check to fail.
+                 *
+                 * This workaround addresses the issue by hardcoding the `trackingParams` in the response context.
+                 */
+                if (
+                    !unlockedPlayerResponse.trackingParams
+                    || !((_unlockedPlayerRespon7 = unlockedPlayerResponse.responseContext) !== null && _unlockedPlayerRespon7 !== void 0
+                        && (_unlockedPlayerRespon7 = _unlockedPlayerRespon7.mainAppWebResponseContext) !== null && _unlockedPlayerRespon7 !== void 0
+                        && _unlockedPlayerRespon7.trackingParam)
+                ) {
+                    unlockedPlayerResponse.trackingParams = 'CAAQu2kiEwjor8uHyOL_AhWOvd4KHavXCKw=';
+                    unlockedPlayerResponse.responseContext = {
+                        mainAppWebResponseContext: {
+                            trackingParam: 'kx_fmPxhoPZRzgL8kzOwANUdQh8ZwHTREkw2UqmBAwpBYrzRgkuMsNLBwOcCE59TDtslLKPQ-SS',
+                        },
+                    };
+                }
+
+                /**
+                 * Workaround: Account proxy response currently does not include `playerConfig`
+                 *
+                 * Stays here until we rewrite the account proxy to only include the necessary and bare minimum response
+                 */
+                if (strategy.payload.startTimeSecs && strategy.name === 'Account Proxy') {
+                    unlockedPlayerResponse.playerConfig = {
+                        playbackStartConfig: {
+                            startSeconds: strategy.payload.startTimeSecs,
+                        },
+                    };
+                }
             }
 
             return !isStatusValid;
@@ -1132,7 +1124,7 @@
     }
 
     function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
-        var _unlockedNextResponse, _unlockedNextResponse2, _unlockedNextResponse3, _unlockedNextResponse4, _unlockedNextResponse5;
+        var _unlockedNextResponse;
         if (isDesktop) {
             // Transfer WatchNextResults to original response
             originalNextResponse.contents.twoColumnWatchNextResults.secondaryResults = unlockedNextResponse.contents.twoColumnWatchNextResults.secondaryResults;
@@ -1157,16 +1149,12 @@
 
         // Transfer WatchNextResults to original response
         const unlockedWatchNextFeed = (_unlockedNextResponse = unlockedNextResponse.contents) === null || _unlockedNextResponse === void 0
+                || (_unlockedNextResponse = _unlockedNextResponse.singleColumnWatchNextResults) === null || _unlockedNextResponse === void 0
+                || (_unlockedNextResponse = _unlockedNextResponse.results) === null || _unlockedNextResponse === void 0
+                || (_unlockedNextResponse = _unlockedNextResponse.results) === null || _unlockedNextResponse === void 0
+                || (_unlockedNextResponse = _unlockedNextResponse.contents) === null || _unlockedNextResponse === void 0
             ? void 0
-            : (_unlockedNextResponse2 = _unlockedNextResponse.singleColumnWatchNextResults) === null || _unlockedNextResponse2 === void 0
-            ? void 0
-            : (_unlockedNextResponse3 = _unlockedNextResponse2.results) === null || _unlockedNextResponse3 === void 0
-            ? void 0
-            : (_unlockedNextResponse4 = _unlockedNextResponse3.results) === null || _unlockedNextResponse4 === void 0
-            ? void 0
-            : (_unlockedNextResponse5 = _unlockedNextResponse4.contents) === null || _unlockedNextResponse5 === void 0
-            ? void 0
-            : _unlockedNextResponse5.find(
+            : _unlockedNextResponse.find(
                 (x) => {
                     var _x$itemSectionRendere;
                     return ((_x$itemSectionRendere = x.itemSectionRenderer) === null || _x$itemSectionRendere === void 0 ? void 0 : _x$itemSectionRendere.targetId)
@@ -1209,8 +1197,7 @@
 
         if (url.pathname.indexOf('/youtubei/') === 0) {
             // Store auth headers in storage for further usage.
-            attach$4(xhr, 'setRequestHeader', (_ref2) => {
-                let [headerName, headerValue] = _ref2;
+            attach$4(xhr, 'setRequestHeader', ([headerName, headerValue]) => {
                 if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
                     set(headerName, headerValue);
                 }
