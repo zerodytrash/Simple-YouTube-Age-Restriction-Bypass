@@ -85,7 +85,8 @@ For some videos it is necessary to route the video data files (hosted at `google
 
 ### Browser support
 
-> **Warning** We are currently reevaluating the extension. See [here](#browser-extension).
+> **Warning**  
+> We are currently reevaluating the extension. See [here](#browser-extension).
 
 The following browsers are supported:
 <table>
@@ -140,6 +141,7 @@ And many more!
 ### iOS/iPadOS
 
 **Simple YouTube Age Restriction Bypass** also works on iOS/iPadOS Safari with the browser version of YouTube [m.youtube.com](https://m.youtube.com) in combination with the [Userscript](#userscript).
+> **Note**  
 > You need to install the free extension [Userscripts](https://apps.apple.com/us/app/userscripts/id1463298887) for Safari from the AppStore to install the [Userscript](#userscript).
 
 ## Development
@@ -171,6 +173,7 @@ npm run build
 ```
 
 The userscript `Simple-YouTube-Age-Restriction-Bypass.user.js` and extension should now be located in the `dist` folder.
+> **Note**  
 > The extension is compiled to both Manifest [V2](https://developer.chrome.com/docs/extensions/mv2) and [V3](https://developer.chrome.com/docs/extensions/mv3/intro).
 
 ## Contributors
