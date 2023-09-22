@@ -133,11 +133,9 @@ And many more!
 
 ### Android
 
-**Simple YouTube Age Restriction Bypass** works on Android with the browser version of YouTube [m.youtube.com](https://m.youtube.com) in combination with the [Userscript](#userscript).
-> **Note**  
+**Simple YouTube Age Restriction Bypass** works on Android with the browser version of YouTube [m.youtube.com](https://m.youtube.com) in combination with the [Userscript](#userscript). 
 > Only a few browsers such as [Firefox](https://play.google.com/store/apps/details?id=org.mozilla.firefox) and [Kiwi Browser](https://play.google.com/store/apps/details?id=com.kiwibrowser.browser) currently support extensions. Tampermonkey can be installed there.
 
-> **Note**  
 > [Bromite](https://www.bromite.org/) supports userscripts natively. The script can be installed via Settings > User Scripts.
 
 ### iOS/iPadOS
