@@ -27,14 +27,14 @@
     "proxy:start": "npm start --workspaces account-proxy"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.22.9",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-commonjs": "^25.0.3",
-    "@rollup/plugin-node-resolve": "^15.1.0",
-    "@rollup/plugin-replace": "^5.0.2",
-    "archiver": "^5.3.1",
-    "dprint": "^0.40.2",
-    "rollup": "^3.27.2",
+    "@babel/preset-env": "^7.23.2",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.5",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^5.0.3",
+    "archiver": "^6.0.1",
+    "dprint": "^0.41.0",
+    "rollup": "^4.0.2",
     "rollup-plugin-html": "^0.2.1"
   },
   "engines": {
