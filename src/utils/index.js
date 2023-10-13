@@ -142,19 +142,3 @@ export function waitForElement(elementSelector, timeout) {
 
     return deferred;
 }
-
-export function parseRelativeUrl(url) {
-    if (typeof url !== 'string') {
-        return null;
-    }
-
-    if (url.indexOf('/') === 0) {
-        url = window.location.origin + url;
-    }
-
-    try {
-        return url.indexOf('https://') === 0 ? new window.URL(url) : null;
-    } catch {
-        return null;
-    }
-}

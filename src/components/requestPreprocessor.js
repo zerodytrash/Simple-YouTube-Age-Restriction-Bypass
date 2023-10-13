@@ -13,17 +13,18 @@ import * as unlocker from './unlocker';
  * - Add "content check ok" flags to request bodys
  */
 export function handleXhrOpen(method, url, xhr) {
-    let proxyUrl = unlockGoogleVideo(url);
+    const url_obj = new URL(url);
+    let proxyUrl = unlockGoogleVideo(url_obj);
     if (proxyUrl) {
         // Exclude credentials from XMLHttpRequest
         Object.defineProperty(xhr, 'withCredentials', {
             set: () => {},
             get: () => false,
         });
-        return proxyUrl;
+        return proxyUrl.toString();
     }
 
-    if (url.pathname.indexOf('/youtubei/') === 0) {
+    if (url_obj.pathname.indexOf('/youtubei/') === 0) {
         // Store auth headers in storage for further usage.
         interceptors.attachGenericInterceptor(xhr, 'setRequestHeader', ([headerName, headerValue]) => {
             if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
@@ -32,7 +33,7 @@ export function handleXhrOpen(method, url, xhr) {
         });
     }
 
-    if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+    if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url_obj.pathname)) {
         // Add content check flags to player and next request (this will skip content warnings)
         interceptors.attachGenericInterceptor(xhr, 'send', (args) => {
             if (typeof args[0] === 'string') {
@@ -49,16 +50,17 @@ export function handleXhrOpen(method, url, xhr) {
  * - Add "content check ok" flags to request bodys
  */
 export function handleFetchRequest(url, requestOptions) {
-    let newGoogleVideoUrl = unlockGoogleVideo(url);
+    const url_obj = new URL(url);
+    const newGoogleVideoUrl = unlockGoogleVideo(url_obj);
     if (newGoogleVideoUrl) {
         // Exclude credentials from Fetch Request
         if (requestOptions.credentials) {
             requestOptions.credentials = 'omit';
         }
-        return newGoogleVideoUrl;
+        return newGoogleVideoUrl.toString();
     }
 
-    if (url.pathname.indexOf('/youtubei/') === 0 && isObject(requestOptions.headers)) {
+    if (url_obj.pathname.indexOf('/youtubei/') === 0 && isObject(requestOptions.headers)) {
         // Store auth headers in authStorage for further usage.
         for (let headerName in requestOptions.headers) {
             if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
@@ -67,7 +69,7 @@ export function handleFetchRequest(url, requestOptions) {
         }
     }
 
-    if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+    if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url_obj.pathname)) {
         // Add content check flags to player and next request (this will skip content warnings)
         requestOptions.body = setContentCheckOk(requestOptions.body);
     }

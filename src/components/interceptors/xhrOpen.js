@@ -1,23 +1,27 @@
-import { parseRelativeUrl } from '../../utils';
 import * as logger from '../../utils/logger';
 import { nativeXMLHttpRequestOpen } from './natives';
 
 export default function attach(onXhrOpenCalled) {
-    XMLHttpRequest.prototype.open = function(method, url) {
+    XMLHttpRequest.prototype.open = function(...args) {
+        let [method, url] = args;
         try {
-            let parsedUrl = parseRelativeUrl(url);
+            if (typeof url === 'string') {
+                if (url.indexOf('/') === 0) {
+                    url = window.location.origin + url;
+                }
 
-            if (parsedUrl) {
-                const modifiedUrl = onXhrOpenCalled(method, parsedUrl, this);
+                if (url.indexOf('https://') !== -1) {
+                    const modifiedUrl = onXhrOpenCalled(method, url, this);
 
-                if (modifiedUrl) {
-                    arguments[1] = modifiedUrl.toString();
+                    if (modifiedUrl) {
+                        args[1] = modifiedUrl;
+                    }
                 }
             }
         } catch (err) {
             logger.error(err, `Failed to intercept XMLHttpRequest.open()`);
         }
 
-        nativeXMLHttpRequestOpen.apply(this, arguments);
+        nativeXMLHttpRequestOpen.apply(this, args);
     };
 }

@@ -1,4 +1,3 @@
-import { parseRelativeUrl } from '../../utils';
 import * as logger from '../../utils/logger';
 
 export default function attach(onRequestCreate) {
@@ -8,19 +7,26 @@ export default function attach(onRequestCreate) {
 
     window.Request = new Proxy(window.Request, {
         construct(target, args) {
-            const [url, options] = args;
+            let [url, options] = args;
             try {
-                const parsedUrl = parseRelativeUrl(url);
-                const modifiedUrl = onRequestCreate(parsedUrl, options);
+                if (typeof url === 'string') {
+                    if (url.indexOf('/') === 0) {
+                        url = window.location.origin + url;
+                    }
 
-                if (modifiedUrl) {
-                    args[0] = modifiedUrl.toString();
+                    if (url.indexOf('https://') !== -1) {
+                        const modifiedUrl = onRequestCreate(url, options);
+
+                        if (modifiedUrl) {
+                            args[0] = modifiedUrl;
+                        }
+                    }
                 }
             } catch (err) {
                 logger.error(err, `Failed to intercept Request()`);
             }
 
-            return Reflect.construct(...arguments);
+            return Reflect.construct(target, args);
         },
     });
 }
