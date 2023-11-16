@@ -67,6 +67,8 @@ const generateApiRequestData = function (clientParams) {
         "racyCheckOk": true,
         "contentCheckOk": true,
         "startTimeSecs": clientParams.startTimeSecs,
+        // Considerably faster response times. Shorts use this parameter.
+        "params": "8AEBoAMByAMkuAQF",
     }
 }
 
