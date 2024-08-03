@@ -104,7 +104,7 @@ async function buildUserscript() {
         ],
     });
 
-    child_process.execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes **/node-modules`);
+    child_process.execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes-override !**/dist`);
 }
 
 async function buildWebExtension() {
