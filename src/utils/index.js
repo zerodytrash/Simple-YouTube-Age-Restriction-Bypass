@@ -17,6 +17,18 @@ export class Deferred {
     }
 }
 
+// WORKAROUND: TypeError: Failed to set the 'innerHTML' property on 'Element': This document requires 'TrustedHTML' assignment.
+if (window.trustedTypes && trustedTypes.createPolicy) {
+    if (!trustedTypes.defaultPolicy) {
+        const passThroughFn = (x) => x;
+        trustedTypes.createPolicy('default', {
+            createHTML: passThroughFn,
+            createScriptURL: passThroughFn,
+            createScript: passThroughFn,
+        });
+    }
+}
+
 export function createElement(tagName, options) {
     const node = document.createElement(tagName);
     options && Object.assign(node, options);
