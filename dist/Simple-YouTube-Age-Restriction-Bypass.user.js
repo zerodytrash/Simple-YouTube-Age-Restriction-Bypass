@@ -5,7 +5,7 @@
 // @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
 // @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
 // @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
-// @version         2.5.9
+// @version         2.5.10
 // @author          Zerody (https://github.com/zerodytrash)
 // @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
@@ -119,6 +119,18 @@
         }
     }
 
+    // WORKAROUND: TypeError: Failed to set the 'innerHTML' property on 'Element': This document requires 'TrustedHTML' assignment.
+    if (window.trustedTypes && trustedTypes.createPolicy) {
+        if (!trustedTypes.defaultPolicy) {
+            const passThroughFn = (x) => x;
+            trustedTypes.createPolicy('default', {
+                createHTML: passThroughFn,
+                createScriptURL: passThroughFn,
+                createScript: passThroughFn,
+            });
+        }
+    }
+
     function createElement(tagName, options) {
         const node = document.createElement(tagName);
         options && Object.assign(node, options);
@@ -169,8 +181,7 @@
     function getSignatureTimestamp() {
         return (
             getYtcfgValue('STS')
-            || (() => {
-                var _document$querySelect;
+            || ((_document$querySelect) => {
                 // STS is missing on embedded player. Retrieve from player base script as fallback...
                 const playerBaseJsPath = (_document$querySelect = document.querySelector('script[src*="/base.js"]')) === null || _document$querySelect === void 0
                     ? void 0
@@ -236,7 +247,7 @@
             }
         }, 100);
 
-        if (timeout) {
+        {
             setTimeout(() => {
                 clearInterval(checkDomInterval);
                 deferred.reject();
@@ -244,22 +255,6 @@
         }
 
         return deferred;
-    }
-
-    function parseRelativeUrl(url) {
-        if (typeof url !== 'string') {
-            return null;
-        }
-
-        if (url.indexOf('/') === 0) {
-            url = window.location.origin + url;
-        }
-
-        try {
-            return url.indexOf('https://') === 0 ? new window.URL(url) : null;
-        } catch {
-            return null;
-        }
     }
 
     function isWatchNextObject(parsedData) {
@@ -490,40 +485,52 @@
 
         window.Request = new Proxy(window.Request, {
             construct(target, args) {
-                const [url, options] = args;
+                let [url, options] = args;
                 try {
-                    const parsedUrl = parseRelativeUrl(url);
-                    const modifiedUrl = onRequestCreate(parsedUrl, options);
+                    if (typeof url === 'string') {
+                        if (url.indexOf('/') === 0) {
+                            url = window.location.origin + url;
+                        }
 
-                    if (modifiedUrl) {
-                        args[0] = modifiedUrl.toString();
+                        if (url.indexOf('https://') !== -1) {
+                            const modifiedUrl = onRequestCreate(url, options);
+
+                            if (modifiedUrl) {
+                                args[0] = modifiedUrl;
+                            }
+                        }
                     }
                 } catch (err) {
                     error(err, `Failed to intercept Request()`);
                 }
 
-                return Reflect.construct(...arguments);
+                return Reflect.construct(target, args);
             },
         });
     }
 
     function attach(onXhrOpenCalled) {
-        XMLHttpRequest.prototype.open = function(method, url) {
+        XMLHttpRequest.prototype.open = function(...args) {
+            let [method, url] = args;
             try {
-                let parsedUrl = parseRelativeUrl(url);
+                if (typeof url === 'string') {
+                    if (url.indexOf('/') === 0) {
+                        url = window.location.origin + url;
+                    }
 
-                if (parsedUrl) {
-                    const modifiedUrl = onXhrOpenCalled(method, parsedUrl, this);
+                    if (url.indexOf('https://') !== -1) {
+                        const modifiedUrl = onXhrOpenCalled(method, url, this);
 
-                    if (modifiedUrl) {
-                        arguments[1] = modifiedUrl.toString();
+                        if (modifiedUrl) {
+                            args[1] = modifiedUrl;
+                        }
                     }
                 }
             } catch (err) {
                 error(err, `Failed to intercept XMLHttpRequest.open()`);
             }
 
-            nativeXMLHttpRequestOpen.apply(this, arguments);
+            nativeXMLHttpRequestOpen.apply(this, args);
         };
     }
 
@@ -810,10 +817,6 @@
         const errorScreenElement = await waitForElement('.ytp-error', 2000);
         const buttonElement = createElement('div', { class: 'button-container', innerHTML: buttonTemplate });
         buttonElement.getElementsByClassName('button-text')[0].innerText = text;
-
-        if (backgroundColor) {
-            buttonElement.querySelector(':scope > div').style['background-color'] = backgroundColor;
-        }
 
         if (typeof onClick === 'function') {
             buttonElement.addEventListener('click', onClick);
@@ -1185,17 +1188,18 @@
      * - Add "content check ok" flags to request bodys
      */
     function handleXhrOpen(method, url, xhr) {
-        let proxyUrl = unlockGoogleVideo(url);
+        const url_obj = new URL(url);
+        let proxyUrl = unlockGoogleVideo(url_obj);
         if (proxyUrl) {
             // Exclude credentials from XMLHttpRequest
             Object.defineProperty(xhr, 'withCredentials', {
                 set: () => {},
                 get: () => false,
             });
-            return proxyUrl;
+            return proxyUrl.toString();
         }
 
-        if (url.pathname.indexOf('/youtubei/') === 0) {
+        if (url_obj.pathname.indexOf('/youtubei/') === 0) {
             // Store auth headers in storage for further usage.
             attach$4(xhr, 'setRequestHeader', ([headerName, headerValue]) => {
                 if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
@@ -1204,7 +1208,7 @@
             });
         }
 
-        if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+        if (Config.SKIP_CONTENT_WARNINGS && method === 'POST' && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url_obj.pathname)) {
             // Add content check flags to player and next request (this will skip content warnings)
             attach$4(xhr, 'send', (args) => {
                 if (typeof args[0] === 'string') {
@@ -1221,16 +1225,17 @@
      * - Add "content check ok" flags to request bodys
      */
     function handleFetchRequest(url, requestOptions) {
-        let newGoogleVideoUrl = unlockGoogleVideo(url);
+        const url_obj = new URL(url);
+        const newGoogleVideoUrl = unlockGoogleVideo(url_obj);
         if (newGoogleVideoUrl) {
             // Exclude credentials from Fetch Request
             if (requestOptions.credentials) {
                 requestOptions.credentials = 'omit';
             }
-            return newGoogleVideoUrl;
+            return newGoogleVideoUrl.toString();
         }
 
-        if (url.pathname.indexOf('/youtubei/') === 0 && isObject(requestOptions.headers)) {
+        if (url_obj.pathname.indexOf('/youtubei/') === 0 && isObject(requestOptions.headers)) {
             // Store auth headers in authStorage for further usage.
             for (let headerName in requestOptions.headers) {
                 if (Config.GOOGLE_AUTH_HEADER_NAMES.includes(headerName)) {
@@ -1239,7 +1244,7 @@
             }
         }
 
-        if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url.pathname)) {
+        if (Config.SKIP_CONTENT_WARNINGS && ['/youtubei/v1/player', '/youtubei/v1/next'].includes(url_obj.pathname)) {
             // Add content check flags to player and next request (this will skip content warnings)
             requestOptions.body = setContentCheckOk(requestOptions.body);
         }
