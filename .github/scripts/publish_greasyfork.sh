@@ -63,14 +63,13 @@ SCRIPT_UPDATE_RESPONSE="$(request \
     -F "authenticity_token=$AUTH_TOKEN" \
     -F "script_version[code]=" \
     -F "code_upload=@$SCRIPT_FILE_PATH" \
-    -F "script_version[attachments][]=" \
-    -F "script_version[attachments][]=; filename=\"\"" \
     -F "script_version[additional_info][0][attribute_default]=true" \
     -F "script_version[additional_info][0][value_markup]=html" \
     -F "script_version[additional_info][0][attribute_value]=" \
+    -F "script_version[attachments][]=" \
     -F "script_version[changelog_markup]=html" \
     -F "script_version[changelog]=" \
-    -F "script[script_type_id]=$GREASYFORK_SCRIPT_TYPE" \
+    -F "script[script_type]=$GREASYFORK_SCRIPT_TYPE" \
     -F "script[adult_content_self_report]=0" \
     -F "commit=Post new version" \
     "$UPDATE_URL")"
