@@ -15,17 +15,19 @@ env:
   USERSCRIPT_FILE_PATH: dist/Simple-YouTube-Age-Restriction-Bypass.user.js
 
 jobs:
-  release_and_publish:
+  release:
+    name: Release
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.release.target_commitish }}
           fetch-depth: 0
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -40,7 +42,7 @@ jobs:
         run: npm run build
 
       - name: Upload assets to GitHub release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             ${{ env.USERSCRIPT_FILE_PATH }}
@@ -67,16 +69,10 @@ jobs:
           git tag -f "$TAG_NAME"
           git push -f origin "$TAG_NAME"
 
-      - name: Publish on GreasyFork
-        # Prevent running this in forks and also if this is a prerelease
-        if: github.event.repository.fork == false && github.event.release.prerelease == false
-        env:
-          GREASYFORK_USER_EMAIL: ${{ secrets.GREASYFORK_USER_EMAIL }}
-          GREASYFORK_USER_PASS: ${{ secrets.GREASYFORK_USER_PASS }}
-          GREASYFORK_SCRIPT_ID: "423851"
-          # public - for all to see and use.
-          # unlisted - for (semi-)private use. Available by direct access, but not linked to from anywhere on Greasy Fork.
-          # library - intended to be @require-d from other scripts and not installed directly.
-          GREASYFORK_SCRIPT_TYPE: public
-          SCRIPT_FILE_PATH: ./${{ env.USERSCRIPT_FILE_PATH }}
-        run: bash ./.github/scripts/publish_greasyfork.sh
+  publish:
+    name: Publish to GreasyFork
+    needs: release
+    # Prevent running this in forks and also if this is a prerelease
+    if: github.event.repository.fork == false && github.event.release.prerelease == false
+    uses: ./.github/workflows/publish_to_greasyfork.yml
+    secrets: inherit

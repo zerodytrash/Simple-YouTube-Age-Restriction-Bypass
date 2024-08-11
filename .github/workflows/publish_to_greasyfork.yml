@@ -1,0 +1,41 @@
+name: Publish to GreasyFork
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  publish_to_greasyfork:
+    name: Publish to GreasyFork
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./.github/scripts/publish_to_greasyfork
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to GreasyFork
+        run: node dist/main.js --enable-source-maps
+        env:
+          GREASYFORK_USER_EMAIL: ${{ secrets.GREASYFORK_USER_EMAIL }}
+          GREASYFORK_USER_PASS: ${{ secrets.GREASYFORK_USER_PASS }}
+          GREASYFORK_SCRIPT_ID: '423851'
+          # public - for all to see and use.
+          # unlisted - for (semi-)private use. Available by direct access, but not linked to from anywhere on Greasy Fork.
+          # library - intended to be @require-d from other scripts and not installed directly.
+          GREASYFORK_SCRIPT_TYPE: public
+          SCRIPT_PATH_TO_UPLOAD: ${{ github.workspace }}/dist/Simple-YouTube-Age-Restriction-Bypass.user.js
