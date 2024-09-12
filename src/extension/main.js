@@ -34,11 +34,20 @@ function injectScript() {
 
         // DANGER: DO NOT USE GLOBALS HERE WITHOUT `window` OBJECT!! FIREFOX BUG WITH GLOBALS.
         const injectorCode = `
-        const nScript = document.createElement('script');
-        nScript.innerHTML = ${JSON.stringify(mainCode)};
-        document.documentElement.append(nScript);
-        nScript.remove();
-        `;
+// WORKAROUND: TypeError: Failed to set the 'innerHTML' property on 'Element': This document requires 'TrustedHTML' assignment.
+if (window.trustedTypes && !trustedTypes.defaultPolicy) {
+    const passThroughFn = (x) => x;
+    trustedTypes.createPolicy('default', {
+        createHTML: passThroughFn,
+        createScriptURL: passThroughFn,
+        createScript: passThroughFn,
+    });
+}
+const nScript = document.createElement('script');
+nScript.innerHTML = ${JSON.stringify(mainCode)};
+document.documentElement.append(nScript);
+nScript.remove();
+`;
 
         const nInjector = document.createElement('injector');
         nInjector.setAttribute('onclick', injectorCode);
