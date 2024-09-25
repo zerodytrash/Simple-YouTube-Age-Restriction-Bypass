@@ -81,7 +81,7 @@ const generateApiRequestHeaders = function (credentials) {
     const origin = "https://www.youtube.com";
 
     return {
-        "Cookie": `SID=${credentials.SID}; HSID=${credentials.HSID}; SSID=${credentials.SSID}; APISID=${credentials.APISID}; SAPISID=${credentials.SAPISID};`,
+        "Cookie": `SID=${credentials.SID}; HSID=${credentials.HSID}; SSID=${credentials.SSID}; APISID=${credentials.APISID}; SAPISID=${credentials.SAPISID}; __Secure-1PSIDTS=${credentials.PSIDTS};`,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36",
         "Content-Type": "application/json",
         "Authorization": generateSidBasedAuth(credentials.SAPISID, origin),

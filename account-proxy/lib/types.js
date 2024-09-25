@@ -14,6 +14,7 @@ class YouTubeCredentials {
         this.SSID = process.env.SSID;
         this.APISID = process.env.APISID;
         this.SAPISID = process.env.SAPISID;
+        this.PSIDTS = process.env.PSIDTS;
 
         validateObjectAttributes(this);
     }
