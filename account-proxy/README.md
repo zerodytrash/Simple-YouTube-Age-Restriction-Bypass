@@ -25,10 +25,6 @@ ENABLE_TRUST_PROXY=0
 # The statistics can be retrieved via the `/getStats` endpoint in JSON format
 ENABLE_STATS=1
 
-# YouTube Config
-# API Key is always the same (required)
-API_KEY=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8
-
 # Cookie values (required)
 SID=
 HSID=

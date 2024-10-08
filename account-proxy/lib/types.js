@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 import dotenv from 'dotenv';
 
 import { fillObjectFromRequest, validateObjectAttributes } from './utils.js';
@@ -8,7 +6,6 @@ dotenv.config();
 
 class YouTubeCredentials {
     constructor() {
-        this.API_KEY = process.env.API_KEY;
         this.SID = process.env.SID;
         this.HSID = process.env.HSID;
         this.SSID = process.env.SSID;
