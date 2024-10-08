@@ -1,5 +1,3 @@
-import process from 'node:process';
-
 import dotenv from 'dotenv';
 import { ProxyAgent } from 'undici';
 
@@ -13,14 +11,6 @@ dotenv.config();
 const credentials = new YouTubeCredentials();
 const proxy = process.env.PROXY;
 const proxyAgent = proxy ? new ProxyAgent(proxy) : undefined;
-
-const relevantAttributes = [
-    'playabilityStatus',
-    'videoDetails',
-    'streamingData',
-    'contents',
-    'engagementPanels'
-]
 
 function getPlayer(req, res) {
     handleProxyRequest(req, res, 'player');
@@ -53,51 +43,49 @@ async function handleProxyRequest(req, res, endpoint) {
             pRequests.push(innertubeApi.sendApiRequest('next', clientParams, credentials, proxyAgent));
         }
 
-        const youtubeResponses = await Promise.all(pRequests);
-        let result = handleResponses(youtubeResponses, clientParams, endpoint);
+        const [playerResponse, nextResponse] = await Promise.all(pRequests);
 
-        res.code(200).send(result);
+        if (!playerResponse || typeof playerResponse !== 'object') {
+            throw new Error(`Invalid YouTube response received for endpoint /player`);
+        }
+
+        if (clientParams.includeNext && (!nextResponse || typeof nextResponse !== 'object')) {
+            throw new Error(`Invalid YouTube response received for endpoint /next`);
+        }
+
+        const youtubeStatus = getYoutubeResponseStatus(playerResponse);
+        const youtubeGcrFlagSet = checkForGcrFlag(playerResponse);
+
+        stats.countResponse('player', youtubeStatus, youtubeGcrFlagSet);
+
+        const responseData = extractAttributes(playerResponse, ['playabilityStatus', 'videoDetails', 'streamingData']);
+
+        responseData.proxy = { clientParams, youtubeGcrFlagSet, youtubeStatus };
+
+        /**
+         * Workaround: when we provide `adaptiveFormats` the client cannot playback the video.
+         *
+         * It seems the URLs we get here or the one the client constructs from these URLs are tied to the requesting account.
+         * The low quality `formats` URLs seem fine.
+         */
+        delete responseData.streamingData.adaptiveFormats;
+
+        if (nextResponse) {
+            stats.countResponse('next', getYoutubeResponseStatus(nextResponse), null);
+            responseData.nextResponse = extractAttributes(nextResponse, ['contents', 'engagementPanels']);
+        }
+
+        res.code(200).send(responseData);
     } catch (err) {
-        console.error(endpoint, err.message);
-        res.code(500).send({ errorMessage: err.message });
-        stats.countResponse(endpoint, 'EXCEPTION');
-        stats.countException(endpoint, err.message);
-    } finally {
-        let latencyMs = new Date().getTime() - tsStart;
-        stats.countLatency(latencyMs);
+        if (err instanceof Error) {
+            console.error(endpoint, err.message);
+            res.code(500).send({ errorMessage: err.message });
+            stats.countResponse(endpoint, 'EXCEPTION');
+            stats.countException(endpoint, err.message);
+        }
     }
-}
 
-function handleResponses(youtubeResponses, clientParams, endpoint) {
-    let responseData = {};
-
-    youtubeResponses.forEach((response, index) => {
-        const currentEndpoint = ((endpoint === 'next' && index === 0) || (endpoint === 'player' && index === 1)) ? 'next' : 'player';
-
-        if (response === null || typeof response !== 'object') {
-            throw new Error(`Invalid YouTube response received for endpoint /${currentEndpoint}`);
-        }
-
-        const youtubeStatus = getYoutubeResponseStatus(response);
-        const youtubeGcrFlagSet = checkForGcrFlag(response);
-        const relevantData = extractAttributes(response, relevantAttributes);
-
-        stats.countResponse(currentEndpoint, youtubeStatus, youtubeGcrFlagSet);
-
-        if (index === 0) {
-            responseData = relevantData;
-
-            responseData.proxy = {
-                clientParams,
-                youtubeGcrFlagSet,
-                youtubeStatus
-            };
-        } else {
-            responseData[currentEndpoint + 'Response'] = relevantData;
-        }
-    });
-
-    return responseData;
+    stats.countLatency(new Date().getTime() - tsStart);
 }
 
 export default {
