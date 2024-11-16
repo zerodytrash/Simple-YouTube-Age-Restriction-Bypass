@@ -18,9 +18,12 @@ async function main() {
 
     const greasyfork_script_type = (() => {
         switch (process.env.GREASYFORK_SCRIPT_TYPE) {
-            case 'public': return '1';
-            case 'unlisted': return '2';
-            case 'library': return '3';
+            case 'public':
+                return '1';
+            case 'unlisted':
+                return '2';
+            case 'library':
+                return '3';
         }
     })();
     if (!greasyfork_script_type) {
@@ -56,7 +59,7 @@ async function publish_to_greasyfork(user_email: string, user_pass: string, scri
     const BASE_URL = 'https://greasyfork.org';
 
     // "/en/search" appears to be the lightest page
-    const LIGHTEST_PAGE_URL= `${BASE_URL}/en/search`;
+    const LIGHTEST_PAGE_URL = `${BASE_URL}/en/search`;
 
     // Get initial page to retrieve the initial tokens
     const initial_response = await fetch(LIGHTEST_PAGE_URL);
@@ -70,7 +73,7 @@ async function publish_to_greasyfork(user_email: string, user_pass: string, scri
         throw new Error('Could not retrieve initial authenticity token');
     }
 
-    const login_request_url= `${BASE_URL}/en/users/sign_in`;
+    const login_request_url = `${BASE_URL}/en/users/sign_in`;
 
     const login_request_options: RequestInit = {
         method: 'POST',
@@ -130,7 +133,7 @@ async function publish_to_greasyfork(user_email: string, user_pass: string, scri
     update_body.set('script[adult_content_self_report]', '0');
     update_body.set('commit', 'Post new version');
 
-    const upload_request_url= `${BASE_URL}/en/scripts/${script_id}/versions`;
+    const upload_request_url = `${BASE_URL}/en/scripts/${script_id}/versions`;
 
     const upload_request_options: RequestInit = {
         method: 'POST',

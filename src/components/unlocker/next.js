@@ -1,13 +1,14 @@
-import { createDeepCopy, isDesktop } from '../../utils';
-import * as logger from '../../utils/logger';
-import { next as nextInspector } from '../inspectors';
-import { getNextUnlockStrategies } from '../strategies';
-import { lastPlayerUnlockReason, lastPlayerUnlockVideoId } from './player';
+import * as logger from '../../logger.js';
+import { createDeepCopy, getYtcfgValue, isDesktop } from '../../utils.js';
+import innertube from '../innertube.js';
+import { lastPlayerUnlockReason, lastPlayerUnlockVideoId } from './player.js';
 
 let cachedNextResponse = {};
 
-export default function unlockResponse(originalNextResponse) {
-    const videoId = originalNextResponse.currentVideoEndpoint.watchEndpoint.videoId;
+export function unlockResponse(ytData) {
+    const response = ytData.response ?? ytData;
+
+    const videoId = response.currentVideoEndpoint.watchEndpoint.videoId;
 
     if (!videoId) {
         throw new Error(`Missing videoId in nextResponse`);
@@ -21,41 +22,39 @@ export default function unlockResponse(originalNextResponse) {
     const unlockedNextResponse = getUnlockedNextResponse(videoId);
 
     // check if the sidebar of the unlocked response is still empty
-    if (nextInspector.isWatchNextSidebarEmpty(unlockedNextResponse)) {
+    if (isWatchNextSidebarEmpty(unlockedNextResponse)) {
         throw new Error(`Sidebar Unlock Failed`);
     }
 
     // Transfer some parts of the unlocked response to the original response
-    mergeNextResponse(originalNextResponse, unlockedNextResponse);
+    mergeNextResponse(response, unlockedNextResponse);
 }
 
 function getUnlockedNextResponse(videoId) {
     // Check if response is cached
     if (cachedNextResponse.videoId === videoId) return createDeepCopy(cachedNextResponse);
 
-    const unlockStrategies = getNextUnlockStrategies(videoId, lastPlayerUnlockReason);
+    const unlockStrategies = getUnlockStrategies(videoId, lastPlayerUnlockReason);
 
     let unlockedNextResponse = {};
 
-    // Try every strategy until one of them works
-    unlockStrategies.every((strategy, index) => {
-        if (strategy.skip) return true;
+    for (const strategy of unlockStrategies) {
+        if (strategy.skip) continue;
 
-        logger.info(`Trying Next Unlock Method #${index + 1} (${strategy.name})`);
+        logger.info(`Trying Next Unlock Method ${strategy.name}`);
 
         try {
             unlockedNextResponse = strategy.endpoint.getNext(strategy.payload, strategy.optionalAuth);
         } catch (err) {
-            logger.error(err, `Next Unlock Method ${index + 1} failed with exception`);
+            logger.error(`Next unlock Method "${strategy.name}" failed with exception:`, err);
         }
 
-        return nextInspector.isWatchNextSidebarEmpty(unlockedNextResponse);
-    });
-
-    // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
-    cachedNextResponse = { videoId, ...createDeepCopy(unlockedNextResponse) };
-
-    return unlockedNextResponse;
+        if (!isWatchNextSidebarEmpty(unlockedNextResponse)) {
+            // Cache response to prevent a flood of requests in case youtube processes a blocked response mutiple times.
+            cachedNextResponse = { videoId, ...createDeepCopy(unlockedNextResponse) };
+            return unlockedNextResponse;
+        }
+    }
 }
 
 function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
@@ -99,4 +98,59 @@ function mergeNextResponse(originalNextResponse, unlockedNextResponse) {
     if (unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer) {
         originalStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer = unlockedStructuredDescriptionContentRenderer.expandableVideoDescriptionBodyRenderer;
     }
+}
+
+function getUnlockStrategies(videoId, lastPlayerUnlockReason) {
+    const clientName = getYtcfgValue('INNERTUBE_CLIENT_NAME') || 'WEB';
+    const clientVersion = getYtcfgValue('INNERTUBE_CLIENT_VERSION') || '2.20220203.04.00';
+    const hl = getYtcfgValue('HL');
+    const userInterfaceTheme = getYtcfgValue('INNERTUBE_CONTEXT').client.userInterfaceTheme
+        ?? (document.documentElement.hasAttribute('dark') ? 'USER_INTERFACE_THEME_DARK' : 'USER_INTERFACE_THEME_LIGHT');
+
+    return [
+        /**
+         * Retrieve the sidebar and video description by just adding `racyCheckOk` and `contentCheckOk` params
+         * This strategy can be used to bypass content warnings
+         */
+        {
+            name: 'Content Warning Bypass',
+            skip: !lastPlayerUnlockReason || !lastPlayerUnlockReason.includes('CHECK_REQUIRED'),
+            optionalAuth: true,
+            payload: {
+                context: {
+                    client: {
+                        clientName,
+                        clientVersion,
+                        hl,
+                        userInterfaceTheme,
+                    },
+                },
+                videoId,
+                racyCheckOk: true,
+                contentCheckOk: true,
+            },
+            endpoint: innertube,
+        },
+    ];
+}
+
+export function isWatchNextObject(ytData) {
+    const response = ytData.response ?? ytData;
+    if (!response?.contents || !response?.currentVideoEndpoint?.watchEndpoint?.videoId) return false;
+    return !!response.contents.twoColumnWatchNextResults || !!response.contents.singleColumnWatchNextResults;
+}
+
+export function isWatchNextSidebarEmpty(ytData) {
+    const response = ytData.response ?? ytData;
+
+    if (isDesktop) {
+        // WEB response layout
+        const result = response.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results;
+        return !result;
+    }
+
+    // MWEB response layout
+    const content = response.contents?.singleColumnWatchNextResults?.results?.results?.contents;
+    const result = content?.find((e) => e.itemSectionRenderer?.targetId === 'watch-next-feed')?.itemSectionRenderer;
+    return typeof result !== 'object';
 }

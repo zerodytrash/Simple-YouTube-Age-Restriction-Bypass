@@ -1,5 +1,5 @@
 import child_process from 'node:child_process';
-import fs from 'node:fs';
+import fs, { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { getBabelOutputPlugin } from '@rollup/plugin-babel';
@@ -7,23 +7,54 @@ import commonjs from '@rollup/plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import { rollup } from 'rollup';
-import html from 'rollup-plugin-html';
 
 import archiver from 'archiver';
 
-import pkg from '../package.json' assert { type: 'json' };
-import manifest from '../src/extension/mv3/manifest.json' assert { type: 'json' };
+const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
+const manifest = JSON.parse(readFileSync('./src/extension/mv3/manifest.json', 'utf8'));
 
 const OUT_PATH = 'dist';
-
-const USERSCRIPT_OUT_DIR = OUT_PATH;
-const USERSCRIPT_OUT_NAME = 'Simple-YouTube-Age-Restriction-Bypass.user.js';
 
 const WEB_EXTENSION_OUT_DIR = `${OUT_PATH}/extension`;
 const WEB_EXTENSION_OUT_MAIN_SCRIPT_NAME = manifest.content_scripts[0].js[0];
 const WEB_EXTENSION_OUT_WEB_SCRIPT_NAME = manifest.web_accessible_resources[0].resources[0];
 const WEB_EXTENSION_OUT_MV2_ZIP_NAME = 'extension_mv2_firefox.zip';
 const WEB_EXTENSION_OUT_MV3_ZIP_NAME = 'extension_mv3_chromium.zip';
+
+const USERSCRIPT_OUT_DIR = OUT_PATH;
+const USERSCRIPT_OUT_NAME = 'Simple-YouTube-Age-Restriction-Bypass.user.js';
+const USERSCRIPT_CONFIG = `
+// ==UserScript==
+// @name            Simple YouTube Age Restriction Bypass
+// @description     Watch age restricted videos on YouTube without login and without age verification 😎
+// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen 😎
+// @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
+// @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
+// @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
+// @version         __BUILD_VERSION__
+// @author          Zerody (https://github.com/zerodytrash)
+// @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
+// @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
+// @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js
+// @license         MIT
+// @match           https://www.youtube.com/*
+// @match           https://www.youtube-nocookie.com/*
+// @match           https://m.youtube.com/*
+// @match           https://music.youtube.com/*
+// @grant           none
+// @run-at          document-start
+// @compatible      chrome
+// @compatible      firefox
+// @compatible      opera
+// @compatible      edge
+// @compatible      safari
+// ==/UserScript==
+
+/*
+    This is a transpiled version to achieve a clean code base and better browser compatibility.
+    You can find the nicely readable source code at https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass
+*/
+`;
 
 console.time('\nTotal build time');
 
@@ -54,9 +85,7 @@ function cleanOutput() {
 }
 
 async function buildUserscript() {
-    function userscript(path) {
-        const config = fs.readFileSync(path, 'utf8');
-
+    function userscript() {
         const iife = (() => {
             const [top, bottom] = (() => {
                 (function iife(ranOnce) {
@@ -76,7 +105,7 @@ async function buildUserscript() {
 
         return {
             name: 'userscript',
-            banner: config + iife.top,
+            banner: USERSCRIPT_CONFIG + iife.top,
             footer: iife.bottom,
         };
     }
@@ -88,10 +117,9 @@ async function buildUserscript() {
             format: 'esm',
         },
         plugins: [
-            html(),
             nodeResolve(),
             commonjs(),
-            userscript('userscript.config.js'),
+            userscript(),
             replace({
                 __BUILD_TARGET__: `'USERSCRIPT'`,
                 __BUILD_VERSION__: pkg.version,
@@ -173,7 +201,6 @@ async function buildWebExtension() {
             format: 'iife',
         },
         plugins: [
-            html(),
             nodeResolve(),
             commonjs(),
             replace({ __BUILD_TARGET__: `'WEB_EXTENSION'`, preventAssignment: true }),

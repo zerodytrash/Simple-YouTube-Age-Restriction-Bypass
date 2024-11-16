@@ -1,8 +1,15 @@
-import Config from '../../config';
-import { createElement, isDesktop, isEmbed, isMusic, pageLoaded } from '../../utils';
+import * as config from '../../config.js';
+import { createElement, isDesktop, isEmbed, isMusic, pageLoaded } from '../../utils.js';
 
-import tDesktop from './templates/desktop.html';
-import tMobile from './templates/mobile.html';
+const tDesktop = `<tp-yt-paper-toast></tp-yt-paper-toast>`;
+
+const tMobile = `
+<c3-toast>
+    <ytm-notification-action-renderer>
+        <div class="notification-action-response-text"></div>
+    </ytm-notification-action-renderer>
+</c3-toast>
+`;
 
 const template = isDesktop ? tDesktop : tMobile;
 
@@ -26,7 +33,7 @@ if (!isDesktop) {
 }
 
 async function show(message, duration = 5) {
-    if (!Config.ENABLE_UNLOCK_NOTIFICATION) return;
+    if (!config.ENABLE_UNLOCK_NOTIFICATION) return;
     if (isEmbed) return;
 
     await pageLoaded();
