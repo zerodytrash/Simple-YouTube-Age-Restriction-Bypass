@@ -6,7 +6,9 @@
     "moduleResolution": "bundler",
     "target": "ESNext",
 
-    "types": [],
+    "types": ["@types/trusted-types"],
+
+    "lib": ["DOM", "ESNext"],
 
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
