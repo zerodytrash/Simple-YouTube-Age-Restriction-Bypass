@@ -131,7 +131,7 @@ async function buildUserscript() {
         ],
     });
 
-    child_process.execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes-override !**/dist`);
+    child_process.execSync(`yarn dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes-override !**/dist`);
 }
 
 async function buildWebExtension() {
