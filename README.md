@@ -1,3 +1,5 @@
+> ⚠️ The extension no longer works correctly since the latest changes made by YouTube. Since I currently have no capacity to work on it, we are dependent on contributions from the open source community. Feel free to create forks and develop the extension further. I will accept well documented pull requests.
+
 <div align="center">
     <img height="80" src="../../raw/main/src/extension/icon/icon_128.png"></img>
     <h1>Simple YouTube Age Restriction Bypass</h1>
