@@ -26,28 +26,27 @@ const USERSCRIPT_OUT_NAME = 'Simple-YouTube-Age-Restriction-Bypass.user.js';
 const USERSCRIPT_CONFIG = `
 // ==UserScript==
 // @name            Simple YouTube Age Restriction Bypass
-// @description     Watch age restricted videos on YouTube without login and without age verification 😎
-// @description:de  Schaue YouTube Videos mit Altersbeschränkungen ohne Anmeldung und ohne dein Alter zu bestätigen 😎
-// @description:fr  Regardez des vidéos YouTube avec des restrictions d'âge sans vous inscrire et sans confirmer votre âge 😎
-// @description:it  Guarda i video con restrizioni di età su YouTube senza login e senza verifica dell'età 😎
+// @name:de         Einfache Umgehung der YouTube Altersbeschränkung
+// @description     Watch YouTube videos with age restrictions without having to sign in and confirm the age 😎
+// @description:de  YouTube-Videos mit Altersbeschränkungen ansehen, ohne sich anmelden und das Alter bestätigen zu müssen 😎.
+// @description:dk  Se YouTube-videoer med aldersbegrænsninger uden at skulle logge ind og bekræfte din alder 😎.
+// @description:es  Mira vídeos de YouTube con restricciones de edad sin tener que iniciar sesión y confirmar la edad 😎
+// @description:fr  Regarde des vidéos YouTube avec des restrictions d'âge sans avoir à t'identifier et à confirmer ton âge 😎
+// @description:it  Guarda i video di YouTube con limitazioni di età senza doverti registrare e confermare la tua età 😎
+// @description:jp  年齢制限のあるYouTubeの動画を、ログインや年齢確認なしで視聴できるよ 😎
+// @description:tr  Oturum açmak ve yaşınızı onaylamak zorunda kalmadan yaş sınırlaması olan YouTube videolarını izleyin 😎
+// @description:uk  Переглядайте відео на YouTube з віковими обмеженнями без необхідності входу та підтвердження віку 😎.
 // @icon            https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/v2.5.4/src/extension/icon/icon_64.png
 // @version         __BUILD_VERSION__
 // @author          Zerody (https://github.com/zerodytrash)
-// @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/
+// @namespace       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass
 // @supportURL      https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/issues
+// @downloadURL     https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js
 // @updateURL       https://github.com/zerodytrash/Simple-YouTube-Age-Restriction-Bypass/raw/main/dist/Simple-YouTube-Age-Restriction-Bypass.user.js
 // @license         MIT
-// @match           https://www.youtube.com/*
-// @match           https://www.youtube-nocookie.com/*
-// @match           https://m.youtube.com/*
-// @match           https://music.youtube.com/*
+// @match           https://*.youtube*.com/*
 // @grant           none
 // @run-at          document-start
-// @compatible      chrome
-// @compatible      firefox
-// @compatible      opera
-// @compatible      edge
-// @compatible      safari
 // ==/UserScript==
 
 /*
@@ -132,7 +131,7 @@ async function buildUserscript() {
         ],
     });
 
-    child_process.execSync(`dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes-override !**/dist`);
+    child_process.execSync(`yarn dprint fmt ${USERSCRIPT_OUT_DIR}/${USERSCRIPT_OUT_NAME} --excludes-override !**/dist`);
 }
 
 async function buildWebExtension() {
